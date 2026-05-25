@@ -51,3 +51,24 @@ This plugin implements a complete, end-to-end Software Development Lifecycle pro
    - If a pipeline fails or an error occurs, these skills analyze the failure to suggest stronger guardrails, preventing the same class of failure in the future.
 7. **Shipping & Release** (`/version-sdlc`, `/ship-sdlc`)
    - Automates semantic versioning, changelog generation, and finalizing the release of the project.
+
+## Skills Reference
+
+The plugin exposes the following skills for managing your workflows:
+
+| Skill | Description |
+|---|---|
+| `/setup-sdlc` | Initializes guardrails, code review dimensions, and templates for a project. |
+| `/plan-sdlc` | Scopes requirements and generates structured implementation plans. |
+| `/execute-plan-sdlc` | Executes implementation plans systematically while adhering to guardrails. |
+| `/commit-sdlc` | Generates smart, conventional commit messages and executes commits. |
+| `/review-sdlc` | Performs automated code review against project-specific dimensions. |
+| `/pr-sdlc` | Generates descriptions and creates pull requests. |
+| `/received-review-sdlc` | Analyzes and processes code review feedback received on an open PR. |
+| `/verify-pipeline-sdlc` | Monitors and diagnoses CI/CD pipeline runs for your PRs. |
+| `/version-sdlc` | Manages semantic versioning and changelog generation. |
+| `/ship-sdlc` | Orchestrates the end-to-end shipping process (review, verify, merge, release). |
+| `/error-report-sdlc` | Reports complex failures or plugin defects for tracking. |
+| `/harden-sdlc` | Analyzes pipeline failures to strengthen guardrails and prevent regressions. |
+| `/jira-sdlc` | Integrates with Jira for ticket tracking and updates. |
+
