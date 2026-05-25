@@ -36,6 +36,27 @@ Once installed, the SDLC skills will be automatically registered with your Antig
 
 This plugin implements a complete, end-to-end Software Development Lifecycle process natively within the chat interface. The workflow is structured into the following distinct phases:
 
+```mermaid
+flowchart TD
+    Plan["Planning & Execution\n(/plan-sdlc, /execute-plan-sdlc)"]
+    Commit["Committing\n(/commit-sdlc)"]
+    Review["Code Review\n(/review-sdlc)"]
+    PR["Pull Requests\n(/pr-sdlc)"]
+    CI["Continuous Integration\n(/verify-pipeline-sdlc)"]
+    CI_Check{"CI Passed?"}
+    Recover["Hardening & Recovery\n(/error-report-sdlc, /harden-sdlc)"]
+    Ship["Shipping & Release\n(/version-sdlc, /ship-sdlc)"]
+
+    Plan --> Commit
+    Commit --> Review
+    Review --> PR
+    PR --> CI
+    CI --> CI_Check
+    CI_Check -- "No" --> Recover
+    Recover -. "Fix Issue" .-> Plan
+    CI_Check -- "Yes" --> Ship
+```
+
 1. **Planning & Execution** (`/plan-sdlc`, `/execute-plan-sdlc`)
    - Scopes requirements, proposes architectural decisions, and breaks down the work into manageable tasks.
    - Executes the implementation plan systematically while adhering to guardrails.
@@ -70,5 +91,6 @@ The plugin exposes the following skills for managing your workflows:
 | `/ship-sdlc` | Orchestrates the end-to-end shipping process (review, verify, merge, release). |
 | `/error-report-sdlc` | Reports complex failures or plugin defects for tracking. |
 | `/harden-sdlc` | Analyzes pipeline failures to strengthen guardrails and prevent regressions. |
+| `/github-sdlc` | Integrates with GitHub Issues for ticket tracking and updates. |
 | `/jira-sdlc` | Integrates with Jira for ticket tracking and updates. |
 
