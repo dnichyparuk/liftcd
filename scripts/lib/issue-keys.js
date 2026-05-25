@@ -1,29 +1,29 @@
 'use strict';
 
 /**
- * jira-keys.js
- * Single source for JIRA-key extraction across the corpus (issue #284,
+/**
+ * issue-keys.js
+ * Single source for issue ticket extraction across the corpus (issue #284,
  * task 21). Replaces the bare `JIRA_PATTERN` in `skill/pr.js` and the
  * `TICKET_RE` inside `lib/version.js::parseConventionalCommit`.
  *
- * Canonical pattern: `\b([A-Z]{2,10}-\d+)\b`
- *   - 2-10 uppercase letters, a dash, then one or more digits
- *   - Word boundaries on both ends to avoid embedded matches
- *   - Matches typical Jira/Linear/etc. issue keys (PROJ-123, ABCD-7)
+ * Canonical patterns:
+ *   - Jira: \b([A-Z]{2,10}-\d+)\b
+ *   - GitHub: #123, issue-123, 123-some-feature
  *
  * The pattern is intentionally a string (not a precompiled RegExp) so
  * each caller can wrap it with the flags they need (`g` for find-all,
  * none for first-match) without sharing mutable RegExp state.
  *
  * Exports:
- *   - JIRA_KEY_REGEX_SOURCE   raw pattern string (no flags)
- *   - jiraKeyRegex(flags)     fresh RegExp with the requested flags
+ *   - ISSUE_KEY_REGEX_SOURCE   raw pattern string (no flags)
+ *   - issueKeyRegex(flags)     fresh RegExp with the requested flags
  *   - extractKeys(text, opts) all unique keys in `text`, optional prefix filter
  *   - extractFromBranchAndCommits(branch, commits, opts)
  *                             ordered, deduplicated keys from branch + commits
  */
 
-const JIRA_KEY_REGEX_SOURCE = '\\b([A-Z]{2,10}-\\d+)\\b';
+const ISSUE_KEY_REGEX_SOURCE = '\\b([A-Z]{2,10}-\\d+)\\b|(?:^|\\s)#(\\d+)\\b|\\bissue-(\\d+)\\b|\\b(\\d+)-[a-zA-Z0-9_-]+\\b';
 
 /**
  * Build a fresh RegExp instance with the given flags. Returning a new
@@ -31,12 +31,12 @@ const JIRA_KEY_REGEX_SOURCE = '\\b([A-Z]{2,10}-\\d+)\\b';
  * @param {string} [flags='']
  * @returns {RegExp}
  */
-function jiraKeyRegex(flags = '') {
-  return new RegExp(JIRA_KEY_REGEX_SOURCE, flags);
+function issueKeyRegex(flags = '') {
+  return new RegExp(ISSUE_KEY_REGEX_SOURCE, flags);
 }
 
 /**
- * Extract all unique JIRA keys from a blob of text. Order preserved.
+ * Extract all unique issue keys from a blob of text. Order preserved.
  * @param {string} text
  * @param {object} [opts]
  * @param {string} [opts.prefix]  Limit to keys whose prefix matches (e.g. `"PROJ"`).
@@ -44,14 +44,22 @@ function jiraKeyRegex(flags = '') {
  */
 function extractKeys(text, { prefix = null } = {}) {
   if (!text) return [];
-  const re = jiraKeyRegex('g');
-  const all = Array.from(text.matchAll(re), m => m[1]);
+  const re = issueKeyRegex('g');
+  const all = [];
+  for (const match of text.matchAll(re)) {
+    // Extract the first non-undefined capture group
+    const key = match[1] || match[2] || match[3] || match[4];
+    if (key) {
+      // Normalize GitHub issue numbers to just the number if they match #123 or issue-123
+      all.push(match[1] ? key : `#${key}`);
+    }
+  }
   const filtered = prefix ? all.filter(id => id.startsWith(`${prefix}-`)) : all;
   return [...new Set(filtered)];
 }
 
 /**
- * Extract JIRA keys from a branch name and a list of commit subjects/bodies.
+ * Extract issue keys from a branch name and a list of commit subjects/bodies.
  * Branch name takes precedence (its key, if any, is first in the result).
  *
  * @param {string|null} branch
@@ -84,8 +92,8 @@ function extractFromBranchAndCommits(branch, commits, opts = {}) {
 }
 
 module.exports = {
-  JIRA_KEY_REGEX_SOURCE,
-  jiraKeyRegex,
+  ISSUE_KEY_REGEX_SOURCE,
+  issueKeyRegex,
   extractKeys,
   extractFromBranchAndCommits,
 };

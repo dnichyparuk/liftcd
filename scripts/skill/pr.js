@@ -54,7 +54,7 @@ const { writeOutput } = require(path.join(LIB, 'output'));
 const { resolveSkipConfigCheck, ensureConfigVersion } = require(path.join(LIB, 'config-version-prepare'));
 const { validateLinks, formatViolations } = require(path.join(LIB, 'links'));
 const { loadPrTemplate } = require(path.join(LIB, 'pr-template'));
-const { jiraKeyRegex } = require(path.join(LIB, 'jira-keys'));
+const { issueKeyRegex, extractFromBranchAndCommits } = require(path.join(LIB, 'issue-keys'));
 const { validateExpectedBranch } = require(path.join(LIB, 'branch-guard'));
 
 // ---------------------------------------------------------------------------
@@ -106,32 +106,18 @@ function validateBranchName(name) {
 }
 
 // ---------------------------------------------------------------------------
-// JIRA ticket detection
+// Issue ticket detection
 // ---------------------------------------------------------------------------
-// Issue #284, task 21: regex sourced from `lib/jira-keys.js` so pr.js and
-// `lib/version.js` agree on the canonical pattern. We keep the existing
-// `detectJiraTicket(branch, commits)` shape (FIRST match only — branch
-// wins, then iterate commit subjects) because the wider helper
-// `extractFromBranchAndCommits` returns ALL keys; the two semantics
-// differ.
 
 /**
- * Scan branch name and commit subjects for the first JIRA-style ticket reference.
+ * Scan branch name and commit subjects for the first issue reference.
  * @param {string} branchName
  * @param {Array<{ subject: string }>} commits
  * @returns {string|null}
  */
-function detectJiraTicket(branchName, commits) {
-  const re = jiraKeyRegex();
-  const branchMatch = branchName.match(re);
-  if (branchMatch) return branchMatch[1];
-
-  for (const commit of commits) {
-    const m = commit.subject.match(jiraKeyRegex());
-    if (m) return m[1];
-  }
-
-  return null;
+function detectIssueTicket(branchName, commits) {
+  const keys = extractFromBranchAndCommits(branchName, commits);
+  return keys.length > 0 ? keys[0] : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -462,8 +448,8 @@ function main() {
 
   const changedFiles = getChangedFiles(baseBranch, projectRoot, 'committed');
 
-  // Step 10: Extract JIRA ticket
-  const jiraTicket = detectJiraTicket(currentBranch, commits);
+  // Step 10: Extract issue ticket
+  const issueTicket = detectIssueTicket(currentBranch, commits);
 
   const repoLabels = fetchRepoLabels();
 
@@ -549,7 +535,7 @@ function main() {
     existingPr: prMeta.exists
       ? { number: prMeta.number, title: prMeta.title, url: prMeta.url, state: prMeta.state, labels: prMeta.labels || [] }
       : null,
-    jiraTicket,
+    issueTicket,
     customTemplate,
     prConfig,
     commits,
@@ -625,4 +611,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { parseArgs, detectJiraTicket, detectPrMode };
+module.exports = { parseArgs, detectIssueTicket, detectPrMode };

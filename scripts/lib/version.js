@@ -14,7 +14,7 @@
 const fs   = require('node:fs');
 const path = require('node:path');
 const { readSection, writeSection } = require('./config');
-const { extractKeys: extractJiraKeys } = require('./jira-keys');
+const { extractKeys: extractIssueKeys } = require('./issue-keys');
 
 // ---------------------------------------------------------------------------
 // Version file detection
@@ -300,12 +300,10 @@ function parseConventionalCommit(subject, body = '', ticketPrefix = null) {
   const match = subject.match(/^(\w+)(\([^)]+\))?(!)?: (.+)$/);
 
   // Extract ticket IDs from both subject and body using the canonical
-  // JIRA-key regex (issue #284, task 21). Note: the canonical pattern is
-  // `[A-Z]{2,10}-\d+` — slightly stricter than the previous
-  // `[A-Z][A-Z0-9]+-\d+` which permitted 1-letter+digit prefixes
-  // (e.g. `T2-1`). Real-world Jira/Linear keys use 2+ uppercase letters.
+  // issue-key regex (issue #284, task 21). Note: the canonical pattern matches
+  // both Jira-style keys [A-Z]{2,10}-\d+ and GitHub-style issue numbers.
   const combined  = `${subject}\n${body || ''}`;
-  const ticketIds = extractJiraKeys(combined, ticketPrefix ? { prefix: ticketPrefix } : {});
+  const ticketIds = extractIssueKeys(combined, ticketPrefix ? { prefix: ticketPrefix } : {});
 
   if (!match) {
     return { type: 'other', scope: null, breaking: false, description: subject, ticketIds };

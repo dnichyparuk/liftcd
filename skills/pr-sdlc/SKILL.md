@@ -44,8 +44,8 @@ When no custom template is present, every PR uses this 8-section flat structure.
 ## Summary
 [1-3 sentence plain-language overview accessible to anyone — no jargon]
 
-## JIRA Ticket
-[Auto-detected from branch name or commit messages, e.g. PROJ-123.
+## Issue Ticket
+[Auto-detected from branch name or commit messages, e.g. PROJ-123 or #123.
 "Not detected" if no ticket reference found.]
 
 ## Business Context
@@ -158,7 +158,7 @@ Key fields available (including `customTemplate` added for project-level PR temp
 | `isDraft` | Whether to create a draft PR |
 | `ghAuth` | `{ switched, account, previousAccount }` or `null` — GitHub account switch result |
 | `existingPr` | `{ number, title, url, state, labels }` or `null` |
-| `jiraTicket` | Detected ticket reference or `null` |
+| `issueTicket` | Detected ticket reference or `null` |
 | `commits` | `[{ hash, subject, body, coAuthors }]` — all commits on this branch |
 | `diffStat` | `{ filesChanged, insertions, deletions, totalLinesChanged, summary }` |
 | `diffContent` | Full unified diff text |
@@ -195,7 +195,7 @@ When OpenSpec context provides business rationale, use it directly instead of as
 For each section, apply the fill rules:
 
 - **Summary**: Plain-language, no jargon, 1-3 sentences
-- **JIRA Ticket**: Use `context.jiraTicket` or "Not detected"
+- **Issue Ticket**: Use `context.issueTicket` or "Not detected"
 - **Business Context / Benefits**: Infer from `context.commits` and `context.diffContent`. If insufficient evidence, **use AskUserQuestion** to ask the user before writing. Don't guess. Acceptable question: *"What business problem does this PR solve? Who benefits and how?"*
 - **Technical Design**: Infer from `context.diffContent` — architecture, patterns, key decisions
 - **Technical Impact**: Identify affected systems/APIs/services from the diff
@@ -341,7 +341,7 @@ Before presenting to the user, review the draft against every quality gate:
 | Title length | Title under 72 characters | `len(title) < 72` |
 | Title pattern match | Title matches `prConfig.titlePattern` regex (skip when null/absent) | Regex passes or `prConfig` is null |
 | No fabrication | All claims traceable to commits, diff, or user input | Nothing invented |
-| JIRA accuracy | JIRA value matches evidence or is "Not detected" | No guessed ticket numbers |
+| Issue accuracy | Issue value matches evidence or is "Not detected" | No guessed ticket numbers |
 | Audience check | Readable by non-technical stakeholders | No unexplained jargon in Summary/Business sections |
 | Documentation sync | If diff adds new commands, changes structure, renames concepts, or adds new directories/scripts: check that at least one `docs:` commit exists on this branch OR ask the user to confirm docs are updated | PR does not silently ship structural changes without a corresponding docs update |
 | Label validity | Every label in `suggestedLabels` exists in `repoLabels` | Zero fabricated labels |

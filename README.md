@@ -38,6 +38,7 @@ This plugin implements a complete, end-to-end Software Development Lifecycle pro
 
 ```mermaid
 flowchart TD
+    Issue["Issue Tracking\n(/github-sdlc, /jira-sdlc)"]
     Plan["Planning & Execution\n(/plan-sdlc, /execute-plan-sdlc)"]
     Commit["Committing\n(/commit-sdlc)"]
     Review["Code Review\n(/review-sdlc)"]
@@ -47,6 +48,7 @@ flowchart TD
     Recover["Hardening & Recovery\n(/error-report-sdlc, /harden-sdlc)"]
     Ship["Shipping & Release\n(/version-sdlc, /ship-sdlc)"]
 
+    Issue -. "Scopes work" .-> Plan
     Plan --> Commit
     Commit --> Review
     Review --> PR
@@ -55,6 +57,7 @@ flowchart TD
     CI_Check -- "No" --> Recover
     Recover -. "Fix Issue" .-> Plan
     CI_Check -- "Yes" --> Ship
+    Ship -. "Resolves" .-> Issue
 ```
 
 1. **Planning & Execution** (`/plan-sdlc`, `/execute-plan-sdlc`)
