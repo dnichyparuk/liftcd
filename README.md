@@ -31,3 +31,23 @@ Once installed, the SDLC skills will be automatically registered with your Antig
 - `/pr-sdlc` - Create a pull request
 - `/review-sdlc` - Review changes
 - `/ship-sdlc` - Ship a release
+
+## SDLC Pipeline Structure
+
+This plugin implements a complete, end-to-end Software Development Lifecycle process natively within the chat interface. The workflow is structured into the following distinct phases:
+
+1. **Planning & Execution** (`/plan-sdlc`, `/execute-plan-sdlc`)
+   - Scopes requirements, proposes architectural decisions, and breaks down the work into manageable tasks.
+   - Executes the implementation plan systematically while adhering to guardrails.
+2. **Committing** (`/commit-sdlc`)
+   - Automatically generates smart, conventional commit messages by analyzing your staged diff and recent project history.
+3. **Code Review** (`/review-sdlc`)
+   - Performs a comprehensive, automated code review of your changes against predefined dimensions (e.g., security, architecture, performance) before you open a Pull Request.
+4. **Pull Requests** (`/pr-sdlc`)
+   - Generates detailed, well-structured PR descriptions based on the diff and commit history.
+5. **Continuous Integration** (`/verify-pipeline-sdlc`)
+   - Interfaces with GitHub Actions to monitor, verify, and diagnose CI/CD pipeline runs for your PRs.
+6. **Hardening & Recovery** (`/error-report-sdlc`, `/harden-sdlc`)
+   - If a pipeline fails or an error occurs, these skills analyze the failure to suggest stronger guardrails, preventing the same class of failure in the future.
+7. **Shipping & Release** (`/version-sdlc`, `/ship-sdlc`)
+   - Automates semantic versioning, changelog generation, and finalizing the release of the project.
