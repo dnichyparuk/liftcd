@@ -1,0 +1,48 @@
+{
+  "git-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "command": "node ./hooks/pre-tool-git-guard.js"
+          }
+        ]
+      }
+    ]
+  },
+  "session-context": {
+    "PreInvocation": [
+      {
+        "hooks": [
+          {
+            "command": "node ./hooks/session-start.js"
+          }
+        ]
+      }
+    ]
+  },
+  "state-save": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "node ./hooks/stop-state-save.js"
+          }
+        ]
+      }
+    ]
+  },
+  "validation-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "command": "node ./hooks/pre-tool-validate.js"
+          }
+        ]
+      }
+    ]
+  }
+}
