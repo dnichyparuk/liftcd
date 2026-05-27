@@ -158,9 +158,12 @@ Build the final block:
 Locate the config helper:
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "config.js" -path "*/sdlc*/lib/config.js" 2>/dev/null | sort -V | tail -1)
-[ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/lib/config.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/lib/config.js"
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/lib/config.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
+
 ```
 
 Then merge the labels block into the existing `pr` section without clobbering

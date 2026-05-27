@@ -63,8 +63,11 @@ required before any further work, including running the prepare script.
 > **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','error-report-prepare.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/error-report-prepare.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/error-report-prepare.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/error-report-prepare.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 ERROR_CONTEXT_FILE=$(node "$SCRIPT" \
   --skill "$SKILL_NAME" \
@@ -82,6 +85,7 @@ EXIT_CODE=$?
 # the manifest is removed even if the caller cancels or errors out before
 # reaching the explicit cleanup branches.
 trap 'rm -f "$ERROR_CONTEXT_FILE"' EXIT INT TERM
+
 ```
 
 Substitute the shell variables with the values supplied by the calling skill. Optional

@@ -53,13 +53,17 @@ Run `skill/setup.js` via Bash to get current state:
 > **VERBATIM** -- Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','setup.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/setup.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/setup.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/setup.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
 EXIT_CODE=$?
 echo "PREPARE_OUTPUT_FILE=$PREPARE_OUTPUT_FILE"
 echo "EXIT_CODE=$EXIT_CODE"
+
 ```
 
 Parse the JSON output from `$PREPARE_OUTPUT_FILE`. If exit code != 0, display the error and stop.
@@ -197,22 +201,31 @@ Options:
 On **yes**: Run migration via inline Node.js that calls `migrateConfig()` from `lib/config.js`:
 
 ```bash
-SCRIPT_DIR=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','config.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT_DIR" ] && { echo "ERROR: Could not locate scripts/skill/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT_DIR="$SDLC_ROOT/scripts/skill/config.js"
+[ ! -f "$SCRIPT_DIR" ] && { echo "ERROR: Could not locate scripts/skill/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 node -e "
 const { migrateConfig } = require('$SCRIPT_DIR/config.js');
 const result = migrateConfig(process.cwd());
 console.log(JSON.stringify(result, null, 2));
 "
+
 ```
 
 Then dispatch the jira-templates migration shim if `prepare.legacy.jiraTemplates.exists` is true (R-LEGACY-DETECT, #423):
 
 ```bash
-SHIM=$(find ~/.claude/plugins -name "migrate-jira-templates.js" -path "*/sdlc*/scripts/skill/migrate-jira-templates.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SHIM="$SDLC_ROOT/scripts/skill/migrate-jira-templates.js"
+[ ! -f "$SHIM" ] && { echo "ERROR: Could not locate scripts/skill/migrate-jira-templates.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$SHIM" ] && [ -f "plugins/sdlc-utilities/scripts/skill/migrate-jira-templates.js" ] && SHIM="plugins/sdlc-utilities/scripts/skill/migrate-jira-templates.js"
 [ -n "$SHIM" ] && node "$SHIM" && echo "Jira templates migration complete" || echo "Jira templates migration: skipped or not found"
+
 ```
 
 Parse the output. Report what was migrated:
@@ -583,7 +596,11 @@ The historical step labels map onto the dispatcher above for anyone updating tes
 Before invoking `util/setup-init.js`, render an end-of-run diff preview comparing the in-memory snapshot of the project config as read at preflight (Step 0 prepare output) against the accumulated answers from Steps 3a–3f. Use `lib/config.js::computeConfigDiff(before, after)` — pure helper, no I/O:
 
 ```bash
-LIB_CONFIG=$(find ~/.claude/plugins -name "config.js" -path "*/sdlc*/lib/config.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+LIB_CONFIG="$SDLC_ROOT/lib/config.js"
+[ ! -f "$LIB_CONFIG" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$LIB_CONFIG" ] && [ -f "plugins/sdlc-utilities/scripts/lib/config.js" ] && LIB_CONFIG="plugins/sdlc-utilities/scripts/lib/config.js"
 
 # Write JSON snapshots to temp files to avoid shell quoting hazards with
@@ -600,6 +617,7 @@ const after  = JSON.parse(require('fs').readFileSync(process.env.AFTER_TMP,  'ut
 console.log(JSON.stringify(computeConfigDiff(before, after)));
 ")
 rm -f "$BEFORE_TMP" "$AFTER_TMP"
+
 ```
 
 Render `DIFF_JSON.changed[]` as a markdown table:
@@ -620,8 +638,11 @@ Otherwise, ask the user to confirm the diff via AskUserQuestion (suppressed when
 After collecting all answers AND confirming the diff preview above, write project config and local config via `util/setup-init.js`:
 
 ```bash
-INIT_SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','setup-init.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$INIT_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/setup-init.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+INIT_SCRIPT="$SDLC_ROOT/scripts/skill/setup-init.js"
+[ ! -f "$INIT_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/setup-init.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 # Replace <PROJECT_CONFIG_JSON> and <LOCAL_CONFIG_JSON> with the actual config objects
 # assembled from Steps 3a–3f. Only include sections that were configured (not skipped).
@@ -631,6 +652,7 @@ echo "INIT_OUTPUT_FILE=$INIT_OUTPUT_FILE"
 echo "EXIT_CODE=$EXIT_CODE"
 # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM.
 trap 'rm -f "$INIT_OUTPUT_FILE"' EXIT INT TERM
+
 ```
 
 Parse the output JSON from `$INIT_OUTPUT_FILE`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls.

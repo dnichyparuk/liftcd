@@ -20,8 +20,11 @@ Thin dispatcher — runs the prepare script, then delegates everything to the
 > **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','review.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/review.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/review.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/review.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 MANIFEST_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS --json)
 EXIT_CODE=$?
@@ -30,6 +33,7 @@ echo "EXIT_CODE=$EXIT_CODE"
 # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM, so
 # the manifest is removed even if dispatch errors or the agent crashes.
 trap 'rm -f "$MANIFEST_FILE"' EXIT INT TERM
+
 ```
 
 **On non-zero `EXIT_CODE`:**
@@ -158,12 +162,17 @@ Wait for the user's reply.
 - `yes` → **link verification (R14, issue #198) — HARD GATE.** Before `gh api … /comments`, validate every URL embedded in the consolidated review comment body via the shared link validator. The script reads the body from `--file` and auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON.
 
   ```bash
-  LINKS_LIB=$(find ~/.claude/plugins -name "links.js" -path "*/sdlc*/scripts/lib/links.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
+[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
   [ -z "$LINKS_LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/links.js" ] && LINKS_LIB="plugins/sdlc-utilities/scripts/lib/links.js"
   [ -z "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
   node "$LINKS_LIB" --file "{comment_file}" --json
   LINK_EXIT=$?
-  ```
+  
+```
 
   On non-zero exit (`LINK_EXIT != 0`):
   - The script has already printed the violation list to stderr.

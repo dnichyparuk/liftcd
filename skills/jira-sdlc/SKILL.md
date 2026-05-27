@@ -79,13 +79,17 @@ When `--check` is run without `--site` and the home-cache contains entries for t
 > **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','jira.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/jira.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/jira.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/jira.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 JIRA_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS --check)
 EXIT_CODE=$?
 # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM.
 trap 'rm -f "$JIRA_CONTEXT_FILE"' EXIT INT TERM
+
 ```
 
 Read and parse `JIRA_CONTEXT_FILE`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls.
@@ -375,10 +379,15 @@ Skip for read operations. Implements R17 + the cooperative half of R21.
 Skip for read operations. After approval (Step 2.6) and before MCP dispatch, validate every URL embedded in the description payload (for `createJiraIssue`/`editJiraIssue`) and the comment body (for `addCommentToJiraIssue`) via `scripts/skill/jira.js --validate-body`. The script reads the body from stdin and resolves the expected Jira site (`siteUrl`) deterministically from the cached `~/.sdlc-cache/jira/<site>/<KEY>.json` — the skill MUST NOT construct ctx JSON.
 
 ```bash
-JIRA_PREPARE=$(find ~/.claude/plugins -name "jira.js" -path "*/sdlc*/scripts/skill/jira.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+JIRA_PREPARE="$SDLC_ROOT/scripts/skill/jira.js"
+[ ! -f "$JIRA_PREPARE" ] && { echo "ERROR: Could not locate scripts/skill/jira.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$JIRA_PREPARE" ] && [ -f "plugins/sdlc-utilities/scripts/skill/jira.js" ] && JIRA_PREPARE="plugins/sdlc-utilities/scripts/skill/jira.js"
 printf '%s' "$body_or_description" | node "$JIRA_PREPARE" --validate-body --project <KEY> --json
 LINK_EXIT=$?
+
 ```
 
 For ADF description payloads: extract every `text` node value, concatenate with newlines, and feed that as the body. URLs in ADF link marks must also appear in extracted text or be added explicitly to the validation input.
@@ -405,10 +414,14 @@ On non-zero exit (`LINK_EXIT != 0`):
 >   Every "Read `ANALYZE_JSON.proposal.title` / `.proposal.body`" instruction below refers to the result of this parse — pass `$PROPOSAL_BODY` (not raw `$ANALYZE_JSON`) to `error-report-sdlc --error-text`.
 
 ```bash
-HELPER=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','mcp-failure.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+HELPER="$SDLC_ROOT/scripts/skill/mcp-failure.js"
+[ ! -f "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
 # telemetry block is echoed to terminal for user visibility (intentional)
 [ -n "$HELPER" ] && node "$HELPER" --telemetry --class link-verification --tool "jira.js --validate-body" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "link verification abort: $LINK_EXIT" --recovered no
+
 ```
 
 Then call `--analyze` and surface the returned proposal to the user:
@@ -430,11 +443,15 @@ For write operations: precondition — Step 2.6 returned `approve`, Step 2.7 lin
 **MCP failure telemetry on hook deny (R27/R28 — R21 path):** When the PreToolUse hook blocks, call the helper immediately after surfacing the deny reason:
 
 ```bash
-HELPER=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','mcp-failure.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+HELPER="$SDLC_ROOT/scripts/skill/mcp-failure.js"
+[ ! -f "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
 HOOK_HASH=$(echo -n "$permissionDecisionReason" | sha256sum | cut -c1-12)
 [ -n "$HELPER" ] && node "$HELPER" --telemetry --class hook-block --tool "$MCP_TOOL_NAME" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$permissionDecisionReason" --recovered no
 [ -n "$HELPER" ] && HOOK_COUNT=$(node "$HELPER" --record-occurrence --class hook-block --key "$HOOK_HASH")
+
 ```
 
 When `HOOK_COUNT` equals 2 (same hook deny reason seen twice in this session), call `--analyze` and surface the dispatch gate:
@@ -454,9 +471,13 @@ Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to 
 5. If the primary namespace retry failed, call the helper with `--recovered no` before trying the sibling namespace:
 
 ```bash
-HELPER=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','mcp-failure.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+HELPER="$SDLC_ROOT/scripts/skill/mcp-failure.js"
+[ ! -f "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -n "$HELPER" ] && node "$HELPER" --telemetry --class auth --tool "$MCP_TOOL_NAME" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$AUTH_ERROR" --recovered no
+
 ```
 
 6. If the sibling namespace also fails (dual-namespace exhausted), call `--telemetry` again and then `--analyze` to trigger the R28 dispatch gate:
@@ -518,11 +539,15 @@ After operations that reveal new information, update the cache incrementally:
 When a 400 on create or repeated 400 still fails after cache auto-refresh, call the helper to record telemetry and synthesize the dispatch proposal. Classify: `schema` for field/schema errors, `workflow` for transition errors.
 
 ```bash
-HELPER=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','mcp-failure.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+HELPER="$SDLC_ROOT/scripts/skill/mcp-failure.js"
+[ ! -f "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
 FAILURE_CLASS=schema  # or "workflow" for transition errors
 [ -n "$HELPER" ] && node "$HELPER" --telemetry --class "$FAILURE_CLASS" --tool "$MCP_TOOL_NAME" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$ERROR_MSG" --recovered no
 [ -n "$HELPER" ] && ANALYZE_JSON=$(node "$HELPER" --analyze --class "$FAILURE_CLASS" --tool "$MCP_TOOL_NAME" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$ERROR_MSG" --recovered no --r-path R9)
+
 ```
 
 Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to user verbatim with prompt "Y (file issue) / edit / skip". On Y, dispatch `error-report-sdlc` with `--error-type mcp-${FAILURE_CLASS}`, `--skill jira-sdlc`, `--step "Step 3 — Error Recovery"`, `--operation "$MCP_TOOL_NAME"`, `--error-text <proposal.body>`, and labels `mcp-failure,class:${FAILURE_CLASS}`.
@@ -612,10 +637,14 @@ Also call `--telemetry` on every retry (even successful ones) to maintain a per-
 - `unsampled: true` markers (from `--skip-workflow-discovery` in CI, or from no-sample results above) route transition operations through a live `getTransitionsForJiraIssue` per issue — the skill reuses the existing stale-cache auto-refresh path, so no separate branch is required in Step 3. Treat `unsampled` identically to "transition ID not cached". **When the live `getTransitionsForJiraIssue` call itself fails on an unsampled path (R14 exhausted), record telemetry and trigger the analyze gate (R27/R28):**
 
 ```bash
-HELPER=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','mcp-failure.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+HELPER="$SDLC_ROOT/scripts/skill/mcp-failure.js"
+[ ! -f "$HELPER" ] && { echo "ERROR: Could not locate scripts/skill/mcp-failure.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -n "$HELPER" ] && node "$HELPER" --telemetry --class workflow --tool "getTransitionsForJiraIssue" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$TRANSITION_ERROR" --recovered no
 [ -n "$HELPER" ] && ANALYZE_JSON=$(node "$HELPER" --analyze --class workflow --tool "getTransitionsForJiraIssue" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$TRANSITION_ERROR" --recovered no --r-path R14)
+
 ```
 
 Present `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body` verbatim with prompt "Y (file issue) / edit / skip". On Y, dispatch `error-report-sdlc` with `--error-type mcp-workflow`, `--skill jira-sdlc`, `--step "Step 3 — unsampled fallback"`, `--operation "getTransitionsForJiraIssue"`, `--error-text <proposal.body>`, and labels `mcp-failure,class:workflow`.

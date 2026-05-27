@@ -22,14 +22,17 @@ at the current plugin version is a no-op.
 Locate and run the enrichment script:
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "openspec-enrich.js" -path "*/sdlc*/scripts/util/openspec-enrich.js" 2>/dev/null | sort -V | tail -1)
-[ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/util/openspec-enrich.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/util/openspec-enrich.js"
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate util/openspec-enrich.js" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/util/openspec-enrich.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/openspec-enrich.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file {REMOVE_FLAG} --project-root .)
 EXIT_CODE=$?
 echo "PREPARE_OUTPUT_FILE=$PREPARE_OUTPUT_FILE"
 echo "EXIT_CODE=$EXIT_CODE"
+
 ```
 
 Replace `{REMOVE_FLAG}` with `--remove` if the parent passed `--remove-openspec`, otherwise omit it.

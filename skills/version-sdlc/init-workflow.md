@@ -45,9 +45,12 @@ the content from `suggestedConfig` (adjusted if `changelog` was chosen).
 Then scaffold CI scripts and workflows using `scaffold-ci.js`:
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "scaffold-ci.js" -path "*/sdlc*/scripts/util/scaffold-ci.js" 2>/dev/null | sort -V | tail -1)
-[ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/util/scaffold-ci.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/util/scaffold-ci.js"
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate util/scaffold-ci.js" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/util/scaffold-ci.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/scaffold-ci.js. Is the sdlc plugin installed?" >&2; exit 2; }
+
 ```
 
 Run the scaffold (include `--changelog` when `config.changelog === true`):

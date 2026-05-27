@@ -19,14 +19,19 @@ If the system context contains "Plan mode is active":
 1. Locate `skill/ship.js` (same `find` pattern used in Step 1c below).
 2. Invoke:
    ```bash
-   SCRIPT=$(find ~/.claude/plugins -name "ship.js" -path "*/sdlc*/scripts/skill/ship.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/ship.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/ship.js. Is the sdlc plugin installed?" >&2; exit 2; }
    [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/ship.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/skill/ship.js"
    [ -z "$SCRIPT" ] && { echo "ERROR: Could not locate skill/ship.js. Is the sdlc plugin installed?" >&2; exit 2; }
    PLAN_MODE_OUTPUT_FILE=$(node "$SCRIPT" --output-file --plan-mode-blocked $ARGUMENTS)
    PLAN_MODE_EXIT=$?
    echo "PLAN_MODE_OUTPUT_FILE=$PLAN_MODE_OUTPUT_FILE"
    echo "PLAN_MODE_EXIT=$PLAN_MODE_EXIT"
-   ```
+   
+```
 3. If `PLAN_MODE_EXIT` is non-zero: show any errors from the output file and stop.
 4. Read the output JSON from `$PLAN_MODE_OUTPUT_FILE`. Confirm `planModeBlocked === true`. Extract `stateFile`, `flags.bump`, `flags.steps`.
 5. Announce:
@@ -56,8 +61,11 @@ If `--init-config` was passed:
    If the user selects steps, capture them. If the user skips, omit the `--quick` flag when calling `ship-init.js`.
 2. Locate and call `ship-init.js` via Bash with the collected answers (append `--quick <csv>` only when the user made a quick-profile selection):
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','ship-init.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/ship-init.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/ship-init.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/ship-init.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 INIT_OUTPUT_FILE=$(node "$SCRIPT" --output-file --steps execute,commit,review,archive-openspec,pr --bump patch --auto --threshold high --workspace prompt)
 EXIT_CODE=$?
@@ -65,6 +73,7 @@ echo "INIT_OUTPUT_FILE=$INIT_OUTPUT_FILE"
 echo "EXIT_CODE=$EXIT_CODE"
 # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM.
 trap 'rm -f "$INIT_OUTPUT_FILE"' EXIT INT TERM
+
 ```
 3. Parse the output JSON from `$INIT_OUTPUT_FILE`:
    - If `errors` is non-empty, display them and stop.
@@ -76,10 +85,15 @@ trap 'rm -f "$INIT_OUTPUT_FILE"' EXIT INT TERM
 If `--gc` (with optional `--ttl-days <N>`) was passed, run `skill/ship.js --gc` and stop — no pipeline composition. The prepare script short-circuits: it scans `<main-worktree>/.sdlc/execution/` for stale ship- and execute- state files (older than TTL AND whose branch is no longer in `git branch --list`), removes them, and emits a JSON report.
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "ship.js" -path "*/sdlc*/scripts/skill/ship.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/ship.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/ship.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/ship.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/skill/ship.js"
 PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file --gc)  # add --ttl-days <N> when provided
 trap 'rm -f "$PREPARE_OUTPUT_FILE"' EXIT INT TERM
+
 ```
 
 Read the prepare output. The top-level `action` field will be `"gc"`; the `report` field contains `{ttlDays, ship: {deleted, kept}, execute: {deleted, kept}}`.
@@ -113,8 +127,11 @@ If not found: `No ship config found — using built-in defaults. Run /setup-sdlc
 
 Locate and run `skill/ship.js` with all CLI flags to pre-compute flags, context, and step statuses:
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','ship.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/ship.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/ship.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/ship.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 <!-- Implements A8d. Fixes #371. Workspace mode is intentionally omitted from this example so it falls back to `ship.workspace` config via `mergeFlags`; literal `--workspace <value>` here would override user config. -->
 PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file --has-plan --auto)
@@ -148,6 +165,7 @@ echo "EXIT_CODE=$EXIT_CODE"
 # replaced — the --init-config path exits before reaching 1c, so there is no
 # overlap in runtime lifecycle between the two manifest variables.
 trap 'rm -f "$PREPARE_OUTPUT_FILE"' EXIT INT TERM
+
 ```
 
 Parse the output JSON from `$PREPARE_OUTPUT_FILE`. If `errors` is non-empty, display them and stop. The parsed output replaces manual computation in subsequent sub-steps (1d–1g).
@@ -442,8 +460,12 @@ ship-sdlc surfaces live pipeline progress in the Claude Code task tray via main-
 **Helper resolution (run once at Step 5 entry):**
 
 ```bash
-SHIP_TODOS=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','ship-todos.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SHIP_TODOS" ] && { echo "ERROR: Could not locate scripts/skill/ship-todos.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SHIP_TODOS="$SDLC_ROOT/scripts/skill/ship-todos.js"
+[ ! -f "$SHIP_TODOS" ] && { echo "ERROR: Could not locate scripts/skill/ship-todos.js. Is the sdlc plugin installed?" >&2; exit 2; }
+
 ```
 
 **Setup (one-time, BEFORE the Step 5 dispatch loop, only when `flags.steps.length >= 2`):**
@@ -488,9 +510,12 @@ For ultra-short runs (`flags.steps.length < 2`), skip TodoWrite entirely.
 When NOT resuming, resolve workspace mode and enforce the default-branch guard before any workspace creation:
 
 ```bash
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
 # Resolve SDLC_LIB once — used by all subsequent node -e heredocs in this section.
-SDLC_LIB=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','config.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SDLC_LIB" ] && { echo "ERROR: Could not locate scripts/skill/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
+SDLC_LIB="$SDLC_ROOT/scripts/skill/config.js"
+[ ! -f "$SDLC_LIB" ] && { echo "ERROR: Could not locate scripts/skill/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 # R61: Resolve workspace mode — flag → config → fail-fast. No interactive prompt.
 if [ -z "$WORKSPACE_MODE_FLAG" ]; then
@@ -515,6 +540,7 @@ if [ "$CURRENT_BRANCH" = "$DEFAULT_BRANCH" ] && [ "$WORKSPACE_MODE" = "continue"
   echo "Error: cannot ship on default branch '$DEFAULT_BRANCH'. Pass --workspace branch or --workspace worktree." >&2
   exit 1
 fi
+
 ```
 
 `WORKSPACE_MODE_FLAG` is set from the `--workspace` CLI flag parsed by the prepare script. `SDLC_LIB` is the directory containing `config.js` and `branch-name.js`, resolved via the standard plugin path search above (or the in-repo fallback when developing this plugin). The variable persists across all subsequent Bash invocations in this section.
@@ -557,6 +583,9 @@ The assertion runs unconditionally on every non-resume invocation — when `REQU
 When not resuming and `WORKSPACE_MODE` is `branch` or `worktree`, run the five-step skeleton before dispatching execute-plan-sdlc. This is the single workspace-creation site for the entire pipeline (implements spec I8, R60):
 
 ```bash
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
 # Step 1: Derive branch name from plan title via lib/branch-name.js (config-driven).
 #   Reads workspace.branch config (template, slugMaxLength, typeMap) via readSection.
 #   Same helper used by execute-plan-sdlc standalone path — no duplication.
@@ -586,7 +615,8 @@ fi
 
 # Step 3b: --workspace worktree — create worktree+branch, cd in main shell.
 if [ "$WORKSPACE_MODE" = "worktree" ]; then
-  WORKTREE_CREATE_SCRIPT=$(find ~/.claude/plugins -name "worktree-create.js" -path "*/sdlc*/scripts/util/worktree-create.js" 2>/dev/null | sort -V | tail -1)
+WORKTREE_CREATE_SCRIPT="$SDLC_ROOT/scripts/util/worktree-create.js"
+[ ! -f "$WORKTREE_CREATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/worktree-create.js. Is the sdlc plugin installed?" >&2; exit 2; }
   [ -z "$WORKTREE_CREATE_SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/util/worktree-create.js" ] && WORKTREE_CREATE_SCRIPT="plugins/sdlc-utilities/scripts/util/worktree-create.js"
   [ -z "$WORKTREE_CREATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/worktree-create.js. Is the sdlc plugin installed?" >&2; exit 2; }
   result=$(node "$WORKTREE_CREATE_SCRIPT" --name "$EXECUTE_BRANCH")
@@ -596,6 +626,7 @@ if [ "$WORKSPACE_MODE" = "worktree" ]; then
   # Step 4: cd in main shell — Bash cwd persists; all subsequent dispatches inherit this path.
   cd "$WORKTREE_PATH"
 fi
+
 ```
 
 **Cwd propagation contract:** The single `cd "$WORKTREE_PATH"` above sets the main-context shell cwd. Bash cwd persists across subsequent Bash invocations in the same agent context. Agent-tool dispatches inherit the parent's cwd — so commit-sdlc, review-sdlc, pr-sdlc, verify-pipeline-sdlc, version-sdlc, received-review-sdlc, learnings-commit, and archive-openspec all start in the new worktree automatically. No per-prompt `cd` prepend is needed. In branch mode there is nothing to cd into (HEAD shared with main worktree) — same cwd propagation applies trivially.
@@ -642,8 +673,11 @@ node "$SHIP_TODOS" --state-file "$STATE_FILE" --plan-file "$PLAN_FILE" --event e
 Then dispatch `execute-plan-sdlc` as below. On Agent return (success), run the post-execution completeness invariant **before** marking the step complete (R-INVARIANT-COMPLETENESS, #432):
 
 ```bash
-EXECUTE_STATE_SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','execute.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$EXECUTE_STATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/execute.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+EXECUTE_STATE_SCRIPT="$SDLC_ROOT/scripts/skill/execute.js"
+[ ! -f "$EXECUTE_STATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/execute.js. Is the sdlc plugin installed?" >&2; exit 2; }
 node "$EXECUTE_STATE_SCRIPT" verify-completeness
 COMPLETENESS_EXIT=$?
 if [ "$COMPLETENESS_EXIT" -ne 0 ]; then
@@ -652,6 +686,7 @@ if [ "$COMPLETENESS_EXIT" -ne 0 ]; then
   node "$SHIP_TODOS" --state-file "$STATE_FILE" --plan-file "$PLAN_FILE" --event execute --fail-step execute
   exit "$COMPLETENESS_EXIT"
 fi
+
 ```
 
 If `verify-completeness` exits 65, the pipeline MUST halt before commit. The missing task IDs appear on stderr as JSON `{missingIds, totalPlanned, totalAccounted}`. Do NOT advance to the commit step.
@@ -701,8 +736,12 @@ Then invoke commit-sdlc (step 5) for the fix commit.
 After the version step dispatches and returns, capture the new tag from the version-sdlc return value as `NEW_TAG`. When `NEW_TAG` is set (non-empty) AND `EXECUTE_BRANCH` is set (non-empty), run the ancestry check:
 
 ```bash
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
 # Post-version ancestry HARD GATE (R-post-version-ancestry, fixes #349)
-VERIFY_SCRIPT=$(find ~/.claude/plugins -name "verify-tag-ancestry.js" -path "*/sdlc*/scripts/util/verify-tag-ancestry.js" 2>/dev/null | sort -V | tail -1)
+VERIFY_SCRIPT="$SDLC_ROOT/scripts/util/verify-tag-ancestry.js"
+[ ! -f "$VERIFY_SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/verify-tag-ancestry.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$VERIFY_SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/util/verify-tag-ancestry.js" ] && VERIFY_SCRIPT="plugins/sdlc-utilities/scripts/util/verify-tag-ancestry.js"
 if [ -z "$VERIFY_SCRIPT" ]; then
   echo "WARNING: verify-tag-ancestry.js not found — post-version ancestry check skipped." >&2
@@ -716,6 +755,7 @@ if [ -n "$VERIFY_SCRIPT" ] && [ -n "$NEW_TAG" ] && [ -n "$EXECUTE_BRANCH" ]; the
     exit 1
   fi
 fi
+
 ```
 
 `NEW_TAG` is the tag string emitted by version-sdlc (e.g. `v1.2.3`). `EXECUTE_BRANCH` is the feature branch variable set during pre-execute workspace isolation (already available in the pipeline shell context). This gate is a **no-op when `NEW_TAG` is unset** (version step was skipped or not in `flags.steps`, e.g., under `workspace: worktree`). Works correctly under both `workspace: branch` and `workspace: worktree`.
@@ -758,10 +798,15 @@ If the `verify-pipeline` step has `status: "will_run"` (gated by step membership
 
 1. Resolve the script path:
    ```bash
-   VP_SCRIPT=$(find ~/.claude/plugins -name "verify-pipeline.js" -path "*/sdlc*/scripts/skill/verify-pipeline.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+VP_SCRIPT="$SDLC_ROOT/scripts/skill/verify-pipeline.js"
+[ ! -f "$VP_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/verify-pipeline.js. Is the sdlc plugin installed?" >&2; exit 2; }
    [ -z "$VP_SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/verify-pipeline.js" ] && VP_SCRIPT="plugins/sdlc-utilities/scripts/skill/verify-pipeline.js"
    [ -z "$VP_SCRIPT" ] && { echo "ERROR: Could not locate skill/verify-pipeline.js. Is the sdlc plugin installed?" >&2; exit 2; }
-   ```
+   
+```
 2. Run the script with the args from `step.args` plus `--state-file <ship-state-path>`:
    ```bash
    node "$VP_SCRIPT" $STEP_ARGS --state-file "$SHIP_STATE_PATH"
@@ -796,10 +841,15 @@ If the `await-remote-review` step has `status: "will_run"` (gated by step member
 
 1. Resolve the script path:
    ```bash
-   AR_SCRIPT=$(find ~/.claude/plugins -name "await-remote-review.js" -path "*/sdlc*/scripts/skill/await-remote-review.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+AR_SCRIPT="$SDLC_ROOT/scripts/skill/await-remote-review.js"
+[ ! -f "$AR_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/await-remote-review.js. Is the sdlc plugin installed?" >&2; exit 2; }
    [ -z "$AR_SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/await-remote-review.js" ] && AR_SCRIPT="plugins/sdlc-utilities/scripts/skill/await-remote-review.js"
    [ -z "$AR_SCRIPT" ] && { echo "ERROR: Could not locate skill/await-remote-review.js. Is the sdlc plugin installed?" >&2; exit 2; }
-   ```
+   
+```
 2. Run the script with the args from `step.args` plus `--state-file <ship-state-path>`:
    ```bash
    node "$AR_SCRIPT" $STEP_ARGS --state-file "$SHIP_STATE_PATH"
@@ -897,8 +947,13 @@ Note: in a worktree, all of this is safe — main working tree is untouched.
 
 After each step, update pipeline state via `state/ship.js`. Locate the script:
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "ship.js" -path "*/sdlc*/scripts/state/ship.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/state/ship.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/state/ship.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/state/ship.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/state/ship.js"
+
 ```
 
 At pipeline start (after Step 1 completes), initialize the state file:

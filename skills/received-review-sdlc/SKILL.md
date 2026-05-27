@@ -127,8 +127,11 @@ If the system context contains "Plan mode is active":
 When a PR number or URL is provided (via arguments or user input), run the prepare script to pre-compute review thread state:
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','received-review.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/received-review.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/received-review.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/received-review.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 if [ -n "$SCRIPT" ]; then
   MANIFEST_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS --pr <PR_NUMBER>)
@@ -138,6 +141,7 @@ if [ -n "$SCRIPT" ]; then
   # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM.
   trap 'rm -f "$MANIFEST_FILE"' EXIT INT TERM
 fi
+
 ```
 
 **On exit code 0:** Read the manifest JSON. Extract `flags.auto` from the manifest and store it as a boolean (defaults to `false` if absent). If `--auto` was passed in `$ARGUMENTS` but not in the manifest, treat it as `true`. Display the incremental summary:
@@ -538,10 +542,14 @@ Step 11.6 — meta-analyze-findings: completed | dispatched=<N> deferred=<N> sup
 Before any `gh api` reply is posted, validate every URL embedded in every drafted reply body via the shared link validator. Concatenate all reply bodies (one per line) and feed them to the validator on stdin. The script auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON.
 
 ```bash
-LINKS_LIB=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','lib','links.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
+[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
 printf '%s\n' "$reply_bodies_concatenated" | node "$LINKS_LIB" --json
 LINK_EXIT=$?
+
 ```
 
 On non-zero exit (`LINK_EXIT != 0`):

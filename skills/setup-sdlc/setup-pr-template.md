@@ -148,11 +148,14 @@ After the user accepts:
 After writing, locate and run the validation script:
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "validate-pr-template.js" -path "*/sdlc*/scripts/ci/validate-pr-template.js" 2>/dev/null | sort -V | tail -1)
-[ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/ci/validate-pr-template.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/ci/validate-pr-template.js"
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate ci/validate-pr-template.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/ci/validate-pr-template.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-pr-template.js. Is the sdlc plugin installed?" >&2; exit 2; }
 node "$SCRIPT" --project-root .
 EXIT_CODE=$?
+
 ```
 
 - Exit code 0 (validation **passes**): show the summary table from the script output.

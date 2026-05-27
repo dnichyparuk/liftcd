@@ -15,15 +15,18 @@ Sub-flow of `/setup-sdlc --guardrails`. Runs skill/guardrails.js to scan the pro
 Run skill/guardrails.js:
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "guardrails.js" -path "*/sdlc*/scripts/skill/guardrails.js" 2>/dev/null | sort -V | tail -1)
-[ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/guardrails.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/skill/guardrails.js"
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate skill/guardrails.js" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/guardrails.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/guardrails.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file --project-root . --mode {init|add} --json)
 EXIT_CODE=$?
 echo "EXIT_CODE=$EXIT_CODE"
 cat "$PREPARE_OUTPUT_FILE"
 rm -f "$PREPARE_OUTPUT_FILE"
+
 ```
 
 Replace `{init|add}` with `add` if `--add` was passed, otherwise `init`.
@@ -88,9 +91,11 @@ Allow multiple custom entries. Custom guardrails are added alongside the standar
 Write selected guardrails via inline Node.js using config library:
 
 ```bash
-SCRIPT_DIR=$(find ~/.claude/plugins -name "config.js" -path "*/sdlc*/lib/config.js" 2>/dev/null | sort -V | tail -1 | xargs dirname 2>/dev/null)
-[ -z "$SCRIPT_DIR" ] && [ -f "plugins/sdlc-utilities/scripts/lib/config.js" ] && SCRIPT_DIR="plugins/sdlc-utilities/scripts/lib"
-[ -z "$SCRIPT_DIR" ] && { echo "ERROR: Could not locate lib/config.js" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT_DIR="$SDLC_ROOT/lib"
+[ ! -f "$SCRIPT_DIR" ] && { echo "ERROR: Could not locate lib. Is the sdlc plugin installed?" >&2; exit 2; }
 
 node -e "
 const { writeSection } = require('$SCRIPT_DIR/config.js');
@@ -98,6 +103,7 @@ const guardrails = JSON.parse(process.argv[1]);
 writeSection(process.cwd(), 'plan', { guardrails });
 console.log('Wrote ' + guardrails.length + ' guardrails to .sdlc/config.json');
 " '<GUARDRAILS_JSON>'
+
 ```
 
 Replace `<GUARDRAILS_JSON>` with the JSON array of selected guardrails. In `--add` mode: prepend existing guardrails from the prepare output to the array.
@@ -105,11 +111,14 @@ Replace `<GUARDRAILS_JSON>` with the JSON array of selected guardrails. In `--ad
 ### Step 4 (VALIDATE) — Run Validation Script
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "validate-guardrails.js" -path "*/sdlc*/scripts/ci/validate-guardrails.js" 2>/dev/null | sort -V | tail -1)
-[ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/ci/validate-guardrails.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/ci/validate-guardrails.js"
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate ci/validate-guardrails.js" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/ci/validate-guardrails.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-guardrails.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 node "$SCRIPT" --project-root . --json
+
 ```
 
 Parse output. If `overall` is "pass", report success with count. If "fail", show errors and offer to fix.

@@ -84,8 +84,11 @@ Write an implementation plan from requirements, a spec, or a user description. P
 > **VERBATIM** — Run this bash block exactly as written.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','plan.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/plan.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/plan.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 PLAN_OUTPUT_FILE=$(node "$SCRIPT" --output-file)
 EXIT_CODE=$?
@@ -94,6 +97,7 @@ echo "EXIT_CODE=$EXIT_CODE"
 # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM,
 # so the manifest is removed even if plan generation is cancelled or errors out.
 trap 'rm -f "$PLAN_OUTPUT_FILE"' EXIT INT TERM
+
 ```
 
 If `--from-openspec <name>` was passed to plan-sdlc, include it in the node command: `node "$SCRIPT" --output-file --from-openspec <name>`.
@@ -145,10 +149,15 @@ Naming convention: `YYYY-MM-DD-<feature-name>.md`. Create the directory if neede
 Each `--mark` block re-resolves `$SCRIPT` independently: SKILL.md bash blocks each run as a separate Bash tool invocation, so shell variables do NOT persist across blocks.
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "plan.js" -path "*/sdlc*/scripts/skill/plan.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/plan.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/plan.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/skill/plan.js"
 # writes planIntegrity marker consumed by stop-plan-integrity Stop hook (issue #285)
 [ -n "$SCRIPT" ] && node "$SCRIPT" --mark plan-file --path "<resolved-plan-path>" 2>/dev/null || true
+
 ```
 
 Replace `<resolved-plan-path>` with the actual absolute path: in plan mode it is the designated plan file path extracted at the top of Step 0; in normal mode it is the path resolved above (from `plansDirectory` or the default fallback).
@@ -360,19 +369,29 @@ Note every issue from `allIssues`. Do NOT write to the plan file in this step.
 **JOIN barrier — `guardrailsEvaluated` (implements R20, R35, issue #285):** After the guardrail-compliance lane (lanes[3]) result is incorporated into the merged issue list, record the checkpoint. **Do NOT write this marker before lanes[3] returns.** Each `--mark` block re-resolves `$SCRIPT` because SKILL.md bash blocks do not share shell state.
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "plan.js" -path "*/sdlc*/scripts/skill/plan.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/plan.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/plan.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/skill/plan.js"
 # writes planIntegrity marker consumed by stop-plan-integrity Stop hook (issue #285)
 [ -n "$SCRIPT" ] && node "$SCRIPT" --mark guardrailsEvaluated 2>/dev/null || true
+
 ```
 
 **JOIN barrier — `critiqueRan` (implements R20, R35, issue #285):** After ALL five lanes have returned and the merged issue list is complete (including G17/lanes[4] findings parsed into `g17Findings`), record the checkpoint. **Do NOT write this marker until all five lanes have returned.** This extends the existing G17 join semantics to every lane.
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "plan.js" -path "*/sdlc*/scripts/skill/plan.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/plan.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/plan.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/skill/plan.js"
 # writes planIntegrity marker consumed by stop-plan-integrity Stop hook (issue #285)
 [ -n "$SCRIPT" ] && node "$SCRIPT" --mark critiqueRan 2>/dev/null || true
+
 ```
 
 ## Step 4 (IMPROVE): Revise Plan and Present for Approval
@@ -451,10 +470,14 @@ If this is the 3rd iteration, use AskUserQuestion to surface remaining issues in
 After the reviewer loop converges (or the user resolves remaining issues), validate every URL embedded in the finalized plan file via the shared link validator. The script reads the plan content from stdin and auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON.
 
 ```bash
-LINKS_LIB=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','lib','links.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
+[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
 node "$LINKS_LIB" --file "$plan_path" --json
 LINK_EXIT=$?
+
 ```
 
 On non-zero exit (`LINK_EXIT != 0`):
@@ -470,9 +493,14 @@ On zero exit, proceed to Step 7. `SDLC_LINKS_OFFLINE=1` skips network reachabili
 **Context-heaviness advisory (implements R17):** Before printing either branch below, locate and run the advisory wrapper. If it prints text, prepend that text verbatim to the handoff menu (above the `ship` / `execute` / `done` lines). If it prints nothing, skip the prepend.
 
 ```bash
-SCRIPT=$(find ~/.claude/plugins -name "plan-handoff-advisory.js" -path "*/sdlc*/scripts/skill/plan-handoff-advisory.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/plan-handoff-advisory.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/plan-handoff-advisory.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/plan-handoff-advisory.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/skill/plan-handoff-advisory.js"
 [ -n "$SCRIPT" ] && node "$SCRIPT"
+
 ```
 
 The wrapper reads `$TMPDIR/sdlc-context-stats.json` (written by the `UserPromptSubmit` hook `hooks/context-stats.js`) and emits a `/compact` advisory only when transcript ≥60% of model budget. Pipeline state is preserved across `/compact` (PreCompact + SessionStart hooks), so re-invoking after compaction is safe.

@@ -40,14 +40,18 @@ If the system context contains "Plan mode is active":
 > **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','version.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/version.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/version.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/version.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 VERSION_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
 EXIT_CODE=$?
 # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM, so
 # the manifest is removed even if the release is cancelled or errors out.
 trap 'rm -f "$VERSION_CONTEXT_FILE"' EXIT INT TERM
+
 ```
 
 Read and parse `VERSION_CONTEXT_FILE` as `VERSION_CONTEXT_JSON`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls in success/cancel branches.
@@ -248,8 +252,12 @@ This ensures projects that ran `--init` in a prior session get notified about im
 Locate and run the scaffold script in check-only mode:
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','scaffold-ci.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/scaffold-ci.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/scaffold-ci.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/scaffold-ci.js. Is the sdlc plugin installed?" >&2; exit 2; }
+
 ```
 
 Run the check (include `--changelog` only when `config.changelog === true`).
@@ -284,13 +292,18 @@ The release proceeds regardless of the user's answer. This is informational, not
 3b. **Link verification (R17, issue #198) — HARD GATE.** Before `git commit`, validate every URL embedded in the staged CHANGELOG entry (and any release-notes body) via the shared link validator. The script reads the body via `--file` and auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON. Skip this sub-step entirely when changelog is disabled and no release-notes body was generated.
 
    ```bash
-   LINKS_LIB=$(find ~/.claude/plugins -name "links.js" -path "*/sdlc*/scripts/lib/links.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
+[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
    [ -z "$LINKS_LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/links.js" ] && LINKS_LIB="plugins/sdlc-utilities/scripts/lib/links.js"
    [ -z "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
    # Validate the new CHANGELOG entry only (not the entire historical file).
    printf '%s' "$new_changelog_entry" | node "$LINKS_LIB" --json
    LINK_EXIT=$?
-   ```
+   
+```
 
    On non-zero exit (`LINK_EXIT != 0`):
    - The script has already printed the violation list to stderr.

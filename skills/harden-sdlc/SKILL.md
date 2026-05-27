@@ -52,8 +52,11 @@ Pass `--from-issue "$ISSUE_NUM"` to the prepare script invocation in Step 1.
 > **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','harden-prepare.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate skill/harden-prepare.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/harden-prepare.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/harden-prepare.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 MANIFEST_FILE=$(node "$SCRIPT" \
   ${FAILURE_TEXT:+--failure-text "$FAILURE_TEXT"} \
@@ -72,6 +75,7 @@ echo "EXIT_CODE=$EXIT_CODE_PREPARE"
 # Single canonical cleanup: trap fires only when MANIFEST_FILE was written so
 # we do not attempt `rm -f ""` on a failed script invocation.
 trap '[ -n "$MANIFEST_FILE" ] && rm -f "$MANIFEST_FILE"' EXIT INT TERM
+
 ```
 
 Substitute the shell variables with values from the parsed arguments. Empty
@@ -210,10 +214,14 @@ When the user selects **apply**, validate the proposed change BEFORE writing:
   validate via the canonical guardrails validator:
 
   ```bash
-  # resolve_script is sourced once at Step 1; re-source here if running in a fresh shell block
-  VALIDATOR=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','ci','validate-guardrails.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-  [ -z "$VALIDATOR" ] && { echo "ERROR: Could not locate ci/validate-guardrails.js. Is the sdlc plugin installed?" >&2; exit 2; }
-  ```
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+# resolve_script is sourced once at Step 1; re-source here if running in a fresh shell block
+VALIDATOR="$SDLC_ROOT/scripts/ci/validate-guardrails.js"
+[ ! -f "$VALIDATOR" ] && { echo "ERROR: Could not locate scripts/ci/validate-guardrails.js. Is the sdlc plugin installed?" >&2; exit 2; }
+  
+```
 
   Run the validator against the prospective config. On non-zero exit, surface
   the validator's error to the user and use AskUserQuestion to offer **retry**

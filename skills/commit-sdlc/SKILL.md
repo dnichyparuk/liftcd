@@ -38,8 +38,11 @@ If the system context contains "Plan mode is active":
 > **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
 
 ```bash
-SCRIPT=$(node -e "const fs=require('fs'),path=require('path');const dirs=[path.join(process.cwd(),'antigravity'),path.join(process.cwd(),'plugins','sdlc'),path.join(require('os').homedir(),'.gemini','config','plugins','sdlc')];let res='';for(const d of dirs){const p=path.join(d,'scripts','skill','commit.js');if(fs.existsSync(p)){res=p;break;}}console.log(res);")
-[ -z "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/commit.js. Is the sdlc plugin installed?" >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+SCRIPT="$SDLC_ROOT/scripts/skill/commit.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/commit.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 COMMIT_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
 EXIT_CODE=$?
@@ -47,6 +50,7 @@ EXIT_CODE=$?
 # so it survives across separate Bash tool invocations. Error-path manifests still write to
 # os.tmpdir() via writeOutput. Explicit `rm -f "$COMMIT_CONTEXT_FILE"` at each exit path
 # handles both cases.
+
 ```
 
 Read and parse `COMMIT_CONTEXT_FILE` as `COMMIT_CONTEXT_JSON`.
@@ -217,12 +221,17 @@ Show `Amend:` instead of `Commit:` heading when `flags.amend` is true.
 1. **Link verification (issue #198, R12) — HARD GATE.** Before `git commit`, validate every URL embedded in the commit message body via the shared link validator. The script reads the body from stdin and auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON.
 
    ```bash
-   LINKS_LIB=$(find ~/.claude/plugins -name "links.js" -path "*/sdlc*/scripts/lib/links.js" 2>/dev/null | sort -V | tail -1)
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+
+LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
+[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
    [ -z "$LINKS_LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/links.js" ] && LINKS_LIB="plugins/sdlc-utilities/scripts/lib/links.js"
    [ -z "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; exit 2; }
    printf '%s' "$message" | node "$LINKS_LIB" --json
    LINK_EXIT=$?
-   ```
+   
+```
 
    On non-zero exit (`LINK_EXIT != 0`):
    - The script has already printed the violation list to stderr (URL, line, reason code, observed/expected detail).
