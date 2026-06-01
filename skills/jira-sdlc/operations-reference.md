@@ -173,10 +173,10 @@ conditionally after Step 2 classifies the operation type.
    - After ADF conversion, walk commentBody.body[] and resolve every `low`-confidence marker
 
 4. Build payload — convert markdown to ADF and assemble:
-   for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
-   [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+   for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
+   [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
    SCRIPT="$SDLC_ROOT/scripts/lib/markdown-to-adf.js"
-   [ ! -f "$SCRIPT" ] && { echo "ERROR: markdown-to-adf.js not found"; exit 2; }
+   [ ! -f "$SCRIPT" ] && { echo "ERROR: markdown-to-adf.js not found"; node -e 'process.exit(2)'; }
    cat <<'COMMENT_MD' | node "$SCRIPT"
    <markdown text>
    COMMENT_MD

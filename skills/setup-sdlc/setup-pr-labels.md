@@ -158,11 +158,11 @@ Build the final block:
 Locate the config helper:
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
 
 SCRIPT="$SDLC_ROOT/lib/config.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
 
 ```
 
@@ -242,7 +242,7 @@ When invoking `error-report-sdlc`, provide:
    their `gh auth` is broken.
    *Root cause:* Brand-new repos may have zero custom labels (only the GitHub
    defaults that some orgs strip).
-   *Mitigation:* Distinguish "exit non-zero" (auth/remote) from "exit 0 with
+   *Mitigation:* Distinguish "exit non-zero" (auth/remote) from "node -e 'process.exit(0)' with
    `[]`" (no labels). The latter is a content state, not an error.
 
 3. **`pathGlob` semantics are stricter than expected.**

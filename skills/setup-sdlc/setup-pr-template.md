@@ -148,11 +148,11 @@ After the user accepts:
 After writing, locate and run the validation script:
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
 
 SCRIPT="$SDLC_ROOT/scripts/ci/validate-pr-template.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-pr-template.js. Is the sdlc plugin installed?" >&2; exit 2; }
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-pr-template.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
 node "$SCRIPT" --project-root .
 EXIT_CODE=$?
 
@@ -183,8 +183,8 @@ Before marking complete, verify:
 | Error | Recovery | Invoke error-report-sdlc? |
 |-------|----------|---------------------------|
 | `validate-pr-template.js` not found | Show error, stop | Yes |
-| `validate-pr-template.js` exit 1 (validation fails) | Show findings, offer auto-fix | No — recoverable |
-| `validate-pr-template.js` exit 2 (crash) | Show stderr, stop | Yes |
+| `validate-pr-template.js` node -e 'process.exit(1)' (validation fails) | Show findings, offer auto-fix | No — recoverable |
+| `validate-pr-template.js` node -e 'process.exit(2)' (crash) | Show stderr, stop | Yes |
 
 When invoking `error-report-sdlc`, provide:
 - **Skill**: setup-sdlc (pr-template sub-flow)

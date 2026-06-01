@@ -32,7 +32,7 @@ gh auth status >/dev/null 2>&1
 GH_AUTH_STATUS=$?
 if [ $GH_AUTH_STATUS -ne 0 ]; then
   echo "ERROR: Not authenticated with GitHub CLI. Please run 'gh auth login'." >&2
-  exit 1
+  node -e 'process.exit(1)'
 fi
 ```
 

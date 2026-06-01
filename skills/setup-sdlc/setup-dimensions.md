@@ -55,11 +55,11 @@ In `--add` (expansion) mode:
 
 - Locate the validation script:
   ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
 
 SCRIPT="$SDLC_ROOT/scripts/ci/validate-dimensions.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-dimensions.js. Is the sdlc plugin installed?" >&2; exit 2; }
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-dimensions.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
   [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/ci/validate-dimensions.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/ci/validate-dimensions.js"
   
 ```
@@ -69,11 +69,11 @@ SCRIPT="$SDLC_ROOT/scripts/ci/validate-dimensions.js"
 Also check for uncovered file suggestions from a recent review run:
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
 
 PREP="$SDLC_ROOT/scripts/skill/review.js"
-[ ! -f "$PREP" ] && { echo "ERROR: Could not locate scripts/skill/review.js. Is the sdlc plugin installed?" >&2; exit 2; }
+[ ! -f "$PREP" ] && { echo "ERROR: Could not locate scripts/skill/review.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
 [ -z "$PREP" ] && [ -f "plugins/sdlc-utilities/scripts/skill/review.js" ] && PREP="plugins/sdlc-utilities/scripts/skill/review.js"
 [ -n "$PREP" ] && node "$PREP" --project-root . --json 2>/dev/null
 
@@ -156,11 +156,11 @@ For each selected dimension:
 Run the validation script (use `SCRIPT` resolved in Step 2, or re-resolve if Step 2 was skipped):
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
 
 SCRIPT="$SDLC_ROOT/scripts/ci/validate-dimensions.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-dimensions.js. Is the sdlc plugin installed?" >&2; exit 2; }
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-dimensions.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
 [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/ci/validate-dimensions.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/ci/validate-dimensions.js"
 node "$SCRIPT" --project-root . --markdown
 EXIT_CODE=$?
@@ -253,8 +253,8 @@ Present the markdown output table. If any file has errors, show the error detail
 | User error — wrong flags | `--add` with no dimension name | No | Show correct usage. Ask user to re-invoke. |
 | Transient — MCP timeout | Atlassian MCP network failure | No | Retry once; if fails again, skip MCP signal. |
 | Stale cache | Dimension metadata out of sync | No | Re-run scan from scratch (Step 1). |
-| Script crash — exit 2 | validate-dimensions.js uncaught exception | Yes | Invoke `error-report-sdlc` with full context. |
-| Script error — exit 1 | Invalid dimension file format | No | Show validation errors; let user correct manually. |
+| Script crash — node -e 'process.exit(2)' | validate-dimensions.js uncaught exception | Yes | Invoke `error-report-sdlc` with full context. |
+| Script error — node -e 'process.exit(1)' | Invalid dimension file format | No | Show validation errors; let user correct manually. |
 | MCP tool unavailable | Atlassian MCP not configured | No | Warn; continue scan with remaining signals. |
 
 ---
