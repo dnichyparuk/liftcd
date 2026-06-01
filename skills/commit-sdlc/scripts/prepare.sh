@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+SCRIPT="$SDLC_ROOT/scripts/skill/commit.js"
+[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/commit.js. Is the sdlc plugin installed?" >&2; exit 2; }
+
+COMMIT_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
+EXIT_CODE=$?
+# No EXIT trap: success-path manifest is persistent (.sdlc/execution/commit-<slug>-<ts>.json)
+# so it survives across separate Bash tool invocations. Error-path manifests still write to
+# os.tmpdir() via writeOutput. Explicit `rm -f "$COMMIT_CONTEXT_FILE"` at each exit path
+# handles both cases.

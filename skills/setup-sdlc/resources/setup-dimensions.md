@@ -56,12 +56,7 @@ In `--add` (expansion) mode:
 - Locate the validation script:
   ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/ci/validate-dimensions.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-dimensions.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-  [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/ci/validate-dimensions.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/ci/validate-dimensions.js"
-  
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-dimensions_load_validator.sh"
 ```
 - Run: `node "$SCRIPT" --project-root . --json`
 - Extract installed dimension names and their trigger patterns (new proposals must avoid identical globs).
@@ -70,13 +65,7 @@ Also check for uncovered file suggestions from a recent review run:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-PREP="$SDLC_ROOT/scripts/skill/review.js"
-[ ! -f "$PREP" ] && { echo "ERROR: Could not locate scripts/skill/review.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-[ -z "$PREP" ] && [ -f "plugins/sdlc-utilities/scripts/skill/review.js" ] && PREP="plugins/sdlc-utilities/scripts/skill/review.js"
-[ -n "$PREP" ] && node "$PREP" --project-root . --json 2>/dev/null
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-dimensions_run_review.sh"
 ```
 
 If this succeeds, parse `plan_critique.uncovered_suggestions` and use as additional evidence in Step 3 (cite: "Recent review found N uncovered files matching this pattern"). If the command fails, silently skip.
@@ -157,14 +146,7 @@ Run the validation script (use `SCRIPT` resolved in Step 2, or re-resolve if Ste
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/ci/validate-dimensions.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-dimensions.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-[ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/ci/validate-dimensions.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/ci/validate-dimensions.js"
-node "$SCRIPT" --project-root . --markdown
-EXIT_CODE=$?
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-dimensions_validate.sh"
 ```
 
 - Exit code **1**: Show validation errors. Use AskUserQuestion: "Fix these validation errors automatically? (yes / no)"

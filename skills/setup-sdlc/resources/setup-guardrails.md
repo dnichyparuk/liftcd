@@ -16,17 +16,7 @@ Run skill/guardrails.js:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/guardrails.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/guardrails.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file --project-root . --mode {init|add} --json)
-EXIT_CODE=$?
-echo "EXIT_CODE=$EXIT_CODE"
-cat "$PREPARE_OUTPUT_FILE"
-rm -f "$PREPARE_OUTPUT_FILE"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-guardrails_prepare.sh"
 ```
 
 Replace `{init|add}` with `add` if `--add` was passed, otherwise `init`.
@@ -92,18 +82,7 @@ Write selected guardrails via inline Node.js using config library:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT_DIR="$SDLC_ROOT/lib"
-[ ! -f "$SCRIPT_DIR" ] && { echo "ERROR: Could not locate lib. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-node -e "
-const { writeSection } = require('$SCRIPT_DIR/config.js');
-const guardrails = JSON.parse(process.argv[1]);
-writeSection(process.cwd(), 'plan', { guardrails });
-console.log('Wrote ' + guardrails.length + ' guardrails to .sdlc/config.json');
-" '<GUARDRAILS_JSON>'
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-guardrails_write.sh"
 ```
 
 Replace `<GUARDRAILS_JSON>` with the JSON array of selected guardrails. In `--add` mode: prepend existing guardrails from the prepare output to the array.
@@ -112,13 +91,7 @@ Replace `<GUARDRAILS_JSON>` with the JSON array of selected guardrails. In `--ad
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/ci/validate-guardrails.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-guardrails.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-node "$SCRIPT" --project-root . --json
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-guardrails_validate.sh"
 ```
 
 Parse output. If `overall` is "pass", report success with count. If "fail", show errors and offer to fix.
@@ -140,5 +113,5 @@ Parse output. If `overall` is "pass", report success with count. If "fail", show
 ## See Also
 
 - [`/plan-sdlc`](../plan-sdlc/SKILL.md) — consumes guardrails during critique phases
-- [`/setup-sdlc --guardrails`](../setup-sdlc/SKILL.md) — parent skill that delegates guardrail setup to this sub-flow
-- [`/setup-sdlc --dimensions`](../setup-sdlc/SKILL.md) — analogous pattern for review dimensions
+- [`/setup-sdlc --guardrails`](../SKILL.md) — parent skill that delegates guardrail setup to this sub-flow
+- [`/setup-sdlc --dimensions`](../SKILL.md) — analogous pattern for review dimensions

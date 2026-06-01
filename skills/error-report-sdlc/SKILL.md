@@ -64,28 +64,7 @@ required before any further work, including running the prepare script.
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/error-report-prepare.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/error-report-prepare.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-ERROR_CONTEXT_FILE=$(node "$SCRIPT" \
-  --skill "$SKILL_NAME" \
-  --step "$STEP_NAME" \
-  --operation "$OPERATION" \
-  --error-text "$ERROR_TEXT" \
-  --exit-or-http-code "$EXIT_OR_HTTP_CODE" \
-  --error-type "$ERROR_TYPE" \
-  --user-intent "$USER_INTENT" \
-  --args-string "$ARGS_STRING" \
-  --suggested-investigation "$SUGGESTED_INVESTIGATION" \
-  --output-file)
-EXIT_CODE=$?
-# Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM, so
-# the manifest is removed even if the caller cancels or errors out before
-# reaching the explicit cleanup branches.
-trap 'rm -f "$ERROR_CONTEXT_FILE"' EXIT INT TERM
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/error-report-sdlc/scripts/prepare_report.sh"
 ```
 
 Substitute the shell variables with the values supplied by the calling skill. Optional

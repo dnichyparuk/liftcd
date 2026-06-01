@@ -149,13 +149,7 @@ After writing, locate and run the validation script:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/ci/validate-pr-template.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/ci/validate-pr-template.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-node "$SCRIPT" --project-root .
-EXIT_CODE=$?
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-pr-template_validate.sh"
 ```
 
 - Exit code 0 (validation **passes**): show the summary table from the script output.

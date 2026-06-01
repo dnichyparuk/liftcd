@@ -39,18 +39,7 @@ If the system context contains "Plan mode is active":
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/commit.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/commit.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-COMMIT_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
-EXIT_CODE=$?
-# No EXIT trap: success-path manifest is persistent (.sdlc/execution/commit-<slug>-<ts>.json)
-# so it survives across separate Bash tool invocations. Error-path manifests still write to
-# os.tmpdir() via writeOutput. Explicit `rm -f "$COMMIT_CONTEXT_FILE"` at each exit path
-# handles both cases.
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/commit-sdlc/scripts/prepare.sh"
 ```
 
 Read and parse `COMMIT_CONTEXT_FILE` as `COMMIT_CONTEXT_JSON`.
@@ -222,15 +211,7 @@ Show `Amend:` instead of `Commit:` heading when `flags.amend` is true.
 
    ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
-[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-   [ -z "$LINKS_LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/links.js" ] && LINKS_LIB="plugins/sdlc-utilities/scripts/lib/links.js"
-   [ -z "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-   printf '%s' "$message" | node "$LINKS_LIB" --json
-   LINK_EXIT=$?
-   
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/commit-sdlc/scripts/validate_links.sh"
 ```
 
    On non-zero exit (`LINK_EXIT != 0`):

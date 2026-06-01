@@ -26,21 +26,7 @@ If `--logs` is omitted but `--pr` is present (R6): resolve logs internally via `
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-GIT_LIB="$SDLC_ROOT/scripts/skill/git.js"
-[ ! -f "$GIT_LIB" ] && { echo "ERROR: Could not locate scripts/skill/git.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-node -e "
-const { fetchPrChecks, fetchFailedCheckLogs } = require(process.argv[1]);
-const checks = fetchPrChecks(process.argv[2]);
-const failed = checks.find(c => c && c.bucket === 'fail');
-if (!failed || !failed.link) { process.stderr.write('no failed check found\n'); process.exit(0); }
-const m = failed.link.match(/\/actions\/runs\/(\d+)/);
-if (!m) { process.stderr.write('no runId in link\n'); process.exit(0); }
-const out = fetchFailedCheckLogs(m[1], { maxLines: 200 });
-if (out.ok) process.stdout.write(out.excerpt);
-" "$GIT_LIB" "$PR_NUMBER"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/verify-pipeline-sdlc/scripts/fetch_logs.sh"
 ```
 
 If gh is unauthenticated and logs cannot be resolved, emit `{"status":"abort","reason":"gh not authenticated"}` and stop (E2).
@@ -51,12 +37,7 @@ Pipe the resolved log text into the classifier helper:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-CLASSIFY_SCRIPT="$SDLC_ROOT/scripts/skill/verify-pipeline-sdlc-classify.js"
-[ ! -f "$CLASSIFY_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/verify-pipeline-sdlc-classify.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-echo "$LOGS" | node "$CLASSIFY_SCRIPT"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/verify-pipeline-sdlc/scripts/classify_logs.sh"
 ```
 
 Read the JSON verdict on stdout: `{"category": "<one of seven>", "signals": [...]}`.

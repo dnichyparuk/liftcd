@@ -100,17 +100,7 @@ If no tests added, explain why.]
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/pr.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/pr.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-PR_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
-EXIT_CODE=$?
-# Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM, so
-# the manifest is removed even if a PR creation/update path errors out.
-trap 'rm -f "$PR_CONTEXT_FILE"' EXIT INT TERM
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/pr-sdlc/scripts/prepare.sh"
 ```
 
 Read and parse `PR_CONTEXT_FILE` as `PR_CONTEXT_JSON`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls in success/cancel branches.
@@ -459,14 +449,7 @@ On success:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-PR_PREPARE="$SDLC_ROOT/scripts/skill/pr.js"
-[ ! -f "$PR_PREPARE" ] && { echo "ERROR: Could not locate scripts/skill/pr.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-[ -z "$PR_PREPARE" ] && [ -f "plugins/sdlc-utilities/scripts/skill/pr.js" ] && PR_PREPARE="plugins/sdlc-utilities/scripts/skill/pr.js"
-printf '%s' "$body" | node "$PR_PREPARE" --validate-body
-LINK_EXIT=$?
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/pr-sdlc/scripts/validate_body.sh"
 ```
 
 On non-zero exit (`LINK_EXIT != 0`):
@@ -499,23 +482,7 @@ If no labels were approved, omit the `--label` flags entirely.
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-ERR_FILE=$(mktemp)
-gh pr create --title "<title>" --body "<body>" [--draft] [--label ...] 2> "$ERR_FILE"
-GH_EXIT=$?
-if [ "$GH_EXIT" -ne 0 ]; then
-RECOVER_SCRIPT="$SDLC_ROOT/scripts/skill/pr-recover-gh-account.js"
-[ ! -f "$RECOVER_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/pr-recover-gh-account.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-  [ -z "$RECOVER_SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/skill/pr-recover-gh-account.js" ] && RECOVER_SCRIPT="plugins/sdlc-utilities/scripts/skill/pr-recover-gh-account.js"
-  if [ -n "$RECOVER_SCRIPT" ]; then
-    RECOVER_JSON=$(node "$RECOVER_SCRIPT" --error-file "$ERR_FILE")
-  else
-    echo "Warning: pr-recover-gh-account.js not found — skipping account-switch recovery"
-  fi
-fi
-rm -f "$ERR_FILE"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/pr-sdlc/scripts/create_pr.sh"
 ```
 
 Parse `RECOVER_JSON`. Branches:

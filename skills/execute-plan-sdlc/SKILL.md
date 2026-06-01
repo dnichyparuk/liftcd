@@ -59,20 +59,7 @@ Blocking issues → stop and ask. Warnings only → show them and proceed.
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT_DIR="$SDLC_ROOT/scripts/skill/config.js"
-[ ! -f "$SCRIPT_DIR" ] && { echo "ERROR: Could not locate scripts/skill/config.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-node -e "
-const { readSection } = require('$SCRIPT_DIR/config.js');
-try {
-  const advisory = require('$SCRIPT_DIR/context-advisory.js').getAdvisory({ skill: 'execute-plan-sdlc' });
-  if (advisory) process.stderr.write(advisory + '\n');
-} catch (_) { /* helper missing or sidecar unreadable — silent */ }
-const execute = readSection(process.cwd(), 'execute');
-console.log(JSON.stringify(execute?.guardrails || []));
-"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/context_advisory.sh"
 ```
 
 Parse the JSON output. If the array is non-empty, store as `activeGuardrails` and print: "Loaded N execution guardrails." If empty or config not found: "No execution guardrails configured." This is backward compatible — no guardrails means no change in behavior.
@@ -161,23 +148,7 @@ When ship-sdlc invokes execute-plan-sdlc inside the ship pipeline, `--branch` is
 
      ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SDLC_LIB="$SDLC_ROOT/scripts/lib"
-[ ! -f "$SDLC_LIB" ] && { echo "ERROR: Could not locate scripts/lib. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-     [ -z "$SDLC_LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/branch-name.js" ] && SDLC_LIB="plugins/sdlc-utilities/scripts/lib"
-SDLC_LIB_CONFIG="$SDLC_ROOT/scripts/lib"
-[ ! -f "$SDLC_LIB_CONFIG" ] && { echo "ERROR: Could not locate scripts/lib. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-     [ -z "$SDLC_LIB_CONFIG" ] && SDLC_LIB_CONFIG="$SDLC_LIB"
-     EXECUTE_NEW_BRANCH=$(node -e "
-       const {resolveBranchName}=require('$SDLC_LIB/branch-name');
-       const {readSection,resolveSdlcRoot}=require('$SDLC_LIB_CONFIG/config');
-       const cfg=(readSection(resolveSdlcRoot(),'workspace')||{}).branch||{};
-       // Map plan nature to logical type (feature/bugfix/chore/docs/refactor).
-       // typeMap in config translates logical type to branch prefix (defaults: feat/fix/chore/docs/refactor).
-       process.stdout.write(resolveBranchName({type:'<logical-type>',slug:'<derived-slug>',config:cfg}));
-     ")
-     
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_libs.sh"
 ```
 
      Branch name is derived by `lib/branch-name.js` from `workspace.branch` config. Defaults: `template={type}/{slug}`, `slugMaxLength=50`, `typeMap={feature:'feat', bugfix:'fix', chore:'chore', docs:'docs', refactor:'refactor'}`. Override in `.sdlc/local.json` under `workspace.branch`. The logical type and slug are inferred from the plan title as before (feature/bugfix/chore/docs/refactor). Implements R30.
@@ -187,17 +158,7 @@ SDLC_LIB_CONFIG="$SDLC_ROOT/scripts/lib"
    - **If `--workspace worktree`:** Create worktree without prompting:
      ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/util/worktree-create.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/worktree-create.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-     [ -z "$SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/util/worktree-create.js" ] && SCRIPT="plugins/sdlc-utilities/scripts/util/worktree-create.js"
-     result=$(node "$SCRIPT" --name "$EXECUTE_NEW_BRANCH")
-     WORKTREE_PATH=$(echo "$result" | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).path)")
-     # worktree-create.js may collision-suffix; refresh EXECUTE_NEW_BRANCH with resolved name.
-     EXECUTE_NEW_BRANCH=$(echo "$result" | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).branch)")
-     cd "$WORKTREE_PATH"
-     
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/worktree_create.sh"
 ```
      Print the branch and path from the script output. The branch may differ from the derived name if a collision suffix was added.
 
@@ -438,19 +399,7 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
 
    ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-LIB="$SDLC_ROOT/scripts/lib/wave-summary.js"
-[ ! -f "$LIB" ] && { echo "ERROR: Could not locate scripts/lib/wave-summary.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-   [ -z "$LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/wave-summary.js" ] && LIB="plugins/sdlc-utilities/scripts/lib/wave-summary.js"
-   PARSE_RESULT=$(node -e "
-   const { parseWaveSummary } = require('$LIB');
-   const text = require('fs').readFileSync('/dev/stdin','utf8');
-   const dispatched = JSON.parse(process.env.DISPATCHED_IDS || '[]');
-   const r = parseWaveSummary(text, dispatched);
-   process.stdout.write(JSON.stringify(r));
-   " <<< "$WAVE_RUNNER_OUTPUT")
-   
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/parse_wave.sh"
 ```
 
    Read `schemaOk`, `missingIds`, `extraIds`, `violations`, and `parsed` from the result.
@@ -594,12 +543,7 @@ The progress report is rendered from `WAVE_SUMMARY` payload — per-task names, 
 **State persistence:** After each wave completes, update the execution state via `state/execute.js`. Locate the script:
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-STATE_SCRIPT="$SDLC_ROOT/scripts/state/execute.js"
-[ ! -f "$STATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/state/execute.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-[ -z "$STATE_SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/state/execute.js" ] && STATE_SCRIPT="plugins/sdlc-utilities/scripts/state/execute.js"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_state.sh"
 ```
 
 On the very first wave dispatch, initialize the state file:
@@ -629,26 +573,7 @@ Algorithm:
 
      ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-LIB="$SDLC_ROOT/scripts/lib/openspec.js"
-[ ! -f "$LIB" ] && { echo "ERROR: Could not locate scripts/lib/openspec.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-     [ -z "$LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/openspec.js" ] && LIB="plugins/sdlc-utilities/scripts/lib/openspec.js"
-     [ -z "$LIB" ] && { echo "ERROR: Could not locate openspec.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-     # Pass arguments as env vars to avoid shell injection from LLM-generated task titles
-     # (titles may contain ", `, $(...), or newlines that would break inline interpolation).
-     OPENSPEC_LIB="$LIB" \
-     OPENSPEC_CHANGE='<change>' \
-     OPENSPEC_REF='<ref>' \
-     OPENSPEC_LINE='<line>' \
-     OPENSPEC_TITLE='<title>' \
-     node -e "
-     const { markTaskDone } = require(process.env.OPENSPEC_LIB);
-     const line = process.env.OPENSPEC_LINE ? Number(process.env.OPENSPEC_LINE) : undefined;
-     const r = markTaskDone(process.env.OPENSPEC_CHANGE, process.env.OPENSPEC_REF, { line, title: process.env.OPENSPEC_TITLE });
-     console.log(JSON.stringify(r));
-     "
-     
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_openspec.sh"
 ```
    - Add `ref` to `flippedRefs` regardless of the outcome (single-fire per run; idempotency in `markTaskDone` handles a future `--resume`).
    - Interpret the result:
@@ -946,21 +871,7 @@ If `openspecSpecs` was loaded in Step 1 (the plan was OpenSpec-sourced), also su
 
      ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-LIB="$SDLC_ROOT/scripts/lib/openspec.js"
-[ ! -f "$LIB" ] && { echo "ERROR: Could not locate scripts/lib/openspec.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-     [ -z "$LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/openspec.js" ] && LIB="plugins/sdlc-utilities/scripts/lib/openspec.js"
-     [ -z "$LIB" ] && { echo "ERROR: Could not locate openspec.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-     OPENSPEC_LIB="$LIB" \
-     OPENSPEC_TASKS_PATH="openspec/changes/<name>/tasks.md" \
-     node -e "
-     const fs = require('fs');
-     const { parseTasks } = require(process.env.OPENSPEC_LIB);
-     const content = fs.readFileSync(process.env.OPENSPEC_TASKS_PATH, 'utf8');
-     console.log(JSON.stringify(parseTasks(content)));
-     "
-     
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_openspec_tasks.sh"
 ```
 
      Build `unflippedTitles` from entries where `done === false`.

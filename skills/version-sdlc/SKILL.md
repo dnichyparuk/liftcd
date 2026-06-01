@@ -41,17 +41,7 @@ If the system context contains "Plan mode is active":
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/version.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/version.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-VERSION_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
-EXIT_CODE=$?
-# Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM, so
-# the manifest is removed even if the release is cancelled or errors out.
-trap 'rm -f "$VERSION_CONTEXT_FILE"' EXIT INT TERM
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/prepare.sh"
 ```
 
 Read and parse `VERSION_CONTEXT_FILE` as `VERSION_CONTEXT_JSON`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls in success/cancel branches.
@@ -88,7 +78,7 @@ The workflow then branches based on `VERSION_CONTEXT_JSON.flow` and `VERSION_CON
 
 ### Branch A: Init Workflow (`flow === "init"`)
 
-> If the user invoked with `--init`, read `./init-workflow.md` now for the complete init workflow steps.
+> If the user invoked with `--init`, read `./resources/init-workflow.md` now for the complete init workflow steps.
 
 ---
 
@@ -253,11 +243,7 @@ Locate and run the scaffold script in check-only mode:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/scaffold-ci.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/scaffold-ci.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/scaffold_ci.sh"
 ```
 
 Run the check (include `--changelog` only when `config.changelog === true`).
@@ -293,16 +279,7 @@ The release proceeds regardless of the user's answer. This is informational, not
 
    ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
-[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-   [ -z "$LINKS_LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/links.js" ] && LINKS_LIB="plugins/sdlc-utilities/scripts/lib/links.js"
-   [ -z "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-   # Validate the new CHANGELOG entry only (not the entire historical file).
-   printf '%s' "$new_changelog_entry" | node "$LINKS_LIB" --json
-   LINK_EXIT=$?
-   
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/validate_links.sh"
 ```
 
    On non-zero exit (`LINK_EXIT != 0`):

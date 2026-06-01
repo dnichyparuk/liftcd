@@ -54,16 +54,7 @@ Run `skill/setup.js` via Bash to get current state:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/setup.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/setup.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
-EXIT_CODE=$?
-echo "PREPARE_OUTPUT_FILE=$PREPARE_OUTPUT_FILE"
-echo "EXIT_CODE=$EXIT_CODE"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/prepare.sh"
 ```
 
 Parse the JSON output from `$PREPARE_OUTPUT_FILE`. If exit code != 0, display the error and stop.
@@ -202,30 +193,14 @@ On **yes**: Run migration via inline Node.js that calls `migrateConfig()` from `
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT_DIR="$SDLC_ROOT/scripts/skill/config.js"
-[ ! -f "$SCRIPT_DIR" ] && { echo "ERROR: Could not locate scripts/skill/config.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-node -e "
-const { migrateConfig } = require('$SCRIPT_DIR/config.js');
-const result = migrateConfig(process.cwd());
-console.log(JSON.stringify(result, null, 2));
-"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/migrate_config.sh"
 ```
 
 Then dispatch the jira-templates migration shim if `prepare.legacy.jiraTemplates.exists` is true (R-LEGACY-DETECT, #423):
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SHIM="$SDLC_ROOT/scripts/skill/migrate-jira-templates.js"
-[ ! -f "$SHIM" ] && { echo "ERROR: Could not locate scripts/skill/migrate-jira-templates.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-[ -z "$SHIM" ] && [ -f "plugins/sdlc-utilities/scripts/skill/migrate-jira-templates.js" ] && SHIM="plugins/sdlc-utilities/scripts/skill/migrate-jira-templates.js"
-[ -n "$SHIM" ] && node "$SHIM" && echo "Jira templates migration complete" || echo "Jira templates migration: skipped or not found"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/migrate_jira.sh"
 ```
 
 Parse the output. Report what was migrated:
@@ -282,12 +257,12 @@ For each id selected in Step 1 (call this list `selectedIds`), in `prepare.secti
    | `null` | Generic field-loop (3.G below) — dispatch one AskUserQuestion per `section.fields[]` entry, optionally gated by `section.confirmDetected`. The `workspace` section uses this dispatcher with field-specific augmentations described in 3.workspace below (R24). |
    | `'inline-commit-builder'` | Inline commit-pattern builder (3.commit below) — same conditional logic as legacy Step 3e, gated by the verbose header above |
    | `'inline-pr-builder'` | Inline PR-pattern builder (3.pr below) — same conditional logic as legacy Step 3f |
-   | `'setup-dimensions'` | Run scan phase (Step 3.S below), then read and follow `@setup-dimensions.md` passing scan results as "Scan Input". Pass through `--add` and `--no-copilot` modifiers if present. |
-   | `'setup-pr-template'` | Run scan phase (Step 3.S), then read and follow `@setup-pr-template.md` passing scan results. Pass through `--add` if present. |
-   | `'setup-pr-labels'` | Read and follow `@setup-pr-labels.md` (it runs `gh label list` itself; no scan input from parent required). |
-   | `'setup-guardrails'` | Read and follow `@setup-guardrails.md` (it runs its own scan internally). Pass through `--add` if present. |
-   | `'setup-execution-guardrails'` | Read and follow `@setup-execution-guardrails.md`. Pass through `--add` if present. |
-   | `'setup-openspec'` | Read and follow `@setup-openspec.md`. Pass through `--remove-openspec` as `--remove` if present. |
+   | `'setup-dimensions'` | Run scan phase (Step 3.S below), then read and follow `@resources/setup-dimensions.md` passing scan results as "Scan Input". Pass through `--add` and `--no-copilot` modifiers if present. |
+   | `'setup-pr-template'` | Run scan phase (Step 3.S), then read and follow `@resources/setup-pr-template.md` passing scan results. Pass through `--add` if present. |
+   | `'setup-pr-labels'` | Read and follow `@resources/setup-pr-labels.md` (it runs `gh label list` itself; no scan input from parent required). |
+   | `'setup-guardrails'` | Read and follow `@resources/setup-guardrails.md` (it runs its own scan internally). Pass through `--add` if present. |
+   | `'setup-execution-guardrails'` | Read and follow `@resources/setup-execution-guardrails.md`. Pass through `--add` if present. |
+   | `'setup-openspec'` | Read and follow `@resources/setup-openspec.md`. Pass through `--remove-openspec` as `--remove` if present. |
 
 After the loop, write any pending project-config and local-config slices via the "Writing config files" sub-section at the end of Step 3.
 
@@ -597,27 +572,7 @@ Before invoking `util/setup-init.js`, render an end-of-run diff preview comparin
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-LIB_CONFIG="$SDLC_ROOT/lib/config.js"
-[ ! -f "$LIB_CONFIG" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-[ -z "$LIB_CONFIG" ] && [ -f "plugins/sdlc-utilities/scripts/lib/config.js" ] && LIB_CONFIG="plugins/sdlc-utilities/scripts/lib/config.js"
-
-# Write JSON snapshots to temp files to avoid shell quoting hazards with
-# embedded quotes and newlines inside $BEFORE_JSON / $AFTER_JSON.
-BEFORE_TMP=$(mktemp)
-AFTER_TMP=$(mktemp)
-printf '%s' "$BEFORE_JSON" > "$BEFORE_TMP"
-printf '%s' "$AFTER_JSON" > "$AFTER_TMP"
-
-DIFF_JSON=$(LIB_CONFIG="$LIB_CONFIG" BEFORE_TMP="$BEFORE_TMP" AFTER_TMP="$AFTER_TMP" node -e "
-const { computeConfigDiff } = require(process.env.LIB_CONFIG);
-const before = JSON.parse(require('fs').readFileSync(process.env.BEFORE_TMP, 'utf8'));
-const after  = JSON.parse(require('fs').readFileSync(process.env.AFTER_TMP,  'utf8'));
-console.log(JSON.stringify(computeConfigDiff(before, after)));
-")
-rm -f "$BEFORE_TMP" "$AFTER_TMP"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/diff_write_config.sh"
 ```
 
 Render `DIFF_JSON.changed[]` as a markdown table:
@@ -639,20 +594,7 @@ After collecting all answers AND confirming the diff preview above, write projec
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-INIT_SCRIPT="$SDLC_ROOT/scripts/skill/setup-init.js"
-[ ! -f "$INIT_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/setup-init.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-# Replace <PROJECT_CONFIG_JSON> and <LOCAL_CONFIG_JSON> with the actual config objects
-# assembled from Steps 3a–3f. Only include sections that were configured (not skipped).
-INIT_OUTPUT_FILE=$(node "$INIT_SCRIPT" --output-file --project-config '<PROJECT_CONFIG_JSON>' --local-config '<LOCAL_CONFIG_JSON>')
-EXIT_CODE=$?
-echo "INIT_OUTPUT_FILE=$INIT_OUTPUT_FILE"
-echo "EXIT_CODE=$EXIT_CODE"
-# Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM.
-trap 'rm -f "$INIT_OUTPUT_FILE"' EXIT INT TERM
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/init.sh"
 ```
 
 Parse the output JSON from `$INIT_OUTPUT_FILE`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls.
@@ -711,7 +653,7 @@ This skill is safe to re-run. Already-configured sections are skipped unless `--
 
 - Run full-suite or wide-subset `promptfoo eval` automatically — single targeted test scoped to the change is allowed; tight-loop retries are not.
 - Delete legacy files without explicit user confirmation via AskUserQuestion
-- Invoke removed skills (`/review-init-sdlc`, `/pr-customize-sdlc`, `/guardrails-init-sdlc`) -- they no longer exist as standalone skills; use the sub-flows (`@setup-dimensions.md`, `@setup-pr-template.md`, `@setup-guardrails.md`) instead
+- Invoke removed skills (`/review-init-sdlc`, `/pr-customize-sdlc`, `/guardrails-init-sdlc`) -- they no longer exist as standalone skills; use the sub-flows (`@resources/setup-dimensions.md`, `@resources/setup-pr-template.md`, `@resources/setup-guardrails.md`) instead
 - Modify Jira templates directly -- delegate to `/jira-sdlc` via the Skill tool
 - Write config files using the Write or Edit tools directly -- always go through `lib/config.js` functions (`writeProjectConfig`, `writeLocalConfig`) via inline Node.js in Bash
 - Invoke sub-skills via the Agent tool -- use the Skill tool exclusively

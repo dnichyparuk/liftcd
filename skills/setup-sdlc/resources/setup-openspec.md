@@ -23,16 +23,7 @@ Locate and run the enrichment script:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/util/openspec-enrich.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/openspec-enrich.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file {REMOVE_FLAG} --project-root .)
-EXIT_CODE=$?
-echo "PREPARE_OUTPUT_FILE=$PREPARE_OUTPUT_FILE"
-echo "EXIT_CODE=$EXIT_CODE"
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-openspec_enrich.sh"
 ```
 
 Replace `{REMOVE_FLAG}` with `--remove` if the parent passed `--remove-openspec`, otherwise omit it.

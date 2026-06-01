@@ -159,11 +159,7 @@ Locate the config helper:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/lib/config.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/setup-sdlc/scripts/setup-pr-labels_load_config.sh"
 ```
 
 Then merge the labels block into the existing `pr` section without clobbering
@@ -289,8 +285,8 @@ When invoking `error-report-sdlc`, provide:
 ## See Also
 
 - `setup-sdlc --only pr-labels` — parent skill entrypoint
-- `setup-sdlc/setup-pr-template.md` — sibling sub-flow (PR template authoring)
-- `setup-sdlc/setup-guardrails.md` — sibling sub-flow (plan guardrails)
+- `setup-sdlc/resources/setup-pr-template.md` — sibling sub-flow (PR template authoring)
+- `setup-sdlc/resources/setup-guardrails.md` — sibling sub-flow (plan guardrails)
 - `pr-sdlc/SKILL.md#step-2b-infer-labels` — consumer; reads `pr.labels` to
   dispatch the label evaluator
 - `schemas/sdlc-config.schema.json#$defs/prLabelsSection` — schema source of truth

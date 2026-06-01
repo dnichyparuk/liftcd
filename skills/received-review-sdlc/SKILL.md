@@ -128,20 +128,7 @@ When a PR number or URL is provided (via arguments or user input), run the prepa
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-SCRIPT="$SDLC_ROOT/scripts/skill/received-review.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/received-review.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-
-if [ -n "$SCRIPT" ]; then
-  MANIFEST_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS --pr <PR_NUMBER>)
-  EXIT_CODE=$?
-  echo "MANIFEST_FILE=$MANIFEST_FILE"
-  echo "EXIT_CODE=$EXIT_CODE"
-  # Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM.
-  trap 'rm -f "$MANIFEST_FILE"' EXIT INT TERM
-fi
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/received-review-sdlc/scripts/prepare.sh"
 ```
 
 **On exit code 0:** Read the manifest JSON. Extract `flags.auto` from the manifest and store it as a boolean (defaults to `false` if absent). If `--auto` was passed in `$ARGUMENTS` but not in the manifest, treat it as `true`. Display the incremental summary:
@@ -543,13 +530,7 @@ Before any `gh api` reply is posted, validate every URL embedded in every drafte
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
-
-LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
-[ ! -f "$LINKS_LIB" ] && { echo "ERROR: Could not locate scripts/lib/links.js. Is the sdlc plugin installed?" >&2; node -e 'process.exit(2)'; }
-printf '%s\n' "$reply_bodies_concatenated" | node "$LINKS_LIB" --json
-LINK_EXIT=$?
-
+source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/received-review-sdlc/scripts/validate_links.sh"
 ```
 
 On non-zero exit (`LINK_EXIT != 0`):

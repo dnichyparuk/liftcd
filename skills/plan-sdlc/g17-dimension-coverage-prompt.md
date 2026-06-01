@@ -134,9 +134,9 @@ Task tool (general-purpose):
         in the Copilot catalog built in Step C.
     - If `{GITHUB_HOSTING_DETECTED}` is `false`: omit X1 entirely.
 
-    X1 action line MUST reference `setup-sdlc/setup-dimensions.md` Step 8 transform
+    X1 action line MUST reference `setup-sdlc/resources/setup-dimensions.md` Step 8 transform
     by path — do NOT inline the transform. Example action:
-    `regenerate .github/instructions/<name>.instructions.md per setup-sdlc/setup-dimensions.md Step 8 transform`
+    `regenerate .github/instructions/<name>.instructions.md per setup-sdlc/resources/setup-dimensions.md Step 8 transform`
 
     ## Output Schema
 
@@ -177,7 +177,7 @@ Task tool (general-purpose):
 
     ## DO NOT
 
-    - Execute the Copilot transform inline — reference `setup-sdlc/setup-dimensions.md` Step 8 by path only.
+    - Execute the Copilot transform inline — reference `setup-sdlc/resources/setup-dimensions.md` Step 8 by path only.
     - Propose REMOVING any checklist item from an existing dimension (strengthen-only invariant).
     - Emit absolute GitHub blob URLs in action lines (use relative paths or slash commands only).
     - Block plan finalization — this gate is advisory; absent proposals are not failures.
