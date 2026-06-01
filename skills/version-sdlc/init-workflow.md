@@ -45,7 +45,7 @@ the content from `suggestedConfig` (adjusted if `changelog` was chosen).
 Then scaffold CI scripts and workflows using `scaffold-ci.js`:
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 SCRIPT="$SDLC_ROOT/scripts/util/scaffold-ci.js"

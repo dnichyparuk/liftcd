@@ -84,7 +84,7 @@ Write an implementation plan from requirements, a spec, or a user description. P
 > **VERBATIM** — Run this bash block exactly as written.
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
@@ -133,7 +133,7 @@ If `fromOpenspec` is present but `valid` is false and errors exist: display erro
 1. User-specified path (if provided in conversation)
 2. Project `.claude/settings.json` → `plansDirectory` (relative paths resolve from workspace root)
 3. Global `~/.claude/settings.json` → `plansDirectory`
-4. Default fallback: `~/.claude/plans/`
+4. Default fallback: `~/.gemini/plans/`
 
 Naming convention: `YYYY-MM-DD-<feature-name>.md`. Create the directory if needed.
 
@@ -149,7 +149,7 @@ Naming convention: `YYYY-MM-DD-<feature-name>.md`. Create the directory if neede
 Each `--mark` block re-resolves `$SCRIPT` independently: SKILL.md bash blocks each run as a separate Bash tool invocation, so shell variables do NOT persist across blocks.
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
@@ -369,7 +369,7 @@ Note every issue from `allIssues`. Do NOT write to the plan file in this step.
 **JOIN barrier — `guardrailsEvaluated` (implements R20, R35, issue #285):** After the guardrail-compliance lane (lanes[3]) result is incorporated into the merged issue list, record the checkpoint. **Do NOT write this marker before lanes[3] returns.** Each `--mark` block re-resolves `$SCRIPT` because SKILL.md bash blocks do not share shell state.
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
@@ -383,7 +383,7 @@ SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
 **JOIN barrier — `critiqueRan` (implements R20, R35, issue #285):** After ALL five lanes have returned and the merged issue list is complete (including G17/lanes[4] findings parsed into `g17Findings`), record the checkpoint. **Do NOT write this marker until all five lanes have returned.** This extends the existing G17 join semantics to every lane.
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 SCRIPT="$SDLC_ROOT/scripts/skill/plan.js"
@@ -470,7 +470,7 @@ If this is the 3rd iteration, use AskUserQuestion to surface remaining issues in
 After the reviewer loop converges (or the user resolves remaining issues), validate every URL embedded in the finalized plan file via the shared link validator. The script reads the plan content from stdin and auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON.
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 LINKS_LIB="$SDLC_ROOT/scripts/lib/links.js"
@@ -493,7 +493,7 @@ On zero exit, proceed to Step 7. `SDLC_LINKS_OFFLINE=1` skips network reachabili
 **Context-heaviness advisory (implements R17):** Before printing either branch below, locate and run the advisory wrapper. If it prints text, prepend that text verbatim to the handoff menu (above the `ship` / `execute` / `done` lines). If it prints nothing, skip the prepend.
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 SCRIPT="$SDLC_ROOT/scripts/skill/plan-handoff-advisory.js"

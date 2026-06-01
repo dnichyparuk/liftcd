@@ -25,7 +25,7 @@ If `--logs` is provided: when the value is a filesystem path, read its contents;
 If `--logs` is omitted but `--pr` is present (R6): resolve logs internally via `lib/git.js::fetchFailedCheckLogs` for the latest failed run on the PR. The Node code path for this is inline:
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 GIT_LIB="$SDLC_ROOT/scripts/skill/git.js"
@@ -50,7 +50,7 @@ If gh is unauthenticated and logs cannot be resolved, emit `{"status":"abort","r
 Pipe the resolved log text into the classifier helper:
 
 ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.claude/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
+for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -f "$d/plugin.json" ] && SDLC_ROOT="$d" && break; done
 [ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 
 CLASSIFY_SCRIPT="$SDLC_ROOT/scripts/skill/verify-pipeline-sdlc-classify.js"

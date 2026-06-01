@@ -37,9 +37,9 @@
 
 'use strict';
 
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
-const os   = require('os');
+const os = require('os');
 const { spawnSync } = require('child_process');
 const LIB = path.join(__dirname, '..', 'lib');
 
@@ -69,21 +69,21 @@ const BUMP_RE = new RegExp(`^(major|minor|patch|${PRE_RELEASE_LABEL_RE.source.sl
 
 function parseArgs(argv) {
   const args = argv.slice(2);
-  let hasPlan   = false;
-  let auto      = false;
-  let steps     = null;
-  let quick     = false;
-  let quality   = null;
-  let bump      = null;
-  let draft     = false;
-  let dryRun    = false;
-  let resume    = false;
-  let workspace       = null;
+  let hasPlan = false;
+  let auto = false;
+  let steps = null;
+  let quick = false;
+  let quality = null;
+  let bump = null;
+  let draft = false;
+  let dryRun = false;
+  let resume = false;
+  let workspace = null;
   let workspaceShortcut = null;
-  let rebase          = null;
-  let openspecChange  = null;
-  let gc              = false;
-  let ttlDays         = null;
+  let rebase = null;
+  let openspecChange = null;
+  let gc = false;
+  let ttlDays = null;
   let planModeBlocked = false;
   // R-implicit-resume (#359): set by session-start.js when re-injecting the
   // "Active pipeline" reminder after /compact. ship-prepare uses this to
@@ -199,7 +199,7 @@ function loadConfig(projectRoot) {
  */
 function mergeFlags(cli, config) {
   const cfg = config || {};
-  const merged  = {};
+  const merged = {};
   const sources = {};
 
   // Boolean flags: CLI true overrides; otherwise config; otherwise default.
@@ -207,13 +207,13 @@ function mergeFlags(cli, config) {
   // --auto, --draft are boolean flags that default to false when not passed.
   for (const key of ['auto', 'draft']) {
     if (cli[key] === true) {
-      merged[key]  = true;
+      merged[key] = true;
       sources[key] = 'cli';
     } else if (cfg[key] !== undefined) {
-      merged[key]  = cfg[key];
+      merged[key] = cfg[key];
       sources[key] = 'config';
     } else {
-      merged[key]  = BUILT_IN_DEFAULTS[key];
+      merged[key] = BUILT_IN_DEFAULTS[key];
       sources[key] = 'default';
     }
   }
@@ -221,13 +221,13 @@ function mergeFlags(cli, config) {
   // Value flags
   for (const key of ['bump', 'workspace']) {
     if (cli[key] !== null && cli[key] !== undefined) {
-      merged[key]  = cli[key];
+      merged[key] = cli[key];
       sources[key] = 'cli';
     } else if (cfg[key] !== undefined) {
-      merged[key]  = cfg[key];
+      merged[key] = cfg[key];
       sources[key] = 'config';
     } else {
-      merged[key]  = BUILT_IN_DEFAULTS[key];
+      merged[key] = BUILT_IN_DEFAULTS[key];
       sources[key] = 'default';
     }
   }
@@ -245,14 +245,14 @@ function mergeFlags(cli, config) {
   let stepsList;
   let stepsSource;
   if (Array.isArray(cli.steps) && cli.steps.length > 0) {
-    stepsList   = cli.steps.slice();
+    stepsList = cli.steps.slice();
     stepsSource = 'cli';
   } else if (cli.quick === true) {
     // R-quick-2: resolve from ship.quick when --quick is set and --steps absent.
     // When ship.quick is unset/empty, leave stepsList empty — runValidation
     // surfaces the missing-config error (R-quick-6).
     if (Array.isArray(cfg.quick) && cfg.quick.length > 0) {
-      stepsList   = cfg.quick.slice();
+      stepsList = cfg.quick.slice();
       stepsSource = 'quick';
     } else {
       // No ship.quick configured — runValidation will error (R-quick-6).
@@ -261,18 +261,18 @@ function mergeFlags(cli, config) {
       // is the sentinel runValidation uses to detect R-quick-6 (flag requested
       // but no profile configured). Consumers MUST check flags.steps.length > 0
       // before treating source 'quick' as a successfully-resolved profile.
-      stepsList   = [];
+      stepsList = [];
       stepsSource = 'quick';
     }
   } else if (Array.isArray(cfg.steps)) {
-    stepsList   = cfg.steps.slice();
+    stepsList = cfg.steps.slice();
     stepsSource = 'config';
   } else {
-    stepsList   = BUILT_IN_DEFAULTS.steps.slice();
+    stepsList = BUILT_IN_DEFAULTS.steps.slice();
     stepsSource = 'default';
   }
 
-  merged.steps  = stepsList;
+  merged.steps = stepsList;
   sources.steps = stepsSource;
 
   // -- Quality (model tier forwarded to execute-plan-sdlc) --
@@ -281,24 +281,24 @@ function mergeFlags(cli, config) {
   // not forward the flag and execute-plan-sdlc applies its own selection
   // logic (interactive prompt or its own config default).
   if (cli.quality !== null && cli.quality !== undefined) {
-    merged.quality  = cli.quality;
+    merged.quality = cli.quality;
     sources.quality = 'cli';
   }
   // Otherwise: no merged.quality / no sources.quality — intentionally absent.
 
   // reviewThreshold: not a CLI flag, comes from config or default.
   if (cfg.reviewThreshold !== undefined) {
-    merged.reviewThreshold  = cfg.reviewThreshold;
+    merged.reviewThreshold = cfg.reviewThreshold;
     sources.reviewThreshold = 'config';
   } else {
-    merged.reviewThreshold  = BUILT_IN_DEFAULTS.reviewThreshold;
+    merged.reviewThreshold = BUILT_IN_DEFAULTS.reviewThreshold;
     sources.reviewThreshold = 'default';
   }
 
   // rebase: CLI non-null string wins; otherwise map config boolean/string to
   // 'auto' | 'skip' | 'prompt'; otherwise default (true → 'auto').
   if (cli.rebase !== null && cli.rebase !== undefined) {
-    merged.rebase  = cli.rebase; // already a string: 'auto' | 'skip' | 'prompt'
+    merged.rebase = cli.rebase; // already a string: 'auto' | 'skip' | 'prompt'
     sources.rebase = 'cli';
   } else if (cfg.rebase !== undefined) {
     // Config may store true/false booleans or the string "prompt"
@@ -312,7 +312,7 @@ function mergeFlags(cli, config) {
     sources.rebase = 'config';
   } else {
     // Default is true → 'auto'
-    merged.rebase  = 'auto';
+    merged.rebase = 'auto';
     sources.rebase = 'default';
   }
 
@@ -324,55 +324,55 @@ function mergeFlags(cli, config) {
 
   // verifyPipelineTimeout (integer ≥30, default from BUILT_IN_DEFAULTS)
   if (cfg.verifyPipelineTimeout !== undefined) {
-    merged.verifyPipelineTimeout  = cfg.verifyPipelineTimeout;
+    merged.verifyPipelineTimeout = cfg.verifyPipelineTimeout;
     sources.verifyPipelineTimeout = 'config';
   } else {
-    merged.verifyPipelineTimeout  = BUILT_IN_DEFAULTS.verifyPipelineTimeout;
+    merged.verifyPipelineTimeout = BUILT_IN_DEFAULTS.verifyPipelineTimeout;
     sources.verifyPipelineTimeout = 'default';
   }
 
   // verifyPipelineInterval (integer ≥10, default from BUILT_IN_DEFAULTS)
   if (cfg.verifyPipelineInterval !== undefined) {
-    merged.verifyPipelineInterval  = cfg.verifyPipelineInterval;
+    merged.verifyPipelineInterval = cfg.verifyPipelineInterval;
     sources.verifyPipelineInterval = 'config';
   } else {
-    merged.verifyPipelineInterval  = BUILT_IN_DEFAULTS.verifyPipelineInterval;
+    merged.verifyPipelineInterval = BUILT_IN_DEFAULTS.verifyPipelineInterval;
     sources.verifyPipelineInterval = 'default';
   }
 
   // verifyPipelineMaxIterations (integer 1-10, default from BUILT_IN_DEFAULTS)
   if (cfg.verifyPipelineMaxIterations !== undefined) {
-    merged.verifyPipelineMaxIterations  = cfg.verifyPipelineMaxIterations;
+    merged.verifyPipelineMaxIterations = cfg.verifyPipelineMaxIterations;
     sources.verifyPipelineMaxIterations = 'config';
   } else {
-    merged.verifyPipelineMaxIterations  = BUILT_IN_DEFAULTS.verifyPipelineMaxIterations;
+    merged.verifyPipelineMaxIterations = BUILT_IN_DEFAULTS.verifyPipelineMaxIterations;
     sources.verifyPipelineMaxIterations = 'default';
   }
 
   // awaitRemoteReviewTimeout (integer ≥30, default from BUILT_IN_DEFAULTS)
   if (cfg.awaitRemoteReviewTimeout !== undefined) {
-    merged.awaitRemoteReviewTimeout  = cfg.awaitRemoteReviewTimeout;
+    merged.awaitRemoteReviewTimeout = cfg.awaitRemoteReviewTimeout;
     sources.awaitRemoteReviewTimeout = 'config';
   } else {
-    merged.awaitRemoteReviewTimeout  = BUILT_IN_DEFAULTS.awaitRemoteReviewTimeout;
+    merged.awaitRemoteReviewTimeout = BUILT_IN_DEFAULTS.awaitRemoteReviewTimeout;
     sources.awaitRemoteReviewTimeout = 'default';
   }
 
   // awaitRemoteReviewInterval (integer ≥10, default from BUILT_IN_DEFAULTS)
   if (cfg.awaitRemoteReviewInterval !== undefined) {
-    merged.awaitRemoteReviewInterval  = cfg.awaitRemoteReviewInterval;
+    merged.awaitRemoteReviewInterval = cfg.awaitRemoteReviewInterval;
     sources.awaitRemoteReviewInterval = 'config';
   } else {
-    merged.awaitRemoteReviewInterval  = BUILT_IN_DEFAULTS.awaitRemoteReviewInterval;
+    merged.awaitRemoteReviewInterval = BUILT_IN_DEFAULTS.awaitRemoteReviewInterval;
     sources.awaitRemoteReviewInterval = 'default';
   }
 
   // awaitRemoteReviewers (array of strings, minItems 1, default from BUILT_IN_DEFAULTS)
   if (Array.isArray(cfg.awaitRemoteReviewers) && cfg.awaitRemoteReviewers.length > 0) {
-    merged.awaitRemoteReviewers  = cfg.awaitRemoteReviewers.slice();
+    merged.awaitRemoteReviewers = cfg.awaitRemoteReviewers.slice();
     sources.awaitRemoteReviewers = 'config';
   } else {
-    merged.awaitRemoteReviewers  = BUILT_IN_DEFAULTS.awaitRemoteReviewers.slice();
+    merged.awaitRemoteReviewers = BUILT_IN_DEFAULTS.awaitRemoteReviewers.slice();
     sources.awaitRemoteReviewers = 'default';
   }
 
@@ -382,13 +382,13 @@ function mergeFlags(cli, config) {
   // `step.invocation`, never raw `config.execute.commitWaves`.
   const execCfg = (cfg && cfg.execute && typeof cfg.execute === 'object') ? cfg.execute : {};
   if (execCfg.commitWaves === true) {
-    merged.executeCommitWaves  = true;
+    merged.executeCommitWaves = true;
     sources.executeCommitWaves = 'config';
   } else if (execCfg.commitWaves === false) {
-    merged.executeCommitWaves  = false;
+    merged.executeCommitWaves = false;
     sources.executeCommitWaves = 'config';
   } else {
-    merged.executeCommitWaves  = false;
+    merged.executeCommitWaves = false;
     sources.executeCommitWaves = 'default';
     // Track non-boolean values so runValidation can emit a warning.
     if (execCfg.commitWaves !== undefined) {
@@ -397,13 +397,13 @@ function mergeFlags(cli, config) {
   }
 
   // Pass-through flags that don't come from config.
-  merged.hasPlan          = cli.hasPlan;
-  merged.dryRun           = cli.dryRun;
-  merged.resume           = cli.resume;
-  merged.openspecChange   = cli.openspecChange || null;
-  merged.planModeBlocked  = cli.planModeBlocked === true;
+  merged.hasPlan = cli.hasPlan;
+  merged.dryRun = cli.dryRun;
+  merged.resume = cli.resume;
+  merged.openspecChange = cli.openspecChange || null;
+  merged.planModeBlocked = cli.planModeBlocked === true;
   // quick is already set above in step resolution; re-affirm as bool for clarity.
-  merged.quick            = cli.quick === true;
+  merged.quick = cli.quick === true;
 
   return { merged, sources };
 }
@@ -424,8 +424,8 @@ function computeSteps(flags, flagSources, { openspecContext, expectedBranch, pla
   function skipSource(name) {
     if (stepsSet.has(name)) return 'none';
     const src = flagSources && flagSources.steps;
-    if (src === 'cli')    return 'cli';
-    if (src === 'quick')  return 'quick';  // R-quick-4: step excluded by --quick profile
+    if (src === 'cli') return 'cli';
+    if (src === 'quick') return 'quick';  // R-quick-4: step excluded by --quick profile
     if (src === 'config') return 'config';
     return 'default';
   }
@@ -794,7 +794,7 @@ function detectWorktree(projectRoot) {
     return { inLinkedWorktree: false, currentPath: null, mainWorktreePath: cwd };
   }
 
-  const cwd         = fs.realpathSync(projectRoot);
+  const cwd = fs.realpathSync(projectRoot);
   const mainResolved = fs.realpathSync(mainPath);
 
   return {
@@ -809,14 +809,14 @@ function detectWorktree(projectRoot) {
 // ---------------------------------------------------------------------------
 
 function runValidation(flags, flagSources, steps, context) {
-  const errors   = [];
+  const errors = [];
   const warnings = [];
 
   // gh auth must be true (issue #234 — preflight via lib/git.js::probeGhAuth).
   if (!context.ghAuthenticated) {
     errors.push(
       context.ghAuthErrorMessage ||
-        'GitHub CLI is not authenticated. Run "gh auth login" before using ship-sdlc.'
+      'GitHub CLI is not authenticated. Run "gh auth login" before using ship-sdlc.'
     );
   }
 
@@ -950,7 +950,7 @@ function main() {
   const projectRoot = resolveSdlcRoot(); // issue #351: route to main worktree .sdlc/
   const cli = parseArgs(process.argv);
 
-  const errors   = [];
+  const errors = [];
   const warnings = [];
 
   // Surface argument-parsing errors first (legacy --preset/--skip rejection).
@@ -1011,14 +1011,14 @@ function main() {
 
     let report;
     try {
-      const ship             = gcStateFiles({ prefix: 'ship',    ttlDays, knownBranches });
-      const execute          = gcStateFiles({ prefix: 'execute', ttlDays, knownBranches });
-      const plan             = gcStateFiles({ prefix: 'plan',    ttlDays, knownBranches });
-      const commit           = gcStateFiles({ prefix: 'commit',  ttlDays, knownBranches });
+      const ship = gcStateFiles({ prefix: 'ship', ttlDays, knownBranches });
+      const execute = gcStateFiles({ prefix: 'execute', ttlDays, knownBranches });
+      const plan = gcStateFiles({ prefix: 'plan', ttlDays, knownBranches });
+      const commit = gcStateFiles({ prefix: 'commit', ttlDays, knownBranches });
       // Sweep per-invocation tempdirs created by plan-explore.js (issue #408)
       // SDLC_EXPLORE_TMPDIR_OVERRIDE allows tests to point at a controlled directory.
-      const exploreTmpdir    = process.env.SDLC_EXPLORE_TMPDIR_OVERRIDE || undefined;
-      const exploreTempdirs  = gcTempdirs({ prefix: 'sdlc-explore-', ttlDays, knownBranches, tmpdir: exploreTmpdir });
+      const exploreTmpdir = process.env.SDLC_EXPLORE_TMPDIR_OVERRIDE || undefined;
+      const exploreTempdirs = gcTempdirs({ prefix: 'sdlc-explore-', ttlDays, knownBranches, tmpdir: exploreTmpdir });
       report = { ttlDays, ship, execute, plan, commit, exploreTempdirs };
     } catch (err) {
       errors.push(`gc failed: ${err.message}`);
@@ -1185,8 +1185,8 @@ function main() {
 
   // Compute openspec archive actionability
   const openspecBranchMatch = openspecResult.branchMatch || null;
-  const openspecChangeName  = flags.openspecChange || openspecBranchMatch;
-  const openspecIsArchived  = openspecChangeName
+  const openspecChangeName = flags.openspecChange || openspecBranchMatch;
+  const openspecIsArchived = openspecChangeName
     ? isArchived(projectRoot, openspecChangeName)
     : false;
 
@@ -1208,7 +1208,7 @@ function main() {
   // Build context
   // R-PLANFILE: resolve the active plan file path for execute-step task mirroring.
   // Priority: (1) CLI --plan-file flag, (2) project .claude/settings.json plansDirectory,
-  // (3) global ~/.claude/settings.json plansDirectory, (4) default ~/.claude/plans/ (most recent *.md).
+  // (3) global ~/.claude/settings.json plansDirectory, (4) default ~/.gemini/plans/ (most recent *.md).
   // Returns absolute path string or null if no plan file can be found.
   function resolvePlanFile(cliPlanFile) {
     if (cliPlanFile) {
