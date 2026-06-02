@@ -4,5 +4,77 @@
   "version": "0.21.0",
   "author": {
     "name": "dnichyparuk"
-  }
+  },
+  "commands": [
+    {
+      "name": "commit-sdlc",
+      "description": "Use this skill when committing staged changes, creating a git commit, or generating a commit message...",
+      "skill": "commit-sdlc"
+    },
+    {
+      "name": "error-report-sdlc",
+      "description": "Internal skill invoked by other SDLC skills when they encounter an actionable error (script crash, C...",
+      "skill": "error-report-sdlc"
+    },
+    {
+      "name": "execute-plan-sdlc",
+      "description": "Use when the user wants to execute an implementation plan with adaptive intelligence \u2014 classifies ta...",
+      "skill": "execute-plan-sdlc"
+    },
+    {
+      "name": "github-sdlc",
+      "description": "Use this skill when creating, editing, reading, viewing, searching, commenting on, or managing GitHu...",
+      "skill": "github-sdlc"
+    },
+    {
+      "name": "harden-sdlc",
+      "description": "Use this skill after an SDLC pipeline failure to analyze hardening surfaces (plan and execute guardr...",
+      "skill": "harden-sdlc"
+    },
+    {
+      "name": "jira-sdlc",
+      "description": "Use this skill when creating, editing, reading, viewing, searching, transitioning, commenting on, or...",
+      "skill": "jira-sdlc"
+    },
+    {
+      "name": "plan-sdlc",
+      "description": "Use when writing an implementation plan from requirements, a spec, a design doc, or a user descripti...",
+      "skill": "plan-sdlc"
+    },
+    {
+      "name": "pr-sdlc",
+      "description": "Use this skill when creating or updating a pull request, updating a PR description, or generating PR...",
+      "skill": "pr-sdlc"
+    },
+    {
+      "name": "received-review-sdlc",
+      "description": "Use this skill when responding to code review feedback on a pull request or inline reviewer comments...",
+      "skill": "received-review-sdlc"
+    },
+    {
+      "name": "review-sdlc",
+      "description": "Use this skill when reviewing code changes across project-defined dimensions (security, performance,...",
+      "skill": "review-sdlc"
+    },
+    {
+      "name": "setup-sdlc",
+      "description": "Use this skill when setting up the SDLC plugin for a project, initializing configuration, or when an...",
+      "skill": "setup-sdlc"
+    },
+    {
+      "name": "ship-sdlc",
+      "description": "Use this skill when shipping a feature end-to-end after plan acceptance: executing, committing, revi...",
+      "skill": "ship-sdlc"
+    },
+    {
+      "name": "verify-pipeline-sdlc",
+      "description": "Use this skill to analyze a failed CI run on a PR and either apply a minimal fix or emit a proposal....",
+      "skill": "verify-pipeline-sdlc"
+    },
+    {
+      "name": "version-sdlc",
+      "description": "Use this skill when bumping a project version, creating a git release tag, generating a changelog, o...",
+      "skill": "version-sdlc"
+    }
+  ]
 }
