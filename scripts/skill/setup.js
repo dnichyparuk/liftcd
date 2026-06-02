@@ -138,7 +138,7 @@ function detect(projectRoot) {
   const legacyShipPath = path.join(projectRoot, LEGACY.ship);
   const legacyJiraPath = path.join(projectRoot, LEGACY.jira);
   const legacyReviewSdlcPath = path.join(projectRoot, LEGACY.reviewSdlc);
-  const legacyReviewSdlcPath = path.join(projectRoot, LEGACY.reviewAntigravity);
+  const legacyReviewAntigravityPath = path.join(projectRoot, LEGACY.reviewAntigravity);
 
   // --- Content files ---
   const reviewDimensionsDir = path.join(projectRoot, '.sdlc', 'review-dimensions');
@@ -206,7 +206,7 @@ function detect(projectRoot) {
       version: { exists: fs.existsSync(legacyVersionPath), path: LEGACY.version },
       ship:    { exists: fs.existsSync(legacyShipPath),    path: LEGACY.ship    },
       review:  { exists: fs.existsSync(legacyReviewSdlcPath),   path: LEGACY.reviewSdlc   },
-      reviewLegacy: { exists: fs.existsSync(legacyReviewSdlcPath), path: LEGACY.reviewAntigravity },
+      reviewLegacy: { exists: fs.existsSync(legacyReviewAntigravityPath), path: LEGACY.reviewAntigravity },
       jira:    { exists: fs.existsSync(legacyJiraPath),    path: LEGACY.jira    },
       // R-LEGACY-DETECT (#423): detect legacy jira-templates dir for migration reporting.
       jiraTemplates: {

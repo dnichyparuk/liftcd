@@ -93,7 +93,6 @@ const BACKUP_RETAIN = 3;
 function sweepBackups(projectRoot, warnings) {
   const candidates = [];
   const sdlcDir = path.join(projectRoot, '.sdlc');
-  const sdlcDir = path.join(projectRoot, '.sdlc');
 
   // .sdlc/*.bak.* — group by base filename so each role retains 3 newest.
   if (fs.existsSync(sdlcDir)) {
