@@ -205,7 +205,7 @@ function computeWebResearchSignal(userPrompt) {
 function sampleSkillRegistry() {
   const skills = [];
   const pluginDirs = [
-    path.join(os.homedir(), '.claude', 'plugins'),
+    path.join(os.homedir(), '.gemini', 'config', 'plugins'),
   ];
 
   for (const pluginDir of pluginDirs) {
@@ -246,7 +246,7 @@ function sampleRecentPlans(projectRoot) {
   const candidateDirs = [];
 
   // Global settings
-  const globalSettings = path.join(os.homedir(), '.claude', 'settings.json');
+  const globalSettings = path.join(os.homedir(), '.gemini/antigravity-cli', 'settings.json');
   if (fs.existsSync(globalSettings)) {
     try {
       const s = JSON.parse(fs.readFileSync(globalSettings, 'utf8'));
@@ -255,7 +255,7 @@ function sampleRecentPlans(projectRoot) {
   }
 
   // Project settings
-  const projectSettings = path.join(projectRoot, '.claude', 'settings.json');
+  const projectSettings = path.join(projectRoot, '.gemini/antigravity-cli', 'settings.json');
   if (fs.existsSync(projectSettings)) {
     try {
       const s = JSON.parse(fs.readFileSync(projectSettings, 'utf8'));
@@ -264,7 +264,7 @@ function sampleRecentPlans(projectRoot) {
   }
 
   // Fallback
-  candidateDirs.push(path.join(os.homedir(), '.claude', 'plans'));
+  candidateDirs.push(path.join(os.homedir(), '.gemini', 'plans'));
 
   for (const dir of candidateDirs) {
     if (!fs.existsSync(dir)) continue;

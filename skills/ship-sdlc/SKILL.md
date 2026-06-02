@@ -386,7 +386,7 @@ Ship-sdlc retains full control of: pipeline table display, validation output, st
 
 ### Main-thread TodoWrite orchestration (R-todowrite-visibility, #427)
 
-ship-sdlc surfaces live pipeline progress in the Claude Code task tray via main-thread `TodoWrite` calls. All derivation logic lives in `scripts/lib/ship-todos.js` (R-todowrite-visibility clause 11). The MAIN thread invokes the helper via Bash and passes the returned `todos[]` array to the `TodoWrite` tool. The helper's `marker` field is echoed verbatim to stdout (audit trail when the tray is hidden).
+ship-sdlc surfaces live pipeline progress in the Antigravity Code task tray via main-thread `TodoWrite` calls. All derivation logic lives in `scripts/lib/ship-todos.js` (R-todowrite-visibility clause 11). The MAIN thread invokes the helper via Bash and passes the returned `todos[]` array to the `TodoWrite` tool. The helper's `marker` field is echoed verbatim to stdout (audit trail when the tray is hidden).
 
 **Helper resolution (run once at Step 5 entry):**
 
@@ -507,7 +507,7 @@ Match the branch from the ship state file against worktree entries. If found and
 
 **Execute-step todo mirroring (R-todowrite-visibility clause 4):**
 
-Assign `PLAN_FILE` from the prepare output's `context.planFile` field (R-PLANFILE). This is resolved once by `skill/ship.js` using the priority order: CLI `--plan-file` → project `.claude/settings.json` `plansDirectory` → global `~/.claude/settings.json` `plansDirectory` → default `~/.gemini/plans/` (most recent `*.md`). Do not re-derive the path here — use `context.planFile` verbatim:
+Assign `PLAN_FILE` from the prepare output's `context.planFile` field (R-PLANFILE). This is resolved once by `skill/ship.js` using the priority order: CLI `--plan-file` → project `.gemini/antigravity-cli/settings.json` `plansDirectory` → global `~/.gemini/antigravity-cli/settings.json` `plansDirectory` → default `~/.gemini/plans/` (most recent `*.md`). Do not re-derive the path here — use `context.planFile` verbatim:
 
 ```bash
 PLAN_FILE=$(node -e "const d=require('fs').readFileSync(process.env.F,'utf8'); process.stdout.write(JSON.parse(d).context.planFile||'')" F="$SHIP_PREPARE_OUTPUT_FILE")

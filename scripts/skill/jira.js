@@ -36,7 +36,7 @@ const { resolveSkipConfigCheck, ensureConfigVersion } = require(path.join(LIB, '
 const { resolveSdlcRoot } = require(path.join(LIB, 'config'));
 
 // ---------------------------------------------------------------------------
-// Auto-migration: .claude/jira-templates/ → .sdlc/jira-templates/ (R-MIGR, #423)
+// Auto-migration: .sdlc/jira-templates/ → .sdlc/jira-templates/ (R-MIGR, #423)
 // Runs at most once per process (module-level flag). Errors are non-fatal.
 // ---------------------------------------------------------------------------
 let _migrationRan = false;
@@ -125,13 +125,13 @@ function loadJiraConfig(projectRoot) {
 
 /**
  * Legacy cache probe: check `.sdlc/jira-cache/<KEY>.json` (newer deprecation
- * path) then `.claude/jira-cache/<KEY>.json` (older deprecation path).
+ * path) then `.sdlc/jira-cache/<KEY>.json` (older deprecation path).
  * Returns `{ path, source } | null`.
  */
 function findLegacyCache(projectKey, projectRoot) {
   const candidates = [
     { path: path.join(projectRoot, '.sdlc', 'jira-cache', `${projectKey}.json`), source: '.sdlc/jira-cache' },
-    { path: path.join(projectRoot, '.claude', 'jira-cache', `${projectKey}.json`), source: '.claude/jira-cache' },
+    { path: path.join(projectRoot, '.sdlc', 'jira-cache', `${projectKey}.json`), source: '.sdlc/jira-cache' },
   ];
   for (const c of candidates) {
     if (fs.existsSync(c.path)) return c;
@@ -285,7 +285,7 @@ function getCachePath(projectKey, cacheDir) {
 }
 
 function findPluginInstalls() {
-  const pluginsRoot = path.join(os.homedir(), '.claude', 'plugins');
+  const pluginsRoot = path.join(os.homedir(), '.gemini', 'config', 'plugins');
   const results     = [];
 
   function walk(dir, depth) {
@@ -356,7 +356,7 @@ function resolveTemplateStatus(projectKey, cachePath, templatesDir) {
     } catch (_) { /* ignore parse errors */ }
   }
 
-  // R-MIGR (#423): auto-migrate .claude/jira-templates/ → .sdlc/jira-templates/ once per process.
+  // R-MIGR (#423): auto-migrate .sdlc/jira-templates/ → .sdlc/jira-templates/ once per process.
   runAutoMigration();
   // R-projectroot: main-worktree-rooted resolution (#360).
   const customDir = path.join(resolveSdlcRoot(), '.sdlc', 'jira-templates');
@@ -786,7 +786,7 @@ function initTemplates({ projectKey, cacheDir, site }, templatesDir) {
     } catch (_) { /* ignore */ }
   }
 
-  // R-MIGR (#423): auto-migrate .claude/jira-templates/ → .sdlc/jira-templates/ once per process.
+  // R-MIGR (#423): auto-migrate .sdlc/jira-templates/ → .sdlc/jira-templates/ once per process.
   runAutoMigration();
   // R-projectroot: main-worktree-rooted resolution (#360).
   const customDir    = path.join(resolveSdlcRoot(), '.sdlc', 'jira-templates');
@@ -847,7 +847,7 @@ function copyTemplate(copyType, copyFrom, templatesDir) {
     return;
   }
 
-  // R-MIGR (#423): auto-migrate .claude/jira-templates/ → .sdlc/jira-templates/ once per process.
+  // R-MIGR (#423): auto-migrate .sdlc/jira-templates/ → .sdlc/jira-templates/ once per process.
   runAutoMigration();
   // R-projectroot: main-worktree-rooted resolution (#360).
   const dst = path.join(resolveSdlcRoot(), '.sdlc', 'jira-templates', copyType + '.md');

@@ -28,16 +28,16 @@ const path = require('path');
 // ---------------------------------------------------------------------------
 
 /**
- * v0 → v3: relocate legacy `.claude/sdlc.json` to `.sdlc/config.json`.
+ * v0 → v3: relocate legacy `.sdlc/sdlc.json` to `.sdlc/config.json`.
  *
  * Behavior:
  *   - If legacy file exists, copy contents to new path.
  *   - Stamp `schemaVersion: 3` on the new file (final stamp is applied by
  *     verifyAndMigrate after the chain completes; this step writes whatever
  *     value happens to be there from legacy).
- *   - The backup `.claude/sdlc.json.bak` is written by verifyAndMigrate
+ *   - The backup `.sdlc/sdlc.json.bak` is written by verifyAndMigrate
  *     before this step runs (per R-layout-6).
- *   - The legacy file is removed by cleanupLegacyClaudeFiles (R-layout-9) after relocation.
+ *   - The legacy file is removed by cleanupLegacyAntigravityFiles (R-layout-9) after relocation.
  *
  * Idempotency: if the new file already exists and has content, do nothing.
  * (verifyAndMigrate will only call this when detection found the legacy

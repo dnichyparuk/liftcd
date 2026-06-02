@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * validate-pr-template.js
- * Validates the PR template file at <project-root>/.claude/pr-template.md.
+ * Validates the PR template file at <project-root>/.sdlc/pr-template.md.
  *
  * Usage:
  *   node validate-pr-template.js [options]

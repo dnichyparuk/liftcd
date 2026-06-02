@@ -42,7 +42,7 @@ State files are always written to the **main working tree's** `.sdlc/execution/`
     "guardrailsEvaluated": "2026-05-09T14:05:30.000Z",
     "critiqueRan":         "2026-05-09T14:06:00.000Z"
   },
-  "planFilePath": "/Users/dev/.claude/plans/2026-05-09-fix-auth.md"
+  "planFilePath": "/Users/dev/.gemini/plans/2026-05-09-fix-auth.md"
 }
 ```
 
@@ -106,7 +106,7 @@ All writes use `atomicWriteSync` from `scripts/lib/state.js`. No partial-file st
     "guardrailsEvaluated": "2026-05-09T14:05:33.789Z",
     "critiqueRan":         "2026-05-09T14:06:01.012Z"
   },
-  "planFilePath": "/Users/dev/.claude/plans/2026-05-09-fix-auth.md"
+  "planFilePath": "/Users/dev/.gemini/plans/2026-05-09-fix-auth.md"
 }
 ```
 

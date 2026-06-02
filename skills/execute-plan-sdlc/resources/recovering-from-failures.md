@@ -243,7 +243,7 @@ Wait for the user's response before proceeding with any affected waves.
 **Error-to-GitHub issue proposal**:
 
 After escalating, also offer to track the failure as a GitHub issue. Locate the procedure:
-Glob for `**/error-report-sdlc/REFERENCE.md` under `~/.claude/plugins`, then retry with cwd.
+Glob for `**/error-report-sdlc/REFERENCE.md` under `~/.gemini/config/plugins`, then retry with cwd.
 If found, follow the procedure with:
 
 - **Skill**: execute-plan-sdlc

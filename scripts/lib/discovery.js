@@ -9,7 +9,7 @@
  * Exports: validateAll
  *
  * Check IDs:
- *   PD1  marketplace-manifest-exists     — .claude-plugin/marketplace.json valid JSON
+ *   PD1  marketplace-manifest-exists     — plugin.json valid JSON
  *   PD2  marketplace-schema-reference    — $schema field present
  *   PD3  marketplace-required-fields     — name + plugins array
  *   PD4  plugin-source-paths-valid       — each source has plugin.json
@@ -130,7 +130,7 @@ function extractAgentRefs(content) {
 // (`` `REFERENCE.md` `` is an example in text, not a real file reference).
 // Also excludes known project artifact filenames that are never skill siblings.
 const RE_SIBLING_MD = /(?<!`)`(?:resources\/)?([A-Z][A-Z0-9_-]*\.md)`(?!`)/g;
-const NON_SIBLING_MD = new Set(['CHANGELOG.md', 'README.md', 'LICENSE.md', 'CLAUDE.md', 'SKILL.md']);
+const NON_SIBLING_MD = new Set(['CHANGELOG.md', 'README.md', 'LICENSE.md', 'AGENTS.md', 'SKILL.md']);
 
 function extractSiblingFileRefs(content) {
   const names = new Set();
@@ -165,8 +165,8 @@ function skip(id, check, reason) {
 // ---------------------------------------------------------------------------
 
 function checkPD1(projectRoot) {
-  const filePath = path.join(projectRoot, '.claude-plugin', 'marketplace.json');
-  const rel = '.claude-plugin/marketplace.json';
+  const filePath = path.join(projectRoot, 'plugin.json');
+  const rel = 'plugin.json';
 
   if (!isFile(filePath)) {
     return { finding: fail('PD1', 'marketplace-manifest-exists', 'error',
@@ -193,7 +193,7 @@ function checkPD1(projectRoot) {
 
 function checkPD2(marketplace) {
   if (!marketplace) return skip('PD2', 'marketplace-schema-reference', 'PD1 failed — cannot check');
-  const expected = 'https://anthropic.com/claude-code/marketplace.schema.json';
+  const expected = 'https://anthropic.com/antigravity-code/marketplace.schema.json';
   if (!marketplace.$schema) {
     return fail('PD2', 'marketplace-schema-reference', 'warning',
       '$schema field missing from marketplace.json',
@@ -232,14 +232,14 @@ function checkPD4(projectRoot, marketplace) {
     }
     const sourcePath = entry.source.replace(/^\.\//, '');
     const pluginDir  = path.join(projectRoot, sourcePath);
-    const manifestPath = path.join(pluginDir, '.claude-plugin', 'plugin.json');
+    const manifestPath = path.join(pluginDir, 'plugin.json');
 
     if (!isDir(pluginDir)) {
       findings.push(`Plugin "${entry.name}": source directory not found: ${pluginDir}`);
       continue;
     }
     if (!isFile(manifestPath)) {
-      findings.push(`Plugin "${entry.name}": .claude-plugin/plugin.json not found in ${pluginDir}`);
+      findings.push(`Plugin "${entry.name}": plugin.json not found in ${pluginDir}`);
       continue;
     }
 

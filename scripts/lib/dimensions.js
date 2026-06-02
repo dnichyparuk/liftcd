@@ -216,18 +216,18 @@ function validateDimensionFile(filePath) {
 // ---------------------------------------------------------------------------
 
 // Issue #231: prefer .sdlc/review-dimensions/, fall back to legacy
-// .claude/review-dimensions/ with one-time stderr deprecation warning.
+// .sdlc/review-dimensions/ with one-time stderr deprecation warning.
 let _legacyDimensionsWarningEmitted = false;
 
 function resolveDimensionsDir(projectRoot) {
   const newPath = path.join(projectRoot, '.sdlc', 'review-dimensions');
-  const legacyPath = path.join(projectRoot, '.claude', 'review-dimensions');
+  const legacyPath = path.join(projectRoot, '.sdlc', 'review-dimensions');
   if (fs.existsSync(newPath)) return newPath;
   if (fs.existsSync(legacyPath)) {
     if (!_legacyDimensionsWarningEmitted) {
       _legacyDimensionsWarningEmitted = true;
       process.stderr.write(
-        `Deprecation: ${path.join('.claude', 'review-dimensions')} is the legacy review-dimensions location. ` +
+        `Deprecation: ${path.join('.sdlc', 'review-dimensions')} is the legacy review-dimensions location. ` +
         `Run /setup-sdlc --migrate to move dimensions to ${path.join('.sdlc', 'review-dimensions')}.\n`
       );
     }

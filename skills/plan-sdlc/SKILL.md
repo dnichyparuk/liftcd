@@ -118,8 +118,8 @@ If `fromOpenspec` is present but `valid` is false and errors exist: display erro
 
 **Normal mode path resolution:** Resolve the output path before writing:
 1. User-specified path (if provided in conversation)
-2. Project `.claude/settings.json` → `plansDirectory` (relative paths resolve from workspace root)
-3. Global `~/.claude/settings.json` → `plansDirectory`
+2. Project `.gemini/antigravity-cli/settings.json` → `plansDirectory` (relative paths resolve from workspace root)
+3. Global `~/.gemini/antigravity-cli/settings.json` → `plansDirectory`
 4. Default fallback: `~/.gemini/plans/`
 
 Naming convention: `YYYY-MM-DD-<feature-name>.md`. Create the directory if needed.

@@ -150,7 +150,7 @@ function buildGithubHosting(projectRoot) {
 /**
  * Build P15 g17Dispatch metadata (R33).
  * Resolves the G17 prompt template path via find cascade:
- *   1. ~/.claude/plugins (installed plugin path)
+ *   1. ~/.gemini/config/plugins (installed plugin path)
  *   2. workspace-relative (development / CI path)
  * Returns null promptTemplatePath and adds an error when the file cannot be found.
  * @returns {{ subagentType: string, model: string, promptTemplatePath: string|null, error?: string }}
@@ -164,7 +164,7 @@ function buildG17Dispatch() {
   const findResult = spawnSync(
     'find',
     [
-      `${process.env.HOME}/.claude/plugins`,
+      `${process.env.HOME}/.gemini/config/plugins`,
       '-name', templateName,
       '-path', '*/plan-sdlc/*',
     ],
@@ -209,7 +209,7 @@ function resolveSkillTemplate(templateName) {
   const findResult = spawnSync(
     'find',
     [
-      `${process.env.HOME}/.claude/plugins`,
+      `${process.env.HOME}/.gemini/config/plugins`,
       '-name', templateName,
       '-path', '*/plan-sdlc/*',
     ],

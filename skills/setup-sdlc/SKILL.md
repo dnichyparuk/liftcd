@@ -87,7 +87,7 @@ If none of the direct-entry flags or `--only` were passed: continue with the ful
 The JSON contains these top-level keys:
 - `projectConfig` -- `{ exists, sections, misplaced, path }`
 - `localConfig` -- `{ exists, path }`
-- `legacy` -- `{ version, ship, review, reviewLegacy, jira, jiraTemplates }` each with `{ exists, path }`. `jiraTemplates.exists` is true when `.claude/jira-templates/` is present (R-LEGACY-DETECT, #423).
+- `legacy` -- `{ version, ship, review, reviewLegacy, jira, jiraTemplates }` each with `{ exists, path }`. `jiraTemplates.exists` is true when `.sdlc/jira-templates/` is present (R-LEGACY-DETECT, #423).
 - `openspecConfig` -- `{ exists, path, managedBlockVersion }` state of `openspec/config.yaml`
 - `content` -- `{ reviewDimensions: { count, path }, prTemplate: { exists, path }, jiraTemplates: { count, path } }`
 - `detected` -- `{ versionFile, fileType, tagPrefix, defaultBranch }`
@@ -171,10 +171,10 @@ Store the resolved section ids as `selectedIds`. Defer migration and field colle
 **Skip this step if:** `needsMigration` is `false` AND `--migrate` was NOT passed.
 
 `needsMigration` is true when ANY of these conditions hold:
-- A legacy config file exists (`.claude/version.json`, `.sdlc/ship-config.json`, `.sdlc/jira-config.json`, `.sdlc/review.json`, `.claude/review.json`)
+- A legacy config file exists (`.sdlc/version.json`, `.sdlc/ship-config.json`, `.sdlc/jira-config.json`, `.sdlc/review.json`, `.sdlc/review.json`)
 - `.sdlc/config.json` contains misplaced sections (e.g. `ship` in the project config)
 - `.sdlc/local.json` is v1 schema — has legacy `ship.preset` or `ship.skip` keys, or lacks the top-level `version: 2` stamp (`localIsV1` from prepare output). Auto-migrated by `lib/config.js::readLocalConfig` on next read; `--migrate` triggers it explicitly with a banner.
-- `legacy.jiraTemplates.exists` is true (`.claude/jira-templates/` detected — implements R-LEGACY-DETECT, #423)
+- `legacy.jiraTemplates.exists` is true (`.sdlc/jira-templates/` detected — implements R-LEGACY-DETECT, #423)
 
 If legacy files exist or `projectConfig.misplaced` is non-empty, use AskUserQuestion:
 
@@ -415,7 +415,7 @@ or mismatches from the SKILL.
 
 - `previews.inside`, `previews.sibling`, `previews.central` — sample resolved paths
   using a sentinel branch (`example-feature`) for each deterministic layout.
-- `claudeIgnored` — boolean; whether the project root `.gitignore` already lists `.claude/`.
+- `antigravityIgnored` — boolean; whether the project root `.gitignore` already lists `.sdlc/`.
 - `mismatchesByLayout.{inside|sibling|central}` — list of existing worktree paths
   under `git worktree list` that do NOT match the layout being considered. Non-empty
   values mean picking that layout would leave the listed worktrees orphaned (still
@@ -426,9 +426,9 @@ or mismatches from the SKILL.
 
 1. **Numbered layout menu, printed as plain chat output (NOT `AskUserQuestion`)
    before the question.** Use the help text returned by
-   `workspace-fields.js::layoutField.help({ repoRoot, repoName, home, claudeIgnored })`
+   `workspace-fields.js::layoutField.help({ repoRoot, repoName, home, antigravityIgnored })`
    — it already renders previews 1–3 with their resolved paths and emits the
-   `.claude/` gitignore note based on `context.claudeIgnored`. Append a fourth row
+   `.sdlc/` gitignore note based on `context.antigravityIgnored`. Append a fourth row
    for `template` with the static description from the field's `options[3]`.
 
    Example shape (the script supplies the exact strings):
@@ -470,7 +470,7 @@ re-prompt on failure with the exception message inline.
 
 | Layout | Follow-up fields prompted | Notes |
 |---|---|---|
-| `inside` | `base` (optional), `ensureGitignore` (boolean, default `true`), `nameTemplate` (optional) | `ensureGitignore=true` enables the SessionStart hook to auto-add `.claude/worktrees/` to root `.gitignore`. |
+| `inside` | `base` (optional), `ensureGitignore` (boolean, default `true`), `nameTemplate` (optional) | `ensureGitignore=true` enables the SessionStart hook to auto-add `.sdlc/worktrees/` to root `.gitignore`. |
 | `sibling` | `base` (optional), `nameTemplate` (optional) | Path resolves alongside the repo dir. |
 | `central` | `base` (optional), `nameTemplate` (optional) | Default places under `~/.sdlc/worktrees/<repoName>/`. |
 | `template` | `template` (required — must contain `{slug}` or `{branch}`), `nameTemplate` (optional) | Skip `base` and `ensureGitignore`. |
@@ -539,7 +539,7 @@ Before invoking `setup-dimensions` or `setup-pr-template`, run the project signa
 - **Existing review dimensions:** Use Glob for `.sdlc/review-dimensions/*` (count and names).
 - **Existing guardrails:** Use Read on `.sdlc/config.json` → `plan.guardrails` array if present.
 - **GitHub hosting detection:** Bash for `git remote -v` and `gh repo view` (safe). Use Glob for `.github/`.
-- **CLAUDE.md / AGENTS.md:** Use Read on `CLAUDE.md`, `AGENTS.md`, `.claude/CLAUDE.md` if present.
+- **AGENTS.md / AGENTS.md:** Use Read on `AGENTS.md`, `AGENTS.md`, `.sdlc/AGENTS.md` if present.
 - **PR template:** Use Glob for `.github/PULL_REQUEST_TEMPLATE.md`, `.github/pull_request_template.md`.
 - **Recent PRs:** Bash for `gh pr list --limit 5 --json title,body` (safe).
 - **Existing PR template:** Use Glob for `.sdlc/pr-template.md`.
@@ -630,7 +630,7 @@ Content:
   Plan guardrails         -- [N configured via guardrails sub-flow | skipped]
 
 Migrated:
-  .claude/version.json    -- merged into .sdlc/config.json [deleted | kept]
+  .sdlc/version.json    -- merged into .sdlc/config.json [deleted | kept]
   ...
 ```
 
@@ -669,7 +669,7 @@ This skill is safe to re-run. Already-configured sections are skipped unless `--
 
 **`writeProjectConfig` and `writeLocalConfig` do read-merge-write.** They will not clobber sections written by other skills. Each call merges the provided config into the existing file content. This makes it safe to write one section at a time.
 
-**Legacy review config has two possible locations.** `.sdlc/review.json` and `.claude/review.json` are both legacy paths. `migrateConfig()` prefers `.sdlc/review.json` when both exist.
+**Legacy review config has two possible locations.** `.sdlc/review.json` and `.sdlc/review.json` are both legacy paths. `migrateConfig()` prefers `.sdlc/review.json` when both exist.
 
 ---
 

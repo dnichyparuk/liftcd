@@ -25,7 +25,7 @@ and the `gh issue create` call stay in the main context.
 
 ## When This Skill Is Invoked
 
-Another skill explicitly directs Claude here after encountering an issue-worthy
+Another skill explicitly directs Antigravity here after encountering an issue-worthy
 error. The calling skill provides:
 
 - **Skill**: which skill encountered the error

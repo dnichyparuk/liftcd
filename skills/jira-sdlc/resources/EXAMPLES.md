@@ -1,7 +1,7 @@
 # Jira SDLC — Examples
 
 Copy-paste MCP call examples for every operation. Values marked with `← cache.xxx`
-come from the project cache at `~/.sdlc-cache/jira/<sanitizedSiteHost>/<PROJECT_KEY>.json` (legacy locations `.sdlc/jira-cache/` and `.claude/jira-cache/` migrate automatically on first use). Replace
+come from the project cache at `~/.sdlc-cache/jira/<sanitizedSiteHost>/<PROJECT_KEY>.json` (legacy locations `.sdlc/jira-cache/` and `.gemini/jira-cache/` migrate automatically on first use). Replace
 `PROJ` with the actual project key and adjust IDs to match the cache.
 
 Comment examples use `contentFormat: "adf"` with the body converted via `markdown-to-adf.js`.

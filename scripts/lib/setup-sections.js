@@ -379,7 +379,7 @@ const SETUP_SECTIONS = [
   {
     id: 'workspace',
     label: 'workspace',
-    purpose: 'Developer-local worktree placement preferences for /worktree-create, /execute-plan-sdlc, and /ship-sdlc. Configures where git worktrees are placed (inside repo, sibling to repo, central store, or custom template), the name pattern, and whether .claude/worktrees/ is auto-added to .gitignore. Stored in .sdlc/local.json (gitignored) so each developer can choose their own worktree layout without affecting teammates.',
+    purpose: 'Developer-local worktree placement preferences for /worktree-create, /execute-plan-sdlc, and /ship-sdlc. Configures where git worktrees are placed (inside repo, sibling to repo, central store, or custom template), the name pattern, and whether .sdlc/worktrees/ is auto-added to .gitignore. Stored in .sdlc/local.json (gitignored) so each developer can choose their own worktree layout without affecting teammates.',
     configFile: '.sdlc/local.json',
     configPath: 'workspace',
     consumedBy: ['worktree-create', 'execute-plan-sdlc', 'ship-sdlc'],
@@ -543,7 +543,7 @@ const SETUP_SECTIONS = [
         type: 'boolean',
         options: [true, false],
         default: true,
-        description: 'When true (default, recommended), the plugin\'s pre-tool-agent-isolation-guard.js hook blocks Agent dispatches with isolation: "worktree" — prevents commits from landing in ephemeral .claude/worktrees/agent-<id> paths instead of the intended SDLC worktree. Set to false to opt out per-developer. See issues #370 #372.',
+        description: 'When true (default, recommended), the plugin\'s pre-tool-agent-isolation-guard.js hook blocks Agent dispatches with isolation: "worktree" — prevents commits from landing in ephemeral .sdlc/worktrees/agent-<id> paths instead of the intended SDLC worktree. Set to false to opt out per-developer. See issues #370 #372.',
       },
     ],
     summarize: summarizeHooks,

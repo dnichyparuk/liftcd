@@ -68,7 +68,7 @@ const REDACTORS = [
 function resolveLogPath(root) {
   const projectRoot = root || resolveSdlcRoot();
   const canonical   = path.join(projectRoot, '.sdlc', 'learnings', 'log.md');
-  const legacy      = path.join(projectRoot, '.claude', 'learnings', 'log.md');
+  const legacy      = path.join(projectRoot, '.sdlc', 'learnings', 'log.md');
   // Prefer canonical; fall back if canonical dir is not writable
   try {
     fs.mkdirSync(path.dirname(canonical), { recursive: true });
@@ -181,7 +181,7 @@ function appendTelemetry(failure, root) {
  *      on first call and reused thereafter. This is stable across separate
  *      `node mcp-failure.js` invocations even when each runs in a fresh
  *      shell (so `process.ppid` differs per invocation) — which is the
- *      normal case for SKILL.md bash blocks executed by claude-cli.
+ *      normal case for SKILL.md bash blocks executed by antigravity-cli.
  *   3. Fallback to `process.ppid`/`process.pid` when no writable root exists.
  *
  * The marker file is intentionally per-project (keyed by sdlc root) rather

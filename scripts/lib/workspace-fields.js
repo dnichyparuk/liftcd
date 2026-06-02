@@ -37,34 +37,34 @@ const LAYOUT_FIELD = {
   default: 'inside',
   description:
     'Controls where /worktree-create, /execute-plan-sdlc, and /ship-sdlc place git worktrees. ' +
-    '`inside` (default) puts them under .claude/worktrees/ in the repo; ' +
+    '`inside` (default) puts them under .sdlc/worktrees/ in the repo; ' +
     '`sibling` places them adjacent to the repo directory; ' +
     '`central` stores them under ~/.sdlc/worktrees/<repo>; ' +
     '`template` uses a fully custom path template with {slug}/{branch}/{repo}/{date}/{issue} placeholders.',
   /**
    * Generate the numbered-menu help text including live path previews.
-   * Called from SKILL.md with repoContext = { repoRoot, repoName, home, consumerCommitsClaude }.
+   * Called from SKILL.md with repoContext = { repoRoot, repoName, home, consumerCommitsSdlc }.
    */
   help(repoContext) {
-    const { repoRoot, repoName, home, consumerCommitsClaude } = repoContext;
+    const { repoRoot, repoName, home, consumerCommitsSdlc } = repoContext;
     const { buildAllPreviews } = require('./workspace-context');
     const previews = buildAllPreviews({ repoRoot, repoName, home });
 
-    const claudeStatus = consumerCommitsClaude
-      ? '.claude/ IS committed — worktree contents will be tracked unless gitignored'
-      : '.claude/ is gitignored — safe to use inside layout';
+    const antigravityStatus = consumerCommitsSdlc
+      ? '.sdlc/ IS committed — worktree contents will be tracked unless gitignored'
+      : '.sdlc/ is gitignored — safe to use inside layout';
 
     return [
       'Where should sdlc create git worktrees?',
       '(Affects /ship-sdlc --workspace worktree and /execute-plan-sdlc --workspace worktree.)',
       '',
       `  1. inside    ${previews.inside}`,
-      '              → Standard Claude Code convention. Auto-adds the path to',
-      '                .gitignore if your project commits .claude/.',
-      `              → Detected: ${claudeStatus}`,
+      '              → Standard Antigravity Code convention. Auto-adds the path to',
+      '                .gitignore if your project commits .sdlc/.',
+      `              → Detected: ${antigravityStatus}`,
       '',
       `  2. sibling   ${previews.sibling}`,
-      '              → Stays out of .claude/. Best when you keep multiple worktrees',
+      '              → Stays out of .sdlc/. Best when you keep multiple worktrees',
       '                open in your editor side-by-side.',
       '',
       `  3. central   ${previews.central}`,
@@ -104,7 +104,7 @@ const BASE_FIELD = {
     'Relative paths and path traversal sequences (..) are rejected.',
   help(layout, repoContext) {
     const defaults = {
-      inside:  `${repoContext.repoRoot}/.claude/worktrees/`,
+      inside:  `${repoContext.repoRoot}/.sdlc/worktrees/`,
       sibling: `${path.dirname(repoContext.repoRoot)}/`,
       central: `${repoContext.home}/.sdlc/worktrees/${repoContext.repoName}/`,
     };
@@ -246,7 +246,7 @@ const TEMPLATE_FIELD = {
 
 /**
  * ensureGitignore — boolean, optional, shown for inside layout.
- * When true, adds .claude/worktrees/ to root .gitignore managed block.
+ * When true, adds .sdlc/worktrees/ to root .gitignore managed block.
  */
 const ENSURE_GITIGNORE_FIELD = {
   name:    'ensureGitignore',
@@ -255,15 +255,15 @@ const ENSURE_GITIGNORE_FIELD = {
   options: ['yes', 'no'],
   default: true,
   description:
-    'When true and layout=inside, each session start automatically adds `.claude/worktrees/` to ' +
+    'When true and layout=inside, each session start automatically adds `.sdlc/worktrees/` to ' +
     'the repo\'s root .gitignore managed block so worktree contents are never tracked by git. ' +
-    'Recommended when your project commits .claude/ to version control. ' +
+    'Recommended when your project commits .sdlc/ to version control. ' +
     'Only applies to layout=inside.',
   help() {
     return [
-      'Auto-add `.claude/worktrees/` to your repo\'s root .gitignore (managed block)',
+      'Auto-add `.sdlc/worktrees/` to your repo\'s root .gitignore (managed block)',
       'so worktree contents are never tracked? Recommended when your project',
-      'commits `.claude/`. [Y/n]',
+      'commits `.sdlc/`. [Y/n]',
     ].join('\n');
   },
   validate(v) {

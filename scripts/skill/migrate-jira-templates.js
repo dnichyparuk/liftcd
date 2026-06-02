@@ -3,7 +3,7 @@
 
 /**
  * migrate-jira-templates — one-shot idempotent migration of project-local Jira template overrides
- * from the legacy path <project>/.claude/jira-templates/ to the canonical path
+ * from the legacy path <project>/.sdlc/jira-templates/ to the canonical path
  * <project>/.sdlc/jira-templates/.
  *
  * Behavior by case:
@@ -26,7 +26,7 @@ const { resolveSdlcRoot } = require(path.join(__dirname, '..', 'lib', 'config'))
 
 // R-projectroot: use resolveSdlcRoot() NOT process.cwd() for workspace-mode compatibility.
 const sdlcRoot = resolveSdlcRoot();
-const legacyDir = path.join(sdlcRoot, '.claude', 'jira-templates');
+const legacyDir = path.join(sdlcRoot, '.sdlc', 'jira-templates');
 const targetDir = path.join(sdlcRoot, '.sdlc', 'jira-templates');
 
 try {

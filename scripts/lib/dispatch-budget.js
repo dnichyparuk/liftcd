@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------------
 // Model context limits (conservative byte ceiling = token limit × 4 bytes/token)
 // Using 75% of budget for inputs; 25% reserved for sub-agent reasoning + output.
-// Claude 4 family: all models have 200K token input limit.
+// Antigravity 4 family: all models have 200K token input limit.
 // ---------------------------------------------------------------------------
 const MODEL_MAX_INPUT_BYTES = {
   'gemini-3.5-flash': Math.floor(1_000_000 * 4 * 0.75),

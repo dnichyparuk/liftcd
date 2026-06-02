@@ -37,7 +37,7 @@ tenants. The cache is permanent by default — it does not expire on a timer. Af
 initialization, every subsequent operation reads exclusively from the cache. The cache is
 rebuilt only when `--force-refresh` is passed or when operations fail due to stale data
 (invalid transition IDs, changed field schemas). Legacy caches found at
-`.sdlc/jira-cache/<KEY>.json` or `.claude/jira-cache/<KEY>.json` are migrated to the home
+`.sdlc/jira-cache/<KEY>.json` or `.sdlc/jira-cache/<KEY>.json` are migrated to the home
 layout automatically on the next `--check`; the legacy files are left in place.
 
 Each issue type has a description template (shipped in the skill's `templates/` directory
@@ -434,7 +434,7 @@ Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to 
 1. Call `getAccessibleAtlassianResources` exactly once.
 2. Compare the returned cloudId(s) against the cached value at `~/.sdlc-cache/jira/<site>/<KEY>.json`.
 3. If different, run `/jira-sdlc --force-refresh` and reload the cache.
-4. Retry the original MCP call exactly once under the primary namespace. If it still fails with the same error — try the sibling namespace (`mcp__claude_ai_Atlassian__`) once if registered.
+4. Retry the original MCP call exactly once under the primary namespace. If it still fails with the same error — try the sibling namespace (`mcp__antigravity_ai_Atlassian__`) once if registered.
 5. If the primary namespace retry failed, call the helper with `--recovered no` before trying the sibling namespace:
 
 ```shell
@@ -444,7 +444,7 @@ Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to 
 6. If the sibling namespace also fails (dual-namespace exhausted), call `--telemetry` again and then `--analyze` to trigger the R28 dispatch gate:
 
 ```bash
-[ -n "$HELPER" ] && node "$HELPER" --telemetry --class auth --tool "mcp__claude_ai_Atlassian__${MCP_TOOL_SUFFIX}" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$AUTH_ERROR_SIBLING" --recovered no
+[ -n "$HELPER" ] && node "$HELPER" --telemetry --class auth --tool "mcp__antigravity_ai_Atlassian__${MCP_TOOL_SUFFIX}" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$AUTH_ERROR_SIBLING" --recovered no
 [ -n "$HELPER" ] && ANALYZE_JSON=$(node "$HELPER" --analyze --class auth --tool "$MCP_TOOL_NAME" --site "$JIRA_SITE" --project "$PROJECT_KEY" --error "$AUTH_ERROR" --recovered no --r-path R23)
 ```
 
@@ -594,8 +594,8 @@ Also call `--telemetry` on every retry (even successful ones) to maintain a per-
 ```
 
 Present `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body` verbatim with prompt "Y (file issue) / edit / skip". On Y, dispatch `error-report-sdlc` with `--error-type mcp-workflow`, `--skill jira-sdlc`, `--step "Step 3 — unsampled fallback"`, `--operation "getTransitionsForJiraIssue"`, `--error-text <proposal.body>`, and labels `mcp-failure,class:workflow`.
-- The `mcp__atlassian__` prefix is the default; if the user's MCP is registered under a different prefix (e.g., `mcp__claude_ai_Atlassian__`), use the active prefix consistently across all calls in the session
-- **Namespace fallback (spec R23):** When the primary namespace (`mcp__atlassian__`) returns a cloudId authorization error and `mcp__claude_ai_Atlassian__` is also registered (visible in the deferred-tools list), retry the operation under the sibling namespace once. Persist the working namespace for the rest of the session — do not re-probe per-call. Combine with the Step 3 cloudId-error ladder: namespace-fallback is the second leg after the cache-refresh retry fails.
+- The `mcp__atlassian__` prefix is the default; if the user's MCP is registered under a different prefix (e.g., `mcp__antigravity_ai_Atlassian__`), use the active prefix consistently across all calls in the session
+- **Namespace fallback (spec R23):** When the primary namespace (`mcp__atlassian__`) returns a cloudId authorization error and `mcp__antigravity_ai_Atlassian__` is also registered (visible in the deferred-tools list), retry the operation under the sibling namespace once. Persist the working namespace for the rest of the session — do not re-probe per-call. Combine with the Step 3 cloudId-error ladder: namespace-fallback is the second leg after the cache-refresh retry fails.
 - **Release Notes is the one allowed single-sentence carve-out (R25.5).** The `## Release Notes` section in Bug and Story templates may contain a single sentence — it is changelog-bound and bullet form is contextually awkward. Two or more sentences in this section fail the R25 critique check. All other sections must use bullet lists, numbered lists, or sub-headings.
 
 ---

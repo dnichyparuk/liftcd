@@ -27,7 +27,7 @@ const { extractKeys: extractIssueKeys } = require('./issue-keys');
  *   2. Cargo.toml        → "cargo.toml"
  *   3. pyproject.toml    → "pyproject.toml"
  *   4. pubspec.yaml      → "pubspec.yaml"
- *   5. .claude-plugin/plugin.json → "plugin.json"
+ *   5. plugin.json → "plugin.json"
  *   6. VERSION           → "version-file"
  *   7. version.txt       → "version-file"
  * @param {string} projectRoot
@@ -39,7 +39,7 @@ function detectVersionFile(projectRoot) {
     { rel: 'Cargo.toml',                fileType: 'cargo.toml'    },
     { rel: 'pyproject.toml',            fileType: 'pyproject.toml'},
     { rel: 'pubspec.yaml',              fileType: 'pubspec.yaml'  },
-    { rel: '.claude-plugin/plugin.json',fileType: 'plugin.json'   },
+    { rel: 'plugin.json',fileType: 'plugin.json'   },
     { rel: 'VERSION',                   fileType: 'version-file'  },
     { rel: 'version.txt',               fileType: 'version-file'  },
   ];
@@ -321,11 +321,11 @@ function parseConventionalCommit(subject, body = '', ticketPrefix = null) {
 }
 
 // ---------------------------------------------------------------------------
-// Config helpers (.claude/version.json)
+// Config helpers (.sdlc/version.json)
 // ---------------------------------------------------------------------------
 
 /**
- * Read and parse `.claude/version.json` relative to projectRoot.
+ * Read and parse `.sdlc/version.json` relative to projectRoot.
  * Returns the parsed object, or null if the file does not exist.
  * Throws a descriptive error if the file exists but contains invalid JSON.
  * @param {string} projectRoot

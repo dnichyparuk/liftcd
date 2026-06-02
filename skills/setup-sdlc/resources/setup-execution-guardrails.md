@@ -29,7 +29,7 @@ If not in `--add` mode and `existing.count > 0`: Use AskUserQuestion: "N executi
 The prepare script produced proposals with evidence from its template catalog. The LLM:
 
 1. Reviews each proposal for project-specific accuracy
-2. Checks if `claudeMdRules` from output suggest additional guardrails beyond the template catalog
+2. Checks if `agentsMdRules` from output suggest additional guardrails beyond the template catalog
 3. May refine descriptions to be more specific based on `signals` data
 4. Drops proposals that don't make sense despite matching a signal
 5. Caps at 3–8 proposals

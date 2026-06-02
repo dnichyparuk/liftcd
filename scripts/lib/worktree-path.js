@@ -151,10 +151,10 @@ function resolvePath(opts) {
 
   switch (layout) {
     case 'inside': {
-      // Default base is repoRoot/.claude/worktrees
+      // Default base is repoRoot/.sdlc/worktrees
       const baseDir = base
         ? expandHome(base, home)
-        : path.join(repoRoot, '.claude', 'worktrees');
+        : path.join(repoRoot, '.sdlc', 'worktrees');
 
       if (base) {
         assertNoTraversal(base);
@@ -167,7 +167,7 @@ function resolvePath(opts) {
       worktreePath = path.join(baseDir, name);
 
       // requiresGitignore when using default base (under repoRoot)
-      const resolvedBase = base ? baseDir : path.join(repoRoot, '.claude', 'worktrees');
+      const resolvedBase = base ? baseDir : path.join(repoRoot, '.sdlc', 'worktrees');
       if (worktreePath.startsWith(repoRoot + path.sep) || worktreePath.startsWith(repoRoot + '/')) {
         requiresGitignore = true;
       }

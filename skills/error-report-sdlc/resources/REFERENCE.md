@@ -82,7 +82,7 @@ This error may be worth tracking as a GitHub issue. Create one? (yes / no)
 > reference. The orchestrator receives the manifest from `error-report-prepare.js` and
 > applies the rules below internally.
 
-Read `./templates/ToolingError.md` (locate via Glob: `**/error-report-sdlc/templates/ToolingError.md` under `~/.claude/plugins`, then cwd fallback).
+Read `./templates/ToolingError.md` (locate via Glob: `**/error-report-sdlc/templates/ToolingError.md` under `~/.gemini/config/plugins`, then cwd fallback).
 
 Fill all `{placeholder}` markers using the context provided by the calling skill:
 

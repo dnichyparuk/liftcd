@@ -2,7 +2,7 @@
 /**
  * @file ci/validate-guardrails.js
  * @description Validates guardrail definitions in .sdlc/config.json (issue #231;
- *   legacy .claude/sdlc.json read via lib/config.js fallback): checks schema
+ *   legacy .sdlc/sdlc.json read via lib/config.js fallback): checks schema
  *   compliance, id uniqueness, severity values, and description quality.
  * @exit 0 all checks pass, 1 validation issues found
  */

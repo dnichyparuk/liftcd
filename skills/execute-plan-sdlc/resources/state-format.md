@@ -157,7 +157,7 @@ Each element represents one task within its wave.
 
 ## `context` Object
 
-Accumulates cross-wave state so that a resumed execution in a fresh Claude session has sufficient context to continue without re-reading completed work. Updated after each wave completes.
+Accumulates cross-wave state so that a resumed execution in a fresh Antigravity session has sufficient context to continue without re-reading completed work. Updated after each wave completes.
 
 ```json
 {

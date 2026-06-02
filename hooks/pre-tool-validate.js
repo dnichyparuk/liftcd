@@ -49,8 +49,8 @@ if (toolCall.name === 'write_to_file' || toolCall.name === 'write_file') {
 }
 
 // 2. Pattern matching
-const DIMENSION_RE = /[/\\]\.(?:claude|sdlc)[/\\]review-dimensions[/\\][^/\\]+\.ya?ml$/;
-const PR_TEMPLATE_RE = /[/\\]\.(?:claude|sdlc)[/\\]pr-template\.md$/;
+const DIMENSION_RE = /[/\\]\.(?:antigravity|sdlc)[/\\]review-dimensions[/\\][^/\\]+\.ya?ml$/;
+const PR_TEMPLATE_RE = /[/\\]\.(?:antigravity|sdlc)[/\\]pr-template\.md$/;
 const PLAN_RE = /[/\\]plans[/\\][^/\\]+\.md$/;
 
 const isDimension = DIMENSION_RE.test(targetFile);

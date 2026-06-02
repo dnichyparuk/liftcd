@@ -22,7 +22,7 @@ const pluginRoot = path.resolve(__dirname, '..');
 
 // ---------------------------------------------------------------------------
 // SessionStart matcher source (Fixes #392 / R36)
-// Stdin payload shape (Claude Code SessionStart hook): { hook_event_name: 'SessionStart', source: 'startup' | 'clear' | 'compact' | 'resume', ... }
+// Stdin payload shape (Antigravity Code SessionStart hook): { hook_event_name: 'SessionStart', source: 'startup' | 'clear' | 'compact' | 'resume', ... }
 // Source determines whether the execute-state line is emitted as the legacy
 // `Active execution:` (byte-stable for startup/clear; protects prompt-cache)
 // or as the new `Active execution (post-compact):` signal that execute-plan-sdlc
@@ -50,7 +50,7 @@ try {
 let version = 'unknown';
 try {
   const manifest = JSON.parse(
-    fs.readFileSync(path.join(pluginRoot, '.claude-plugin', 'plugin.json'), 'utf8')
+    fs.readFileSync(path.join(pluginRoot, 'plugin.json'), 'utf8')
   );
   if (manifest.version) version = manifest.version;
 } catch {

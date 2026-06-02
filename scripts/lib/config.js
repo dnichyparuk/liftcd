@@ -18,7 +18,7 @@ const { resolveMainWorktreeSafe } = require('./worktree');
 // path is read transparently as a one-time fallback (with stderr deprecation
 // notice) for two minor versions; writes always target the new path.
 const PROJECT_CONFIG_PATH = path.join('.sdlc', 'config.json');
-const LEGACY_PROJECT_CONFIG_PATH = path.join('.claude', 'sdlc.json');
+const LEGACY_PROJECT_CONFIG_PATH = path.join('.sdlc', 'sdlc.json');
 const LOCAL_CONFIG_PATH = path.join('.sdlc', 'local.json');
 
 // Per-process flag: emit the legacy-path deprecation warning at most once.
@@ -62,11 +62,11 @@ function normalizePreset(value) {
 
 /** Legacy file paths relative to projectRoot. */
 const LEGACY = {
-  version: path.join('.claude', 'version.json'),
+  version: path.join('.sdlc', 'version.json'),
   ship: path.join('.sdlc', 'ship-config.json'),
   jira: path.join('.sdlc', 'jira-config.json'),
   reviewSdlc: path.join('.sdlc', 'review.json'),
-  reviewClaude: path.join('.claude', 'review.json'),
+  reviewAntigravity: path.join('.sdlc', 'review.json'),
 };
 
 // ---------------------------------------------------------------------------
@@ -176,9 +176,9 @@ function resolveSdlcRoot({ cwd } = {}) {
 /**
  * Read the unified project config.
  * Reads `.sdlc/config.json` first (issue #231 — new canonical location).
- * Falls back to legacy `.claude/sdlc.json` with a one-time stderr deprecation
+ * Falls back to legacy `.sdlc/sdlc.json` with a one-time stderr deprecation
  * notice. As a last resort, merges individual legacy per-file configs
- * (`.claude/version.json`, etc).
+ * (`.sdlc/version.json`, etc).
  *
  * @param {string} projectRoot
  * @returns {{ config: object|null, sources: string[] }}
@@ -197,7 +197,7 @@ function readProjectConfig(projectRoot) {
   const sources = [];
   const config = {};
 
-  // version (.claude/version.json)
+  // version (.sdlc/version.json)
   const versionPath = path.join(projectRoot, LEGACY.version);
   const versionData = readJsonFile(versionPath);
   if (versionData) {
@@ -229,7 +229,7 @@ function readProjectConfig(projectRoot) {
 
 /**
  * Read the local (gitignored) config (.sdlc/local.json).
- * Falls back to .sdlc/review.json, then .claude/review.json.
+ * Falls back to .sdlc/review.json, then .sdlc/review.json.
  *
  * @param {string} projectRoot
  * @returns {{ config: object|null, sources: string[] }}
@@ -266,14 +266,14 @@ function readLocalConfig(projectRoot) {
       config.review = sdlcReview.defaults ? { ...sdlcReview.defaults } : stripMeta(sdlcReview, '$schema');
       sources.push(LEGACY.reviewSdlc);
     } else {
-      const claudeReviewPath = path.join(projectRoot, LEGACY.reviewClaude);
-      const claudeReview = readJsonFile(claudeReviewPath);
-      if (claudeReview) {
+      const antigravityReviewPath = path.join(projectRoot, LEGACY.reviewAntigravity);
+      const antigravityReview = readJsonFile(antigravityReviewPath);
+      if (antigravityReview) {
         process.stderr.write(
-          `Deprecation: ${LEGACY.reviewClaude} detected. Run /setup-sdlc --migrate to consolidate into .sdlc/local.json.\n`
+          `Deprecation: ${LEGACY.reviewAntigravity} detected. Run /setup-sdlc --migrate to consolidate into .sdlc/local.json.\n`
         );
-        config.review = claudeReview.defaults ? { ...claudeReview.defaults } : stripMeta(claudeReview, '$schema');
-        sources.push(LEGACY.reviewClaude);
+        config.review = antigravityReview.defaults ? { ...antigravityReview.defaults } : stripMeta(antigravityReview, '$schema');
+        sources.push(LEGACY.reviewAntigravity);
       }
     }
   }
@@ -506,7 +506,7 @@ function writeSection(projectRoot, section, value) {
 
 /**
  * Read all legacy *file-layout* configs (per-section files like
- * `.claude/version.json`, `.sdlc/ship-config.json`), merge their content
+ * `.sdlc/version.json`, `.sdlc/ship-config.json`), merge their content
  * into the unified `.sdlc/config.json` and `.sdlc/local.json`, and write
  * them. Does NOT delete legacy files — the caller decides.
  *
@@ -532,7 +532,7 @@ function consolidateLegacyFiles(projectRoot) {
   const projectConfig = {};
   const unifiedPath = path.join(projectRoot, PROJECT_CONFIG_PATH);
   // For ship-section consolidation we also need to look at the legacy
-  // unified path (.claude/sdlc.json) when the new path is empty — this
+  // unified path (.sdlc/sdlc.json) when the new path is empty — this
   // function may run before verifyAndMigrate has relocated it.
   // Runs before migration — legacy file may still exist here
   const existingUnified = readJsonFile(unifiedPath)
@@ -572,7 +572,7 @@ function consolidateLegacyFiles(projectRoot) {
   const localPath = path.join(projectRoot, LOCAL_CONFIG_PATH);
   const existingLocal = readJsonFile(localPath);
 
-  // review — prefer .sdlc/review.json over .claude/review.json
+  // review — prefer .sdlc/review.json over .sdlc/review.json
   let reviewSource = null;
   let reviewData = null;
 
@@ -582,11 +582,11 @@ function consolidateLegacyFiles(projectRoot) {
     reviewSource = LEGACY.reviewSdlc;
     reviewData = sdlcReview;
   } else {
-    const claudeReviewPath = path.join(projectRoot, LEGACY.reviewClaude);
-    const claudeReview = readJsonFile(claudeReviewPath);
-    if (claudeReview) {
-      reviewSource = LEGACY.reviewClaude;
-      reviewData = claudeReview;
+    const antigravityReviewPath = path.join(projectRoot, LEGACY.reviewAntigravity);
+    const antigravityReview = readJsonFile(antigravityReviewPath);
+    if (antigravityReview) {
+      reviewSource = LEGACY.reviewAntigravity;
+      reviewData = antigravityReview;
     }
   }
 
@@ -798,17 +798,17 @@ function ensureSdlcGitignore(projectRoot) {
 // ---------------------------------------------------------------------------
 
 /**
- * Idempotent one-time copy: if `.claude/review-dimensions/` exists AND
+ * Idempotent one-time copy: if `.sdlc/review-dimensions/` exists AND
  * `.sdlc/review-dimensions/` is absent/empty, copy all files from the legacy
  * location to the new one. The legacy directory is NOT deleted here (cleanup is
- * handled by cleanupLegacyClaudeFiles (R-layout-9)). Skip-if-exists semantics:
+ * handled by cleanupLegacyAntigravityFiles (R-layout-9)). Skip-if-exists semantics:
  * individual files already in `.sdlc/review-dimensions/` are not overwritten.
  *
  * @param {string} projectRoot
  * @returns {'created'|'noop'}
  */
 function ensureReviewDimensionsRelocated(projectRoot) {
-  const legacyDir = path.join(projectRoot, '.claude', 'review-dimensions');
+  const legacyDir = path.join(projectRoot, '.sdlc', 'review-dimensions');
   const newDir    = path.join(projectRoot, '.sdlc',   'review-dimensions');
 
   if (!fs.existsSync(legacyDir)) return 'noop';
@@ -836,29 +836,29 @@ function ensureReviewDimensionsRelocated(projectRoot) {
 }
 
 // ---------------------------------------------------------------------------
-// cleanupLegacyClaudeFiles (R-layout-9)
+// cleanupLegacyAntigravityFiles (R-layout-9)
 // ---------------------------------------------------------------------------
 
 /**
- * Remove legacy `.claude/` SDLC files that have already been relocated to
+ * Remove legacy `.sdlc/` SDLC files that have already been relocated to
  * `.sdlc/`. Each deletion is gated on the new target being present and
  * non-empty, so the cleanup is safe to run after relocation steps.
  *
  * Removes:
- *   - `.claude/sdlc.json`         — gated on `.sdlc/config.json` existing and non-empty
- *   - `.claude/sdlc.json.bak`     — same gate
- *   - `.claude/review-dimensions/`— gated on `.sdlc/review-dimensions/` being non-empty
+ *   - `.sdlc/sdlc.json`         — gated on `.sdlc/config.json` existing and non-empty
+ *   - `.sdlc/sdlc.json.bak`     — same gate
+ *   - `.sdlc/review-dimensions/`— gated on `.sdlc/review-dimensions/` being non-empty
  *
  * Implements R-layout-9.
  *
  * @param {string} projectRoot
  * @returns {{ removed: string[] }}
  */
-function cleanupLegacyClaudeFiles(projectRoot) {
+function cleanupLegacyAntigravityFiles(projectRoot) {
   const removed = [];
-  const claudeJson    = path.join(projectRoot, '.claude', 'sdlc.json');
-  const claudeBak     = path.join(projectRoot, '.claude', 'sdlc.json.bak');
-  const claudeRevDir  = path.join(projectRoot, '.claude', 'review-dimensions');
+  const antigravityJson    = path.join(projectRoot, '.sdlc', 'sdlc.json');
+  const antigravityBak     = path.join(projectRoot, '.sdlc', 'sdlc.json.bak');
+  const antigravityRevDir  = path.join(projectRoot, '.sdlc', 'review-dimensions');
   const sdlcJson      = path.join(projectRoot, '.sdlc', 'config.json');
   const sdlcRevDir    = path.join(projectRoot, '.sdlc', 'review-dimensions');
 
@@ -867,12 +867,12 @@ function cleanupLegacyClaudeFiles(projectRoot) {
   const sdlcRevOk  = fs.existsSync(sdlcRevDir) && fs.readdirSync(sdlcRevDir).length > 0;
 
   if (sdlcJsonOk) {
-    if (fs.existsSync(claudeJson)) { fs.unlinkSync(claudeJson); removed.push('.claude/sdlc.json'); }
-    if (fs.existsSync(claudeBak))  { fs.unlinkSync(claudeBak);  removed.push('.claude/sdlc.json.bak'); }
+    if (fs.existsSync(antigravityJson)) { fs.unlinkSync(antigravityJson); removed.push('.sdlc/sdlc.json'); }
+    if (fs.existsSync(antigravityBak))  { fs.unlinkSync(antigravityBak);  removed.push('.sdlc/sdlc.json.bak'); }
   }
-  if (sdlcRevOk && fs.existsSync(claudeRevDir)) {
-    fs.rmSync(claudeRevDir, { recursive: true, force: true });
-    removed.push('.claude/review-dimensions/');
+  if (sdlcRevOk && fs.existsSync(antigravityRevDir)) {
+    fs.rmSync(antigravityRevDir, { recursive: true, force: true });
+    removed.push('.sdlc/review-dimensions/');
   }
   return { removed };
 }
@@ -924,7 +924,7 @@ const ROOT_GITIGNORE_BEGIN_V1 = '# >>> sdlc-utilities managed (do not edit) — 
  * @param {string} projectRoot
  * @param {string[]} [extraPatterns=[]] Additional patterns to include in the
  *   managed block for this invocation only (issue #351 — used by the
- *   ensure-worktree-gitignore hook to add `.claude/worktrees/` without
+ *   ensure-worktree-gitignore hook to add `.sdlc/worktrees/` without
  *   modifying ROOT_GITIGNORE_PATTERNS). Not persisted beyond this call.
  * @returns {'created'|'updated'|'unchanged'}
  */
@@ -1050,7 +1050,7 @@ function normalizeAroundBlock(content, managedBlock) {
  */
 function ensureSdlcInfrastructure(projectRoot) {
   const reviewDimensions = ensureReviewDimensionsRelocated(projectRoot);
-  const legacyCleanup    = cleanupLegacyClaudeFiles(projectRoot);
+  const legacyCleanup    = cleanupLegacyAntigravityFiles(projectRoot);
   return {
     sdlcGitignore:    ensureSdlcGitignore(projectRoot),
     rootGitignore:    ensureRootGitignore(projectRoot),
@@ -1077,7 +1077,7 @@ module.exports = {
   migrateConfig: consolidateLegacyFiles,
   ensureSdlcGitignore,
   ensureReviewDimensionsRelocated,
-  cleanupLegacyClaudeFiles,
+  cleanupLegacyAntigravityFiles,
   ensureRootGitignore,
   ensureSdlcInfrastructure,
   // Preset normalization

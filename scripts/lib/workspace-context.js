@@ -2,12 +2,12 @@
 
 /**
  * workspace-context.js
- * Pure helper for workspace wizard context: path previews and .claude/ detection.
+ * Pure helper for workspace wizard context: path previews and .sdlc/ detection.
  *
  * Exports:
  *   buildPreview(cfg, repoContext) — compute a resolved path preview string.
  *   buildAllPreviews(repoContext)  — compute all 4 layout previews.
- *   detectConsumerCommitsClaude(repoRoot) — returns true when .claude/ is committed (not gitignored).
+ *   detectconsumerCommitsSdlc(repoRoot) — returns true when .sdlc/ is committed (not gitignored).
  *   listExistingWorktrees(repoRoot) — returns [{branch, path}] for linked worktrees.
  *   computeMismatches(existing, layout, wtCfg, repoContext) — returns entries where
  *       current path differs from what layout would produce.
@@ -36,7 +36,7 @@ const SENTINEL_BRANCH = 'feat/351-example';
  *
  * @param {object}  cfg          workspace.worktree config (may be partial or null).
  * @param {object}  repoContext  { repoRoot: string, repoName: string, home: string }
- * @returns {string}  Human-readable path preview, e.g. "/repo/.claude/worktrees/example-feature"
+ * @returns {string}  Human-readable path preview, e.g. "/repo/.sdlc/worktrees/example-feature"
  *                    Returns empty string on resolution error.
  */
 function buildPreview(cfg, repoContext) {
@@ -80,30 +80,30 @@ function buildAllPreviews(repoContext) {
 }
 
 // ---------------------------------------------------------------------------
-// detectConsumerCommitsClaude
+// detectconsumerCommitsSdlc
 // ---------------------------------------------------------------------------
 
 /**
- * Return true when the `.claude/` directory is NOT gitignored in the given
- * repo root — i.e. the consumer commits `.claude/` to version control.
+ * Return true when the `.sdlc/` directory is NOT gitignored in the given
+ * repo root — i.e. the consumer commits `.sdlc/` to version control.
  *
- * Uses `git check-ignore -q .claude/` (exit 0 = ignored, exit 1 = not ignored).
+ * Uses `git check-ignore -q .sdlc/` (exit 0 = ignored, exit 1 = not ignored).
  * Returns false on any error (git not available, not a git repo, etc.).
  *
  * @param {string} repoRoot  Absolute path to the git repository root.
  * @returns {boolean}
  */
-function detectConsumerCommitsClaude(repoRoot) {
+function detectconsumerCommitsSdlc(repoRoot) {
   try {
-    execFileSync('git', ['check-ignore', '-q', '.claude/'], {
+    execFileSync('git', ['check-ignore', '-q', '.sdlc/'], {
       cwd: repoRoot,
       stdio: ['ignore', 'ignore', 'ignore'],
     });
-    // exit 0 → .claude/ IS gitignored → consumer does NOT commit it
+    // exit 0 → .sdlc/ IS gitignored → consumer does NOT commit it
     return false;
   } catch (err) {
     if (err.status === 1) {
-      // exit 1 → .claude/ is NOT gitignored → consumer commits it
+      // exit 1 → .sdlc/ is NOT gitignored → consumer commits it
       return true;
     }
     // Other errors (non-git dir, missing binary, etc.) — safe default
@@ -216,7 +216,7 @@ function computeMismatches(existing, layout, wtCfg, repoContext) {
 module.exports = {
   buildPreview,
   buildAllPreviews,
-  detectConsumerCommitsClaude,
+  detectconsumerCommitsSdlc,
   listExistingWorktrees,
   computeMismatches,
 };

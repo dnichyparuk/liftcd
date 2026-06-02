@@ -2,7 +2,7 @@
 /**
  * validate-dimensions.js
  * Validates review dimension files in <project>/.sdlc/review-dimensions/
- * (issue #231; legacy <project>/.claude/review-dimensions/ also accepted via
+ * (issue #231; legacy <project>/.sdlc/review-dimensions/ also accepted via
  * lib/dimensions.js::resolveDimensionsDir fallback). CI script — never calls
  * verifyAndMigrate.
  *

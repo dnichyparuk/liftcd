@@ -742,7 +742,7 @@ function computeSteps(flags, flagSources, { openspecContext, expectedBranch, pla
   // command variants are emitted; SKILL.md selects `forced` when any prior
   // step has status: "failed", `normal` otherwise.
   //
-  // The path resolution is deferred to the skill (find ~/.claude/plugins +
+  // The path resolution is deferred to the skill (find ~/.gemini/config/plugins +
   // fallback to plugins/sdlc-utilities/scripts/state/ship.js) — same pattern
   // as every other state-script invocation in SKILL.md. We pass the script
   // path placeholder `<state-ship>` here for documentation; the skill
@@ -1207,8 +1207,8 @@ function main() {
 
   // Build context
   // R-PLANFILE: resolve the active plan file path for execute-step task mirroring.
-  // Priority: (1) CLI --plan-file flag, (2) project .claude/settings.json plansDirectory,
-  // (3) global ~/.claude/settings.json plansDirectory, (4) default ~/.gemini/plans/ (most recent *.md).
+  // Priority: (1) CLI --plan-file flag, (2) project .gemini/antigravity-cli/settings.json plansDirectory,
+  // (3) global ~/.gemini/antigravity-cli/settings.json plansDirectory, (4) default ~/.gemini/plans/ (most recent *.md).
   // Returns absolute path string or null if no plan file can be found.
   function resolvePlanFile(cliPlanFile) {
     if (cliPlanFile) {
@@ -1218,7 +1218,7 @@ function main() {
     const candidateDirs = [];
 
     // Project settings (takes precedence)
-    const projectSettings = path.join(projectRoot, '.claude', 'settings.json');
+    const projectSettings = path.join(projectRoot, '.gemini/antigravity-cli', 'settings.json');
     if (fs.existsSync(projectSettings)) {
       try {
         const s = JSON.parse(fs.readFileSync(projectSettings, 'utf8'));
@@ -1227,7 +1227,7 @@ function main() {
     }
 
     // Global settings
-    const globalSettings = path.join(os.homedir(), '.claude', 'settings.json');
+    const globalSettings = path.join(os.homedir(), '.gemini/antigravity-cli', 'settings.json');
     if (fs.existsSync(globalSettings)) {
       try {
         const s = JSON.parse(fs.readFileSync(globalSettings, 'utf8'));
@@ -1236,7 +1236,7 @@ function main() {
     }
 
     // Default fallback
-    candidateDirs.push(path.join(os.homedir(), '.claude', 'plans'));
+    candidateDirs.push(path.join(os.homedir(), '.gemini', 'plans'));
 
     for (const dir of candidateDirs) {
       if (!fs.existsSync(dir)) continue;

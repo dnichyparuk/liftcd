@@ -509,7 +509,7 @@ function main() {
 
   // Step 11: Read custom PR template via single-source resolver (issue #260).
   // Resolves .sdlc/pr-template.md (canonical) with one-time stderr fallback to
-  // .claude/pr-template.md (deprecated) — see lib/pr-template.js.
+  // .sdlc/pr-template.md (deprecated) — see lib/pr-template.js.
   const customTemplate = loadPrTemplate(projectRoot);
 
   // Build output

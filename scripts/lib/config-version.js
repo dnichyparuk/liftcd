@@ -92,8 +92,8 @@ class ConfigMigrationLocked extends ConfigVersionError {
 function getPluginVersion() {
   try {
     // The plugin's plugin.json is two directories above this file:
-    // scripts/lib/config-version.js → plugins/<plugin>/.claude-plugin/plugin.json
-    const pkgPath = path.resolve(__dirname, '..', '..', '.claude-plugin', 'plugin.json');
+    // scripts/lib/config-version.js → plugins/<plugin>/plugin.json
+    const pkgPath = path.resolve(__dirname, '..', '..', 'plugin.json');
     if (fs.existsSync(pkgPath)) {
       const data = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
       return data.version || 'unknown';
@@ -227,7 +227,7 @@ function resolveConfigPaths(projectRoot, role) {
   if (role === 'project') {
     return {
       newPath: path.join(projectRoot, '.sdlc', 'config.json'),
-      legacyPath: path.join(projectRoot, '.claude', 'sdlc.json'),
+      legacyPath: path.join(projectRoot, '.sdlc', 'sdlc.json'),
       defaultMissingVersion: 0, // missing field on a project file → 0
     };
   }
@@ -247,7 +247,7 @@ function resolveConfigPaths(projectRoot, role) {
 // Priority for `project`:
 //   1. .sdlc/config.json with `schemaVersion` field → use that
 //   2. .sdlc/config.json without `schemaVersion` → 0 (treat as pre-version)
-//   3. .claude/sdlc.json (legacy, no `.sdlc/config.json`) → 0
+//   3. .sdlc/sdlc.json (legacy, no `.sdlc/config.json`) → 0
 //   4. neither file exists → null (no config; nothing to migrate)
 //
 // Priority for `local`:
@@ -456,8 +456,8 @@ function verifyAndMigrate(projectRoot, role, opts = {}) {
  */
 function computeBackupPath(projectRoot, role, paths, detected) {
   if (role === 'project' && detected.source === 'legacy') {
-    // Backup of legacy `.claude/sdlc.json` lands inside `.sdlc/` (consumer
-    // project's SDLC surface), not `.claude/` (Claude Code's surface).
+    // Backup of legacy `.sdlc/sdlc.json` lands inside `.sdlc/` (consumer
+    // project's SDLC surface), not `.sdlc/` (Antigravity Code's surface).
     // Single one-time backup, no timestamp suffix.
     return path.join(projectRoot, '.sdlc', path.basename(paths.legacyPath) + '.bak');
   }

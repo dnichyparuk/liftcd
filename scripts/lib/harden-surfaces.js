@@ -38,7 +38,7 @@ function resolveSibling(callerDirname, segments, errors, surfaceLabel) {
 }
 
 // ---------------------------------------------------------------------------
-// Plan / Execute guardrails — sourced from .sdlc/config.json (issue #231; legacy .claude/sdlc.json read via lib/config.js fallback)
+// Plan / Execute guardrails — sourced from .sdlc/config.json (issue #231; legacy .sdlc/sdlc.json read via lib/config.js fallback)
 // ---------------------------------------------------------------------------
 
 /**
@@ -108,7 +108,7 @@ function findDuplicateGuardrails(existing, proposed) {
 
 // ---------------------------------------------------------------------------
 // Review dimensions — .sdlc/review-dimensions/*.md frontmatter (issue #231;
-// legacy .claude/review-dimensions/ supported via dimensions.js fallback).
+// legacy .sdlc/review-dimensions/ supported via dimensions.js fallback).
 // ---------------------------------------------------------------------------
 
 function loadReviewDimensions(projectRoot, errors) {

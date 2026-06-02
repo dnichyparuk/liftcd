@@ -2,7 +2,7 @@
 /**
  * stop-state-save.js
  * Stop hook — saves a compact recovery summary of active pipeline state
- * when Claude finishes responding. Safety net for session crashes between
+ * when Antigravity finishes responding. Safety net for session crashes between
  * compactions.
  *
  * Writes to: <mainWorktree>/.sdlc/execution/.compact-recovery-<branchSlug>.json

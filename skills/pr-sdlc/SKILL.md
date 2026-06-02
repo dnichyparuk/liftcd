@@ -159,7 +159,7 @@ Key fields available (including `customTemplate` added for project-level PR temp
 | `warnings` | Non-fatal notes already surfaced to the user by the command |
 | `changedFiles` | `string[]` — relative file paths changed in this PR |
 | `repoLabels` | `[{ name, description }]` — labels defined in the repository; empty if unavailable |
-| `customTemplate` | Full content of `.sdlc/pr-template.md` (canonical) or `.claude/pr-template.md` (deprecated fallback, one-time stderr warning per process); `null` if neither file exists. Issue #260. |
+| `customTemplate` | Full content of `.sdlc/pr-template.md` (canonical) or `.sdlc/pr-template.md` (deprecated fallback, one-time stderr warning per process); `null` if neither file exists. Issue #260. |
 | `prConfig` | PR title validation config from `.sdlc/config.json` (null when absent) |
 | `isAuto` | Whether `--auto` was passed — skip interactive prompts |
 | `forcedLabels` | `string[]` — labels forced via `--label` flag(s), pre-validated against `repoLabels`. Always included in PR regardless of signal matching |
@@ -581,7 +581,7 @@ When invoking `error-report-sdlc`, provide:
   older installed version may lack `customTemplate` support entirely, returning the field as
   absent or `null` even when `.sdlc/pr-template.md` exists on disk. **Always cross-check**:
   if `PR_CONTEXT_JSON.customTemplate` is null or absent, verify whether `.sdlc/pr-template.md` (or its
-  deprecated fallback `.claude/pr-template.md`)
+  deprecated fallback `.sdlc/pr-template.md`)
   exists before defaulting to the 8-section template. If the file exists, read it directly and
   use it as the template, then warn the user that the installed plugin may be out of date and
   suggest re-installing (`/plugin install sdlc@sdlc-marketplace`).

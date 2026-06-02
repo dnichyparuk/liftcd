@@ -7,14 +7,14 @@
 # resolve_script for each script you need to locate.
 #
 # Example:
-#   RESOLVER=$(find ~/.claude/plugins -name "resolve-script.sh" -path "*/sdlc*/scripts/lib/resolve-script.sh" 2>/dev/null | sort -V | tail -1)
+#   RESOLVER=$(find ~/.gemini/config/plugins -name "resolve-script.sh" -path "*/sdlc*/scripts/lib/resolve-script.sh" 2>/dev/null | sort -V | tail -1)
 #   [ -z "$RESOLVER" ] && [ -f "plugins/sdlc-utilities/scripts/lib/resolve-script.sh" ] && RESOLVER="plugins/sdlc-utilities/scripts/lib/resolve-script.sh"
 #   [ -n "$RESOLVER" ] && . "$RESOLVER"
 #   SCRIPT=$(resolve_script "harden-prepare.js" "*/sdlc*/scripts/skill/harden-prepare.js" "plugins/sdlc-utilities/scripts/skill/harden-prepare.js")
 
 resolve_script() {
   local name="$1" pattern="$2" local_path="$3" found
-  found=$(find ~/.claude/plugins -name "$name" -path "$pattern" 2>/dev/null | sort -V | tail -1)
+  found=$(find ~/.gemini/config/plugins -name "$name" -path "$pattern" 2>/dev/null | sort -V | tail -1)
   [ -z "$found" ] && [ -f "$local_path" ] && found="$local_path"
   printf '%s\n' "$found"
 }

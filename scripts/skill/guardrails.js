@@ -446,7 +446,7 @@ function detectStructure(projectRoot, signals) {
 
 function detectReviewDimensions(projectRoot, signals) {
   // Route through resolveDimensionsDir() so .sdlc/-first lookup works.
-  // Fixes #259 — direct .claude/ read missed every project that had migrated.
+  // Fixes #259 — direct .sdlc/ read missed every project that had migrated.
   const dimDir = resolveDimensionsDir(projectRoot);
   if (!fs.existsSync(dimDir)) return;
   try {
@@ -462,13 +462,13 @@ function detectReviewDimensions(projectRoot, signals) {
 }
 
 // ---------------------------------------------------------------------------
-// CLAUDE.md / AGENTS.md rule extraction
+// AGENTS.md / AGENTS.md rule extraction
 // ---------------------------------------------------------------------------
 
 const CONSTRAINT_REGEX = /\b(must|never|always|require[sd]?|forbidden|prohibited)\b/i;
 
-function extractClaudeMdRules(projectRoot, signals) {
-  const candidates = ['CLAUDE.md', 'AGENTS.md'];
+function extractagentsMdRules(projectRoot, signals) {
+  const candidates = ['AGENTS.md', 'AGENTS.md'];
   const seen = new Set();
   const rules = [];
 
@@ -488,7 +488,7 @@ function extractClaudeMdRules(projectRoot, signals) {
     if (rules.length >= 20) break;
   }
 
-  signals.claudeMdRules = rules;
+  signals.agentsMdRules = rules;
 }
 
 // ---------------------------------------------------------------------------
@@ -781,13 +781,13 @@ function main() {
     hasOpenSpec: false,
     directories: {},
     reviewDimensions: [],
-    claudeMdRules: [],
+    agentsMdRules: [],
   };
 
   detectLanguagesAndFrameworks(projectRoot, signals);
   detectStructure(projectRoot, signals);
   detectReviewDimensions(projectRoot, signals);
-  extractClaudeMdRules(projectRoot, signals);
+  extractagentsMdRules(projectRoot, signals);
 
   // 3. Build proposals
   let proposals = buildProposals(signals, target);

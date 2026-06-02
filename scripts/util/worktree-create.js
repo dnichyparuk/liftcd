@@ -15,7 +15,7 @@
  *   1 = failure (JSON error object on stdout)
  *
  * Worktree placement is driven by workspace.worktree config (issue #351).
- * Falls back to inside layout at .claude/worktrees/<slug> when no config exists.
+ * Falls back to inside layout at .sdlc/worktrees/<slug> when no config exists.
  *
  * Zero npm dependencies — Node.js built-ins only.
  */
@@ -153,7 +153,7 @@ function resolveUniquePath(desiredName, wtCfg) {
         `warning: workspace.worktree config did not resolve for branch "${candidate}" ` +
         `(layout=${layout}): ${err.message}. Falling back to inside layout default.\n`
       );
-      resolvedPath = path.join(mainWorktree, '.claude', 'worktrees', slug);
+      resolvedPath = path.join(mainWorktree, '.sdlc', 'worktrees', slug);
     }
 
     if (!branchExists(candidate) && !worktreePathExists(resolvedPath)) {

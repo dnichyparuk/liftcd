@@ -5,7 +5,7 @@
  * Single resolution site for the PR template path (issue #260).
  * Mirrors the canonical-with-fallback shape of `lib/dimensions.js::resolveDimensionsDir`:
  *   - Canonical:          <project>/.sdlc/pr-template.md
- *   - Deprecated fallback: <project>/.claude/pr-template.md  (one-time stderr warning per process)
+ *   - Deprecated fallback: <project>/.sdlc/pr-template.md  (one-time stderr warning per process)
  *
  * Implements R-pr-template-path (pr-sdlc spec).
  *
@@ -30,7 +30,7 @@ let _legacyPrTemplateWarningEmitted = false;
  */
 function resolvePrTemplatePath(projectRoot) {
   const canonical = path.join(projectRoot, '.sdlc', 'pr-template.md');
-  const legacy    = path.join(projectRoot, '.claude', 'pr-template.md');
+  const legacy    = path.join(projectRoot, '.sdlc', 'pr-template.md');
 
   if (fs.existsSync(canonical)) return canonical;
 
@@ -38,7 +38,7 @@ function resolvePrTemplatePath(projectRoot) {
     if (!_legacyPrTemplateWarningEmitted) {
       _legacyPrTemplateWarningEmitted = true;
       process.stderr.write(
-        `Deprecation: ${path.join('.claude', 'pr-template.md')} is the legacy PR template location. ` +
+        `Deprecation: ${path.join('.sdlc', 'pr-template.md')} is the legacy PR template location. ` +
         `Move it to ${path.join('.sdlc', 'pr-template.md')} (or run /setup-sdlc --pr-template).\n`
       );
     }

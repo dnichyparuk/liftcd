@@ -20,7 +20,7 @@ const { SHIP_FIELDS } = require(path.join(LIB, 'ship-fields'));
 const { SETUP_SECTIONS } = require(path.join(LIB, 'setup-sections'));
 const { detectBaseBranchSafe } = require(path.join(LIB, 'git'));
 const { OPENSPEC_ENRICH_VERSION } = require(path.join(__dirname, '..', 'util', 'openspec-enrich'));
-const { buildAllPreviews, detectConsumerCommitsClaude, listExistingWorktrees, computeMismatches } = require(path.join(LIB, 'workspace-context'));
+const { buildAllPreviews, detectconsumerCommitsSdlc, listExistingWorktrees, computeMismatches } = require(path.join(LIB, 'workspace-context'));
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -85,7 +85,7 @@ const MENU_INPUT_CONTRACT = {
 // ---------------------------------------------------------------------------
 let pluginVersion = null;
 try {
-  const pluginJsonPath = path.resolve(__dirname, '..', '..', '.claude-plugin', 'plugin.json');
+  const pluginJsonPath = path.resolve(__dirname, '..', '..', 'plugin.json');
   pluginVersion = require(pluginJsonPath).version || null;
 } catch (_) { /* non-fatal — plugin.json may not exist in dev setups */ }
 
@@ -94,7 +94,7 @@ try {
 // ---------------------------------------------------------------------------
 
 function detect(projectRoot) {
-  // --- Project config (.sdlc/config.json — issue #231; legacy .claude/sdlc.json
+  // --- Project config (.sdlc/config.json — issue #231; legacy .sdlc/sdlc.json
   // read via lib/config.js fallback if PROJECT_CONFIG_PATH points to the new location). ---
   const unifiedPath = path.join(projectRoot, PROJECT_CONFIG_PATH);
   const unifiedExists = fs.existsSync(unifiedPath);
@@ -138,12 +138,12 @@ function detect(projectRoot) {
   const legacyShipPath = path.join(projectRoot, LEGACY.ship);
   const legacyJiraPath = path.join(projectRoot, LEGACY.jira);
   const legacyReviewSdlcPath = path.join(projectRoot, LEGACY.reviewSdlc);
-  const legacyReviewClaudePath = path.join(projectRoot, LEGACY.reviewClaude);
+  const legacyReviewSdlcPath = path.join(projectRoot, LEGACY.reviewAntigravity);
 
   // --- Content files ---
   const reviewDimensionsDir = path.join(projectRoot, '.sdlc', 'review-dimensions');
   // Issue #260: scaffold target is now .sdlc/pr-template.md (canonical).
-  // The deprecated .claude/pr-template.md location remains read-only via
+  // The deprecated .sdlc/pr-template.md location remains read-only via
   // lib/pr-template.js::resolvePrTemplatePath until the deprecation window closes.
   const prTemplatePath = path.join(projectRoot, '.sdlc', 'pr-template.md');
   const jiraTemplatesDir = path.join(projectRoot, '.sdlc', 'jira-templates');
@@ -206,12 +206,12 @@ function detect(projectRoot) {
       version: { exists: fs.existsSync(legacyVersionPath), path: LEGACY.version },
       ship:    { exists: fs.existsSync(legacyShipPath),    path: LEGACY.ship    },
       review:  { exists: fs.existsSync(legacyReviewSdlcPath),   path: LEGACY.reviewSdlc   },
-      reviewLegacy: { exists: fs.existsSync(legacyReviewClaudePath), path: LEGACY.reviewClaude },
+      reviewLegacy: { exists: fs.existsSync(legacyReviewSdlcPath), path: LEGACY.reviewAntigravity },
       jira:    { exists: fs.existsSync(legacyJiraPath),    path: LEGACY.jira    },
       // R-LEGACY-DETECT (#423): detect legacy jira-templates dir for migration reporting.
       jiraTemplates: {
-        exists: fs.existsSync(path.join(projectRoot, '.claude', 'jira-templates')),
-        path: path.join('.claude', 'jira-templates') + path.sep,
+        exists: fs.existsSync(path.join(projectRoot, '.sdlc', 'jira-templates')),
+        path: path.join('.sdlc', 'jira-templates') + path.sep,
       },
     },
     content: {
@@ -419,7 +419,7 @@ function detect(projectRoot) {
   }
 
   // Workspace context — pre-compute once for the workspace section row (issue #351).
-  // Safe to fail: on any error, consumerCommitsClaude defaults to false and
+  // Safe to fail: on any error, consumerCommitsSdlc defaults to false and
   // previewPaths returns empty strings.
   const repoName = path.basename(projectRoot);
   const homeDir  = process.env.HOME || process.env.USERPROFILE || require('os').homedir();
@@ -435,14 +435,14 @@ function detect(projectRoot) {
       central: computeMismatches(existing, 'central', {}, repoContext),
     };
     workspaceContext = {
-      consumerCommitsClaude: detectConsumerCommitsClaude(projectRoot),
+      consumerCommitsSdlc: detectconsumerCommitsSdlc(projectRoot),
       previewPaths: buildAllPreviews(repoContext),
       existingWorktrees: existing,
       mismatchesByLayout,
     };
   } catch (_) {
     workspaceContext = {
-      consumerCommitsClaude: false,
+      consumerCommitsSdlc: false,
       previewPaths: { inside: '', sibling: '', central: '', template: '' },
       existingWorktrees: [],
       mismatchesByLayout: { inside: [], sibling: [], central: [] },

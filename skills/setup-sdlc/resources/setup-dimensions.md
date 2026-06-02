@@ -16,7 +16,7 @@ and validates with the validation script.
 
 Supporting references (dimension format spec, 5 example dimensions) are in
 `review-sdlc/REFERENCE.md` and `review-sdlc/EXAMPLES.md`. Locate them using Glob
-with `path: ~/.claude` and pattern `**/review-sdlc/REFERENCE.md`. If not found, retry
+with `path: ~/.antigravity` and pattern `**/review-sdlc/REFERENCE.md`. If not found, retry
 Glob with the default path (cwd). Use the same approach for EXAMPLES.md.
 
 ---
@@ -197,7 +197,7 @@ Present the markdown output table. If any file has errors, show the error detail
 
    ## Note
 
-   In Claude Code reviews, files matching these patterns are excluded: {skip-when patterns}.
+   In Antigravity Code reviews, files matching these patterns are excluded: {skip-when patterns}.
    Copilot path-specific instructions do not support exclusion patterns — use judgment
    when findings apply to these files.
    ```

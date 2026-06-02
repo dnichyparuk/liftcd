@@ -4,7 +4,7 @@
 /**
  * migrate-learnings-log — migrate-learnings-log in plugins/sdlc-utilities/scripts/skill/migrate-learnings-log.js
  *
- * Migrates the learnings log from the legacy path <project>/.claude/learnings/log.md
+ * Migrates the learnings log from the legacy path <project>/.sdlc/learnings/log.md
  * to the canonical path <project>/.sdlc/learnings/log.md.
  *
  * Behavior by case:
@@ -24,7 +24,7 @@ const { resolveSdlcRoot } = require(path.join(__dirname, '..', 'lib', 'config'))
 
 // R-projectroot: main-worktree-rooted resolution (#360).
 const cwd = resolveSdlcRoot();
-const legacy = path.join(cwd, '.claude', 'learnings', 'log.md');
+const legacy = path.join(cwd, '.sdlc', 'learnings', 'log.md');
 const target = path.join(cwd, '.sdlc', 'learnings', 'log.md');
 
 try {

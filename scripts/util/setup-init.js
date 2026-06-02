@@ -93,7 +93,7 @@ const BACKUP_RETAIN = 3;
 function sweepBackups(projectRoot, warnings) {
   const candidates = [];
   const sdlcDir = path.join(projectRoot, '.sdlc');
-  const claudeDir = path.join(projectRoot, '.claude');
+  const sdlcDir = path.join(projectRoot, '.sdlc');
 
   // .sdlc/*.bak.* — group by base filename so each role retains 3 newest.
   if (fs.existsSync(sdlcDir)) {
@@ -106,15 +106,15 @@ function sweepBackups(projectRoot, warnings) {
       }
     }
   }
-  // .claude/sdlc.json.bak.<ts> (only the legacy relocation produces .bak.<ts>; the
-  // bare .claude/sdlc.json.bak is preserved as the single legacy backup).
-  if (fs.existsSync(claudeDir)) {
-    for (const entry of fs.readdirSync(claudeDir)) {
+  // .sdlc/sdlc.json.bak.<ts> (only the legacy relocation produces .bak.<ts>; the
+  // bare .sdlc/sdlc.json.bak is preserved as the single legacy backup).
+  if (fs.existsSync(sdlcDir)) {
+    for (const entry of fs.readdirSync(sdlcDir)) {
       const m = /^(sdlc\.json)\.bak\..+$/.exec(entry);
       if (m) {
-        const full = path.join(claudeDir, entry);
+        const full = path.join(sdlcDir, entry);
         const stat = fs.statSync(full);
-        candidates.push({ full, base: 'claude:' + m[1], mtimeMs: stat.mtimeMs });
+        candidates.push({ full, base: 'antigravity:' + m[1], mtimeMs: stat.mtimeMs });
       }
     }
   }
@@ -167,7 +167,7 @@ function main() {
   }
 
   // 1c. Backup rotation sweep — keep the 3 newest .bak files per role
-  // (issue #231 R-layout-6). Looks at .sdlc/*.bak.* and .claude/sdlc.json.bak.*
+  // (issue #231 R-layout-6). Looks at .sdlc/*.bak.* and .sdlc/sdlc.json.bak.*
   // (the legacy single backup is also rotated if multiple appear).
   try {
     sweepBackups(projectRoot, warnings);
