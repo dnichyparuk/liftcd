@@ -225,10 +225,10 @@ If verdict is **APPROVED**: skip — nothing to fix.
 
 ## Step 6 — Cleanup
 
-The `$MANIFEST_FILE` is removed by the `trap` declared at Step 1 on every exit path. The diff directory is removed here because it is not covered by the trap:
+Clean up the manifest file and the temporary diff directory by running:
 
-```bash
-rm -rf "{diff_dir}"
+```shell
+<PLUGIN_ROOT>/skills/review-sdlc/scripts/cleanup.sh "$MANIFEST_FILE"
 ```
 
 ---

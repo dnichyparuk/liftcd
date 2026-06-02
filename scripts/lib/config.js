@@ -66,7 +66,7 @@ const LEGACY = {
   ship: path.join('.sdlc', 'ship-config.json'),
   jira: path.join('.sdlc', 'jira-config.json'),
   reviewSdlc: path.join('.sdlc', 'review.json'),
-  reviewAntigravity: path.join('.sdlc', 'review.json'),
+  reviewAntigravity: path.join('.antigravity', 'review.json'),
 };
 
 // ---------------------------------------------------------------------------
@@ -808,7 +808,7 @@ function ensureSdlcGitignore(projectRoot) {
  * @returns {'created'|'noop'}
  */
 function ensureReviewDimensionsRelocated(projectRoot) {
-  const legacyDir = path.join(projectRoot, '.sdlc', 'review-dimensions');
+  const legacyDir = path.join(projectRoot, '.antigravity', 'review-dimensions');
   const newDir    = path.join(projectRoot, '.sdlc',   'review-dimensions');
 
   if (!fs.existsSync(legacyDir)) return 'noop';
@@ -856,9 +856,9 @@ function ensureReviewDimensionsRelocated(projectRoot) {
  */
 function cleanupLegacyAntigravityFiles(projectRoot) {
   const removed = [];
-  const antigravityJson    = path.join(projectRoot, '.sdlc', 'sdlc.json');
-  const antigravityBak     = path.join(projectRoot, '.sdlc', 'sdlc.json.bak');
-  const antigravityRevDir  = path.join(projectRoot, '.sdlc', 'review-dimensions');
+  const antigravityJson    = path.join(projectRoot, '.antigravity', 'sdlc.json');
+  const antigravityBak     = path.join(projectRoot, '.antigravity', 'sdlc.json.bak');
+  const antigravityRevDir  = path.join(projectRoot, '.antigravity', 'review-dimensions');
   const sdlcJson      = path.join(projectRoot, '.sdlc', 'config.json');
   const sdlcRevDir    = path.join(projectRoot, '.sdlc', 'review-dimensions');
 
@@ -872,7 +872,7 @@ function cleanupLegacyAntigravityFiles(projectRoot) {
   }
   if (sdlcRevOk && fs.existsSync(antigravityRevDir)) {
     fs.rmSync(antigravityRevDir, { recursive: true, force: true });
-    removed.push('.sdlc/review-dimensions/');
+    removed.push('.antigravity/review-dimensions/');
   }
   return { removed };
 }
