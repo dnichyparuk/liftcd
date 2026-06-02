@@ -191,12 +191,8 @@ Show `Amend:` instead of `Commit:` heading when `flags.amend` is true.
 
 0. **Subject pattern gate (hard gate):** If `commitConfig` is non-null and `commitConfig.subjectPattern` is set, validate the subject line before proceeding:
 
-   ```bash
-   node -e "
-     const pattern = new RegExp(process.argv[1]);
-     const subject = process.argv[2];
-     if (!pattern.test(subject)) { process.exit(1); }
-   " "<subjectPattern>" "<subject line>"
+   ```shell
+   <PLUGIN_ROOT>/skills/commit-sdlc/scripts/validate_subject.sh "<subjectPattern>" "<subject line>"
    ```
 
    - If the check **passes** (exit 0): continue to step 1.

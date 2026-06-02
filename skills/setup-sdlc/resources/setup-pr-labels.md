@@ -164,15 +164,8 @@ Locate the config helper:
 Then merge the labels block into the existing `pr` section without clobbering
 `titlePattern`, `allowedTypes`, or any other sibling key:
 
-```bash
-node -e "
-const { readSection, writeSection } = require('$SCRIPT');
-const root = process.cwd();
-const current = readSection(root, 'pr') || {};
-const next = { ...current, labels: <BLOCK_AS_JSON> };
-writeSection(root, 'pr', next);
-console.log('Wrote pr.labels to .sdlc/config.json');
-"
+```shell
+<PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-pr-labels_write.sh '<BLOCK_AS_JSON>'
 ```
 
 Substitute `<BLOCK_AS_JSON>` with the JSON-stringified labels block.

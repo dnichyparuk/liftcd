@@ -447,27 +447,8 @@ Before any branch creation, state migration, or Agent dispatch, consume the `ass
 
 **Skip when resuming** (`flags.resume === true`) and when workspace mode is `worktree` or `continue` — the prepare script emits `assertions.requireMainWorktreeCwd: false` in those cases, so the assertion is a no-op below.
 
-```bash
-# Read assertions from prepare output. Path is passed via env var (F) so that
-# embedded quotes/backslashes in the temp path cannot break the inline JS.
-REQUIRE_MAIN_CWD=$(F="$PREPARE_OUTPUT_FILE" node -e "const d=JSON.parse(require('fs').readFileSync(process.env.F,'utf8'));process.stdout.write(String((d.assertions&&d.assertions.requireMainWorktreeCwd)===true))")
-EXPECTED_ROOT=$(F="$PREPARE_OUTPUT_FILE" node -e "const d=JSON.parse(require('fs').readFileSync(process.env.F,'utf8'));process.stdout.write((d.assertions&&d.assertions.expectedMainWorktreeRoot)||'')")
-
-if [ "$REQUIRE_MAIN_CWD" = "true" ] && [ -n "$EXPECTED_ROOT" ]; then
-  ACTUAL_CWD=$(git rev-parse --show-toplevel 2>/dev/null)
-  if [ "$ACTUAL_CWD" != "$EXPECTED_ROOT" ]; then
-    echo "ERROR: ship-sdlc cwd assertion failed (R65, #405)." >&2
-    echo "  actual cwd:    $ACTUAL_CWD" >&2
-    echo "  expected root: $EXPECTED_ROOT" >&2
-    echo "  ship.workspace: $WORKSPACE_MODE" >&2
-    echo "  git worktree list --porcelain:" >&2
-    git worktree list --porcelain | sed 's/^/    /' >&2
-    echo "" >&2
-    echo "ship-sdlc was launched from inside a linked worktree but workspace mode is 'branch'." >&2
-    echo "Re-run from the main worktree root, or pass --workspace worktree." >&2
-    node -e 'process.exit(1)'
-  fi
-fi
+```shell
+<PLUGIN_ROOT>/skills/ship-sdlc/scripts/cwd_assertion.sh "$PREPARE_OUTPUT_FILE" "$WORKSPACE_MODE"
 ```
 
 The assertion runs unconditionally on every non-resume invocation — when `REQUIRE_MAIN_CWD` is `false` (worktree/continue modes or resume re-entry) the inner block is skipped. `$WORKSPACE_MODE` is already resolved from the section above.
@@ -509,8 +490,8 @@ Match the branch from the ship state file against worktree entries. If found and
 
 Assign `PLAN_FILE` from the prepare output's `context.planFile` field (R-PLANFILE). This is resolved once by `skill/ship.js` using the priority order: CLI `--plan-file` → project `.gemini/antigravity-cli/settings.json` `plansDirectory` → global `~/.gemini/antigravity-cli/settings.json` `plansDirectory` → default `~/.gemini/plans/` (most recent `*.md`). Do not re-derive the path here — use `context.planFile` verbatim:
 
-```bash
-PLAN_FILE=$(node -e "const d=require('fs').readFileSync(process.env.F,'utf8'); process.stdout.write(JSON.parse(d).context.planFile||'')" F="$SHIP_PREPARE_OUTPUT_FILE")
+```shell
+PLAN_FILE=$("<PLUGIN_ROOT>/skills/ship-sdlc/scripts/resolve_plan_file.sh" "$SHIP_PREPARE_OUTPUT_FILE")
 ```
 
 Where `$SHIP_PREPARE_OUTPUT_FILE` is the path to the temp file holding the `skill/ship.js` JSON output (same file used to read `flags`, `steps`, etc.). When `context.planFile` is null or empty, `PLAN_FILE` will be empty and the `ship-todos.js` execute event will node -e 'process.exit(2)' with a clear error — surface that error before dispatching.
@@ -587,22 +568,14 @@ If the `archive-openspec` step has `status: "conditional"` in the pipeline plan,
 
 1. Extract the change name from `step.args` (`--change <name>`).
 2. Call `lib/openspec.js::validateChangeStrict(projectRoot, name)` via Bash:
-   ```bash
-   node -e "
-   const { validateChangeStrict } = require('<LIB>/openspec.js');
-   const result = validateChangeStrict(process.cwd(), '<name>');
-   console.log(JSON.stringify(result));
-   "
+   ```shell
+   <PLUGIN_ROOT>/skills/ship-sdlc/scripts/openspec_validate.sh '<name>'
    ```
 3. **If `ok === false`:** halt the pipeline. Print the validation errors (`stderr`) and save state for `--resume`.
 4. **If `ok === true`:** prompt the user for approval (skip prompt in `--auto` mode).
 5. On approval, run the archive:
-   ```bash
-   node -e "
-   const { runArchive } = require('<LIB>/openspec.js');
-   const result = runArchive(process.cwd(), '<name>');
-   console.log(JSON.stringify(result));
-   "
+   ```shell
+   <PLUGIN_ROOT>/skills/ship-sdlc/scripts/openspec_archive.sh '<name>'
    ```
 6. If archive succeeds, commit:
    ```bash

@@ -424,16 +424,8 @@ Loop until explicit `yes` or `cancel`.
 
 **Pre-execution title pattern validation:** Before executing `gh pr create` or `gh pr edit`, if `prConfig` is non-null and `prConfig.titlePattern` is set, validate the title against the pattern:
 
-```bash
-node -e "
-const title = process.argv[1];
-const pattern = process.argv[2];
-const error = process.argv[3];
-if (!new RegExp(pattern).test(title)) {
-  console.error(error || pattern);
-  process.exit(1);
-}
-" "$title" "$titlePattern" "$titlePatternError"
+```shell
+<PLUGIN_ROOT>/skills/pr-sdlc/scripts/validate_title.sh "$title" "$titlePattern" "$titlePatternError"
 ```
 
 On failure:
