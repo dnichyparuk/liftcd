@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 ERR_FILE=$(mktemp)
 gh pr create --title "<title>" --body "<body>" [--draft] [--label ...] 2> "$ERR_FILE"
 GH_EXIT=$?

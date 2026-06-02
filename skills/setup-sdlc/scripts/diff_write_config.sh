@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 LIB_CONFIG="$SDLC_ROOT/lib/config.js"
 [ ! -f "$LIB_CONFIG" ] && { echo "ERROR: Could not locate lib/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$LIB_CONFIG" ] && [ -f "plugins/sdlc-utilities/scripts/lib/config.js" ] && LIB_CONFIG="plugins/sdlc-utilities/scripts/lib/config.js"

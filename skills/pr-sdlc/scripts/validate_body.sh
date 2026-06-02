@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 PR_PREPARE="$SDLC_ROOT/scripts/skill/pr.js"
 [ ! -f "$PR_PREPARE" ] && { echo "ERROR: Could not locate scripts/skill/pr.js. Is the sdlc plugin installed?" >&2; exit 2; }
 [ -z "$PR_PREPARE" ] && [ -f "plugins/sdlc-utilities/scripts/skill/pr.js" ] && PR_PREPARE="plugins/sdlc-utilities/scripts/skill/pr.js"

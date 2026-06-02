@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 LIB="$SDLC_ROOT/scripts/lib/wave-summary.js"
 [ ! -f "$LIB" ] && { echo "ERROR: Could not locate scripts/lib/wave-summary.js. Is the sdlc plugin installed?" >&2; exit 2; }
    [ -z "$LIB" ] && [ -f "plugins/sdlc-utilities/scripts/lib/wave-summary.js" ] && LIB="plugins/sdlc-utilities/scripts/lib/wave-summary.js"

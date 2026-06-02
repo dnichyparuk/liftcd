@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 # Step 1: Derive branch name from plan title via lib/branch-name.js (config-driven).
 #   Reads workspace.branch config (template, slugMaxLength, typeMap) via readSection.
 #   Same helper used by execute-plan-sdlc standalone path — no duplication.

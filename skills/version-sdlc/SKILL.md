@@ -37,11 +37,10 @@ If the system context contains "Plan mode is active":
 
 ### Step 0: Resolve and Run skill/version.js
 
-> **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
+> **VERBATIM** — Execute this script directly using its absolute path (replace `<PLUGIN_ROOT>` with the absolute path to this plugin). Do NOT prepend `bash` or `sh`. Do not modify, rephrase, or simplify the commands.
 
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/prepare.sh"
+```shell
+<PLUGIN_ROOT>/skills/version-sdlc/scripts/prepare.sh
 ```
 
 Read and parse `VERSION_CONTEXT_FILE` as `VERSION_CONTEXT_JSON`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls in success/cancel branches.
@@ -241,9 +240,8 @@ This ensures projects that ran `--init` in a prior session get notified about im
 
 Locate and run the scaffold script in check-only mode:
 
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/scaffold_ci.sh"
+```shell
+<PLUGIN_ROOT>/skills/version-sdlc/scripts/scaffold_ci.sh
 ```
 
 Run the check (include `--changelog` only when `config.changelog === true`).
@@ -277,9 +275,8 @@ The release proceeds regardless of the user's answer. This is informational, not
 3. **Stage changed files**: `git add <versionFile> CHANGELOG.md` — include only files that were actually changed.
 3b. **Link verification (R17, issue #198) — HARD GATE.** Before `git commit`, validate every URL embedded in the staged CHANGELOG entry (and any release-notes body) via the shared link validator. The script reads the body via `--file` and auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON. Skip this sub-step entirely when changelog is disabled and no release-notes body was generated.
 
-   ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/validate_links.sh"
+   ```shell
+<PLUGIN_ROOT>/skills/version-sdlc/scripts/validate_links.sh
 ```
 
    On non-zero exit (`LINK_EXIT != 0`):

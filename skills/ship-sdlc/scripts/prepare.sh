@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 SCRIPT="$SDLC_ROOT/scripts/skill/ship.js"
 [ ! -f "$SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/ship.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
@@ -27,11 +30,9 @@ PREPARE_OUTPUT_FILE=$(node "$SCRIPT" --output-file --has-plan --auto)
 # requiring the user to type --resume. When no state file is found, prepare
 # emits errors[*].id === "implicitResumeNoState" (handled in Step 1e).
 EXIT_CODE=$?
-echo "PREPARE_OUTPUT_FILE=$PREPARE_OUTPUT_FILE"
-echo "EXIT_CODE=$EXIT_CODE"
-# Single canonical cleanup: trap fires unconditionally on EXIT/INT/TERM, so the
 # manifest is removed even if any pipeline step errors out, an Agent dispatch
-# crashes, or the user cancels. The 1a INIT trap (if previously set) is
 # replaced — the --init-config path exits before reaching 1c, so there is no
 # overlap in runtime lifecycle between the two manifest variables.
-trap 'rm -f "$PREPARE_OUTPUT_FILE"' EXIT INT TERM
+
+echo "PREPARE_OUTPUT_FILE: $PREPARE_OUTPUT_FILE"
+echo "STATUS: $EXIT_CODE"

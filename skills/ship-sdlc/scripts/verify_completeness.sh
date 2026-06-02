@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 EXECUTE_STATE_SCRIPT="$SDLC_ROOT/scripts/skill/execute.js"
 [ ! -f "$EXECUTE_STATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/skill/execute.js. Is the sdlc plugin installed?" >&2; exit 2; }
 node "$EXECUTE_STATE_SCRIPT" verify-completeness

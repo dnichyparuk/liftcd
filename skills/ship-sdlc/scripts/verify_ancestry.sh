@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 # Post-version ancestry HARD GATE (R-post-version-ancestry, fixes #349)
 VERIFY_SCRIPT="$SDLC_ROOT/scripts/util/verify-tag-ancestry.js"
 [ ! -f "$VERIFY_SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/verify-tag-ancestry.js. Is the sdlc plugin installed?" >&2; exit 2; }

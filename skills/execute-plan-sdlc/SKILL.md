@@ -55,11 +55,10 @@ Blocking issues → stop and ask. Warnings only → show them and proceed.
 
 **Guardrail loading:** Load execution guardrails from project config:
 
-> **VERBATIM** — Run this bash block exactly as written.
+> **VERBATIM** — Execute this script directly using its absolute path (replace `<PLUGIN_ROOT>` with the absolute path to this plugin). Do NOT prepend `bash` or `sh`.
 
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/context_advisory.sh"
+```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/context_advisory.sh
 ```
 
 Parse the JSON output. If the array is non-empty, store as `activeGuardrails` and print: "Loaded N execution guardrails." If empty or config not found: "No execution guardrails configured." This is backward compatible — no guardrails means no change in behavior.
@@ -146,9 +145,8 @@ When ship-sdlc invokes execute-plan-sdlc inside the ship pipeline, `--branch` is
 3. If the current branch matches the default branch:
    - Derive a branch name using `lib/branch-name.js` driven by `workspace.branch` config (config-driven; no hardcoded type-map in SKILL.md prose):
 
-     ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_libs.sh"
+     ```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/load_libs.sh
 ```
 
      Branch name is derived by `lib/branch-name.js` from `workspace.branch` config. Defaults: `template={type}/{slug}`, `slugMaxLength=50`, `typeMap={feature:'feat', bugfix:'fix', chore:'chore', docs:'docs', refactor:'refactor'}`. Override in `.sdlc/local.json` under `workspace.branch`. The logical type and slug are inferred from the plan title as before (feature/bugfix/chore/docs/refactor). Implements R30.
@@ -156,9 +154,8 @@ source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills
    - **If `--workspace branch`:** Run `git checkout -b "$EXECUTE_NEW_BRANCH"` directly without prompting. Print the branch name. Set `WORKTREE_PATH` to unset (branch mode: no worktree).
 
    - **If `--workspace worktree`:** Create worktree without prompting:
-     ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/worktree_create.sh"
+     ```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/worktree_create.sh
 ```
      Print the branch and path from the script output. The branch may differ from the derived name if a collision suffix was added.
 
@@ -397,9 +394,8 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
 
 0. **Parse `WAVE_SUMMARY` via `lib/wave-summary.js` (R-BOUNDED-RETURN, R-CONTEXT_OVERFLOW, #432):** Call `parseWaveSummary(text, dispatchedIds)` in a brief inline Node.js block, where `text` is the wave-runner's full response and `dispatchedIds` is the array of task IDs sent in the manifest:
 
-   ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/parse_wave.sh"
+   ```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/parse_wave.sh
 ```
 
    Read `schemaOk`, `missingIds`, `extraIds`, `violations`, and `parsed` from the result.
@@ -541,9 +537,8 @@ Proceeding to Wave N+1 (N tasks)
 The progress report is rendered from `WAVE_SUMMARY` payload — per-task names, statuses, and `filesTouched` (R-FILESTOUCHED) from the summary. State writes happen after wave-runner returns and main-context verification completes.
 
 **State persistence:** After each wave completes, update the execution state via `state/execute.js`. Locate the script:
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_state.sh"
+```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/load_state.sh
 ```
 
 On the very first wave dispatch, initialize the state file:
@@ -571,9 +566,8 @@ Algorithm:
    - Skip if `siblings` is NOT a subset of `completedOpenspecTaskIds` (at least one sibling is still pending, failed, or blocked — leaves the OpenSpec checkbox `- [ ]` per R37).
    - Otherwise, look up the `openspec-task` block for any one sibling (all siblings share `change`/`ref`/`line`/`title`) and call `markTaskDone(change, ref, { line, title })` via inline Node.js:
 
-     ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_openspec.sh"
+     ```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/load_openspec.sh
 ```
    - Add `ref` to `flippedRefs` regardless of the outcome (single-fire per run; idempotency in `markTaskDone` handles a future `--resume`).
    - Interpret the result:
@@ -869,9 +863,8 @@ If `openspecSpecs` was loaded in Step 1 (the plan was OpenSpec-sourced), also su
 4. **If `ok === true`:** apply the tasks.md coverage gate (implements R38 — Fixes #414) before emitting the suggestion:
    - Re-parse `openspec/changes/<name>/tasks.md` via `lib/openspec.js::parseTasks` using the same `$LIB` resolution + failure-guard + env-var contract as the `markTaskDone` block in Step 5d-bis:
 
-     ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/execute-plan-sdlc/scripts/load_openspec_tasks.sh"
+     ```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/load_openspec_tasks.sh
 ```
 
      Build `unflippedTitles` from entries where `done === false`.

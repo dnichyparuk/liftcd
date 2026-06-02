@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
 GIT_LIB="$SDLC_ROOT/scripts/skill/git.js"
 [ ! -f "$GIT_LIB" ] && { echo "ERROR: Could not locate scripts/skill/git.js. Is the sdlc plugin installed?" >&2; exit 2; }
 node -e "

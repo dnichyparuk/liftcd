@@ -25,23 +25,22 @@ git clone https://github.com/dnichyparuk/antigravity-sdlc.git .agents/plugins/sd
 
 ### Permissions Configuration
 
-To prevent Antigravity from repeatedly asking for permission to run the plugin's internal helper scripts (e.g. for planning, validation, and telemetry), you should allow executing `node` commands under the plugin's path.
+To prevent Antigravity from repeatedly asking for permission to run the plugin's internal helper scripts (e.g. for planning, validation, and telemetry), you should explicitly whitelist the plugin's execution folders.
 
-Open your global Antigravity settings file (typically located at `~/.gemini/antigravity-ide/settings.json`) and add the following rule to the `permissions.allow` array:
+Open your global Antigravity settings file (typically located at `~/.gemini/antigravity-cli/settings.json`) and add the following agnostic rules to the `permissions.allow` array:
 
 ```json
 {
   "permissions": {
     "allow": [
-      "command(node ~/.gemini/config/plugins/.*)"
+      "command(node .*/\\.gemini/config/plugins/.*)",
+      "command(.*/\\.gemini/config/plugins/sdlc/skills/.*/scripts/.*)"
     ]
   }
 }
 ```
 
-*Note: `~` represents your home directory path.*
-
-Alternatively, you can open the interactive permission manager in the CLI by typing `/permissions` and allow the command there.
+These rules use standard regex to automatically trust any Node script or embedded bash script inside the plugin, regardless of your OS, username, or installation path.
 
 ## Usage
 

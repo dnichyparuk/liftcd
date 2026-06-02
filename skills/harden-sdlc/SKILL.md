@@ -49,11 +49,10 @@ Pass `--from-issue "$ISSUE_NUM"` to the prepare script invocation in Step 1.
 
 ## Step 1 — CONSUME: Run the Prepare Script (R4, R13, C5–C8)
 
-> **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
+> **VERBATIM** — Execute this script directly using its absolute path (replace `<PLUGIN_ROOT>` with the absolute path to this plugin). Do NOT prepend `bash` or `sh`. Do not modify, rephrase, or simplify the commands.
 
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/harden-sdlc/scripts/prepare.sh"
+```shell
+<PLUGIN_ROOT>/skills/harden-sdlc/scripts/prepare.sh
 ```
 
 Substitute the shell variables with values from the parsed arguments. Empty
@@ -191,9 +190,8 @@ When the user selects **apply**, validate the proposed change BEFORE writing:
   `.sdlc/config.json`. Construct the prospective merged JSON in memory, then
   validate via the canonical guardrails validator:
 
-  ```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/harden-sdlc/scripts/validate_guardrails.sh"
+  ```shell
+<PLUGIN_ROOT>/skills/harden-sdlc/scripts/validate_guardrails.sh
 ```
 
   Run the validator against the prospective config. On non-zero exit, surface

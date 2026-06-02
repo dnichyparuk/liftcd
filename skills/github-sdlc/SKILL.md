@@ -25,7 +25,7 @@ close, or reopen — using the GitHub CLI (`gh issue`).
 
 Verify that the `gh` CLI is installed and authenticated.
 
-> **VERBATIM** — Run this bash block exactly as written.
+> **VERBATIM** — Execute this script directly using its absolute path (replace `<PLUGIN_ROOT>` with the absolute path to this plugin). Do NOT prepend `bash` or `sh`.
 
 ```bash
 gh auth status >/dev/null 2>&1

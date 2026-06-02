@@ -60,11 +60,10 @@ required before any further work, including running the prepare script.
 
 ### Step 3 — Run the Prepare Script (main context)
 
-> **VERBATIM** — Run this bash block exactly as written. Do not modify, rephrase, or simplify the commands.
+> **VERBATIM** — Execute this script directly using its absolute path (replace `<PLUGIN_ROOT>` with the absolute path to this plugin). Do NOT prepend `bash` or `sh`. Do not modify, rephrase, or simplify the commands.
 
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/error-report-sdlc/scripts/prepare_report.sh"
+```shell
+<PLUGIN_ROOT>/skills/error-report-sdlc/scripts/prepare_report.sh
 ```
 
 Substitute the shell variables with the values supplied by the calling skill. Optional

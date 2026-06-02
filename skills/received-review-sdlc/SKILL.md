@@ -126,9 +126,8 @@ If the system context contains "Plan mode is active":
 
 When a PR number or URL is provided (via arguments or user input), run the prepare script to pre-compute review thread state:
 
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/received-review-sdlc/scripts/prepare.sh"
+```shell
+<PLUGIN_ROOT>/skills/received-review-sdlc/scripts/prepare.sh
 ```
 
 **On exit code 0:** Read the manifest JSON. Extract `flags.auto` from the manifest and store it as a boolean (defaults to `false` if absent). If `--auto` was passed in `$ARGUMENTS` but not in the manifest, treat it as `true`. Display the incremental summary:
@@ -528,9 +527,8 @@ Step 11.6 — meta-analyze-findings: completed | dispatched=<N> deferred=<N> sup
 
 Before any `gh api` reply is posted, validate every URL embedded in every drafted reply body via the shared link validator. Concatenate all reply bodies (one per line) and feed them to the validator on stdin. The script auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON.
 
-```bash
-for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/received-review-sdlc/scripts/validate_links.sh"
+```shell
+<PLUGIN_ROOT>/skills/received-review-sdlc/scripts/validate_links.sh
 ```
 
 On non-zero exit (`LINK_EXIT != 0`):

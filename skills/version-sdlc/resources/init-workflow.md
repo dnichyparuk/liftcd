@@ -46,7 +46,7 @@ Then scaffold CI scripts and workflows using `scaffold-ci.js`:
 
 ```bash
 for d in "antigravity" "plugins/sdlc" "plugins/sdlc-utilities" "$HOME/.gemini/config/plugins/sdlc" "$HOME/.gemini/plugins/sdlc"; do [ -z "$SDLC_ROOT" ] && [ -f "$d/plugin.json" ] && SDLC_ROOT="$d"; done
-source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/init-workflow_scaffold.sh"
+eval 'source "${SDLC_ROOT:?ERROR: SDLC plugin root not found.}/scripts/run.sh" "skills/version-sdlc/scripts/init-workflow_scaffold.sh"'
 ```
 
 Run the scaffold (include `--changelog` when `config.changelog === true`):
