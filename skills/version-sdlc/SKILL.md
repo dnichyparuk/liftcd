@@ -325,7 +325,7 @@ If `flags.hotfix === true`, show instead:
 
 ### Branch C: Changelog-Update Workflow (`flow === "changelog-update"`)
 
-> When `VERSION_CONTEXT_JSON.flow === 'changelog-update'` (set by the script when `--changelog` is passed without a bump type), read `./changelog-workflow.md` now for the complete changelog-update workflow steps.
+> When `VERSION_CONTEXT_JSON.flow === 'changelog-update'` (set by the script when `--changelog` is passed without a bump type), read `./resources/changelog-workflow.md` now for the complete changelog-update workflow steps.
 
 ---
 

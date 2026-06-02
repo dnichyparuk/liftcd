@@ -450,9 +450,9 @@ Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to 
 
 Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to user verbatim with prompt "Y (file issue) / edit / skip". On Y, dispatch `error-report-sdlc` with `--error-type mcp-auth`, `--skill jira-sdlc`, `--step "Step 3"`, `--operation "$MCP_TOOL_NAME"`, `--error-text <proposal.body>`, and labels `mcp-failure,class:auth`.
 
-After Step 2 classifies the operation type, read `./operations-reference.md` and follow the procedure for the matching operation type.
+After Step 2 classifies the operation type, read `./resources/operations-reference.md` and follow the procedure for the matching operation type.
 
-| Classified Operation | Section in operations-reference.md |
+| Classified Operation | Section in resources/operations-reference.md |
 |---------------------|------------------------------------|
 | `create` | Create Operation |
 | `edit` | Edit Operation |
@@ -486,7 +486,7 @@ After operations that reveal new information, update the cache incrementally:
 |-------|-----------|----------|
 | 400 on create | Missing required field or wrong field shape | Verify field key/shape against the cached `fieldSchemas` object. If the field doesn't match, run `--force-refresh`, reload cache, retry once. If still failing after refresh, use the **gated dispatch** below (R9 exhausted path) |
 | 400 on transition | Missing required transition field (e.g., resolution) | Check `workflows[type].transitions[status][n].requiredFields`; include required fields. If transition ID is not recognized, **auto-refresh**: run `--force-refresh`, reload cache, retry once |
-| 400 on edit | Wrong field shape or incorrect custom field key | Verify field key/shape against the cached `fieldSchemas` object. If the field doesn't match, run `--force-refresh`, reload cache, retry once. If field format details are needed, Read `./REFERENCE.md` Section 2 only |
+| 400 on edit | Wrong field shape or incorrect custom field key | Verify field key/shape against the cached `fieldSchemas` object. If the field doesn't match, run `--force-refresh`, reload cache, retry once. If field format details are needed, Read `./resources/REFERENCE.md` Section 2 only |
 | 401 | Auth token expired | Reconnect Atlassian MCP; cannot recover programmatically |
 | 403 | Insufficient permission | Report to user — cannot fix |
 | 404 issue | Issue key wrong or issue deleted | Ask user to verify the issue key |

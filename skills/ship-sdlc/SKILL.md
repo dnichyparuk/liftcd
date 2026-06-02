@@ -44,7 +44,7 @@ If `--init-config` was passed:
 
 **Redirect:** Suggest running `/setup-sdlc` instead for unified configuration. If user insists on `--init-config`, proceed with the existing walkthrough.
 
-1. Read `./config-format.md` and run the interactive walkthrough to collect the user's answers (steps multi-select, bump type, auto, threshold, workspace isolation).
+1. Read `./resources/config-format.md` and run the interactive walkthrough to collect the user's answers (steps multi-select, bump type, auto, threshold, workspace isolation).
    After the `steps[]` selection, offer the optional `--quick` profile prompt (R-quick-7):
    > "Would you like to define a `--quick` profile? Select steps that form your shortened pipeline, or skip to omit."
    If the user selects steps, capture them. If the user skips, omit the `--quick` flag when calling `ship-init.js`.
@@ -146,7 +146,7 @@ Options:
 - **path** — ask the user for an explicit state file path, then re-invoke with `--state-file <path>`
 - **abort** — exit cleanly without dispatching any step
 
-Read `./state-format.md` when resuming from a state file.
+Read `./resources/state-format.md` when resuming from a state file.
 
 ### 1f. Context detection
 

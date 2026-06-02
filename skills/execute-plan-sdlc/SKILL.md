@@ -71,7 +71,7 @@ Note: this reads `execute.guardrails` (runtime enforcement), not `plan.guardrail
 
 - If `--resume` was passed:
   1. Find the most recent state file for the current branch in `<main-worktree>/.sdlc/execution/`. If none found, warn: "No state file found for branch `<branch>`. Starting fresh." and proceed to plan loading below.
-  2. Read `./state-format.md` for the schema reference.
+  2. Read `./resources/state-format.md` for the schema reference.
   3. Read the state file using `node "$STATE_SCRIPT" read` (locate `state/execute.js` as described in the State persistence section). Load `planPath` and read the plan file. If `planPath` is null (plan was from conversation context), use AskUserQuestion to request the plan file path.
   4. Compute the SHA-256 hash of the plan content and compare against `planHash`. If mismatch, use AskUserQuestion:
      > Plan content has changed since execution started. Resume with the existing wave structure, or restart from scratch?
@@ -211,7 +211,7 @@ For each task, determine three things:
 
 The user selects a quality tier (preset) in Step 4 that applies these mappings (or overrides them).
 
-After classification, Read `./classifying-and-waving-tasks.md` for wave-building algorithm and adaptive sizing.
+After classification, Read `./resources/classifying-and-waving-tasks.md` for wave-building algorithm and adaptive sizing.
 
 Two tasks modifying the same file must be in different waves.
 
@@ -290,7 +290,7 @@ Always present all 3 tiers. Default is Balanced. When the user selects a tier (f
 
 ## Step 5 (DO): Execute
 
-**Pre-wave:** If there is 1 pre-wave trivial task, execute it inline in the main context. If there are 2+ pre-wave trivials, dispatch them as a single batch agent (gemini-3.5-flash) using the Batched Trivial Tasks Prompt Template in `./classifying-and-waving-tasks.md`. Mark each complete in TodoWrite after inline execution or after the batch agent returns.
+**Pre-wave:** If there is 1 pre-wave trivial task, execute it inline in the main context. If there are 2+ pre-wave trivials, dispatch them as a single batch agent (gemini-3.5-flash) using the Batched Trivial Tasks Prompt Template in `./resources/classifying-and-waving-tasks.md`. Mark each complete in TodoWrite after inline execution or after the batch agent returns.
 
 This dispatch is NOT a wave-runner Agent — it is a direct batch-gemini-3.5-flash dispatch from main context for tasks that have no in-wave dependencies.
 
@@ -341,9 +341,9 @@ Options:
 
 **5b. Dispatch wave-runner Agent** — One wave-runner Agent per wave (implements R8, R-wave-runner-contract (named requirement, see spec) from the spec). Build the wave-runner Agent's prompt from:
 
-1. Read `./wave-runner-template.md` for the algorithm, contract, and constraints.
-2. Inline the full content of the per-task template from `./classifying-and-waving-tasks.md` (lines 109–187) as the `perTaskTemplate` input.
-3. When the wave contains 2+ Trivial tasks, also inline the batched-trivial template from `./classifying-and-waving-tasks.md` (lines 189–257) as the `batchedTrivialTemplate` input.
+1. Read `./resources/wave-runner-template.md` for the algorithm, contract, and constraints.
+2. Inline the full content of the per-task template from `./resources/classifying-and-waving-tasks.md` (lines 109–187) as the `perTaskTemplate` input.
+3. When the wave contains 2+ Trivial tasks, also inline the batched-trivial template from `./resources/classifying-and-waving-tasks.md` (lines 189–257) as the `batchedTrivialTemplate` input.
 4. Provide the complete wave manifest: `waveNumber`, `totalWaves`, `qualityTier`, `escalationBudget: 2`, and the per-task array with `id`, `complexity`, `risk`, `factSheetPath`, `assignedModel`, and `verifyToken` for each task (R-FACT-SHEET-DISPATCH, #432).
 
    **Fact-sheet dispatch (R-FACT-SHEET-DISPATCH, #432):** Before dispatching the wave-runner, write per-task fact sheets via:
@@ -354,7 +354,7 @@ Options:
 
    **Manifest extensions (Fixes #392 — R33/R34):** every wave manifest MUST additionally carry:
    - `guardrails: [{id, description, severity}]` — sourced verbatim from `activeGuardrails` loaded in Step 1 (Guardrail loading block above). When `activeGuardrails` is empty, the field is still present as `[]` (stable shape across waves — never omitted). Wave-runner threads this into the conditional `## Project Guardrails` block of every per-task and batched-trivial Agent prompt; when empty the block renders nothing.
-   - `expectedFiles: string[]` — deterministic union of every `Files: Create:` / `Files: Modify:` / `Files: Test:` path declared across the wave's tasks (computed by main context during wave build per `classifying-and-waving-tasks.md` step 6b). Used by Step 5c-bis to cross-check `git diff --stat` output.
+   - `expectedFiles: string[]` — deterministic union of every `Files: Create:` / `Files: Modify:` / `Files: Test:` path declared across the wave's tasks (computed by main context during wave build per `resources/classifying-and-waving-tasks.md` step 6b). Used by Step 5c-bis to cross-check `git diff --stat` output.
    - `verificationHint?: string` — optional; populated only when every task in the wave shares the same `Verify:` value verbatim.
 
    Concrete example:
@@ -450,7 +450,7 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
 
 Skip for waves containing only Trivial tasks. Skip if the Speed quality tier (`--quality full`) was selected.
 
-After mechanical verification passes (Steps 5c.1–4), dispatch a single spec compliance reviewer (gemini-3.5-flash). At dispatch time, Read `./spec-compliance-reviewer.md` and use it as the prompt template. Provide:
+After mechanical verification passes (Steps 5c.1–4), dispatch a single spec compliance reviewer (gemini-3.5-flash). At dispatch time, Read `./resources/spec-compliance-reviewer.md` and use it as the prompt template. Provide:
 - Each non-trivial task's full specification text
 - The files each task's `WAVE_SUMMARY.tasks[].filesTouched` listed as modified
 
@@ -615,7 +615,7 @@ Gate phrasing invariant (no-opposite-logical-vectors): the "wave complete" condi
 
 ## Step 6 (RECOVER): Error Recovery
 
-**On failure:** Read `./recovering-from-failures.md` for the full playbook. Do not read this file preemptively — only when a failure occurs in this step. Summary:
+**On failure:** Read `./resources/recovering-from-failures.md` for the full playbook. Do not read this file preemptively — only when a failure occurs in this step. Summary:
 
 | Failure Type | Recovery Action |
 |---|---|
@@ -627,7 +627,7 @@ Gate phrasing invariant (no-opposite-logical-vectors): the "wave complete" condi
 | Test failure (3+ tests) | Stop; diagnose root cause before proceeding |
 | Build failure | Stop immediately; fix before next wave |
 | Lint failure | Fix inline; never block a wave on lint-only failures |
-| Phantom success (agent reports done, files unchanged) | Re-dispatch with model escalation and Edit-tool-only constraint; see `./recovering-from-failures.md` (read on failure only) |
+| Phantom success (agent reports done, files unchanged) | Re-dispatch with model escalation and Edit-tool-only constraint; see `./resources/recovering-from-failures.md` (read on failure only) |
 | Persistent failure (2+ retries) | Escalate to user with full context. Offer **harden** (run `/harden-sdlc` to analyze why this failed and propose stronger guardrails / dimensions / instructions that would catch it earlier next time — opt-in, no surface is edited without your approval) alongside other escalation options. When the user selects **harden** (interactive mode only — suppressed when `--auto` is set), dispatch `Skill(harden-sdlc)` with `--failure-text <full failure context>`, `--skill execute-plan-sdlc`, `--step "Step 6 — RECOVER"`, `--operation "persistent task-failure escalation"`. Implements R28. |
 | Agent status: NEEDS_CONTEXT | Provide missing context, re-dispatch (counts as retry) |
 | Agent status: BLOCKED | Assess blocker: provide context + re-dispatch, escalate model, break task, or escalate to user |
@@ -660,7 +660,7 @@ Skip this sub-step if `openspecSpecs` is empty (no OpenSpec context was loaded i
 
 Also skip if ALL per-wave spec compliance reviews (Step 5c-bis) passed without issues AND the plan has 3 or fewer waves — the per-wave reviews already provided sufficient coverage in that case.
 
-Otherwise, dispatch a single spec compliance reviewer (gemini-3.5-flash). Read `./spec-compliance-reviewer.md` for the prompt template. Unlike the per-wave review in Step 5c-bis which provides only that wave's tasks, provide:
+Otherwise, dispatch a single spec compliance reviewer (gemini-3.5-flash). Read `./resources/spec-compliance-reviewer.md` for the prompt template. Unlike the per-wave review in Step 5c-bis which provides only that wave's tasks, provide:
 
 - **ALL non-trivial tasks from ALL waves** — full specification text from the plan
 - **Complete `git diff --stat` output** for the entire execution (all waves combined)
@@ -897,9 +897,9 @@ If execution started in a worktree (Step 1 workspace isolation) and running stan
 
 ## See Also
 
-- `./state-format.md` — execution state file schema for pause/resume
-- `./classifying-and-waving-tasks.md` — task classification heuristics, wave algorithm, agent prompt template
-- `./recovering-from-failures.md` — full error recovery playbook and escalation protocol
+- `./resources/state-format.md` — execution state file schema for pause/resume
+- `./resources/classifying-and-waving-tasks.md` — task classification heuristics, wave algorithm, agent prompt template
+- `./resources/recovering-from-failures.md` — full error recovery playbook and escalation protocol
 - [`/commit-sdlc`](../commit-sdlc/SKILL.md) — commit changes after plan execution
 - [`/pr-sdlc`](../pr-sdlc/SKILL.md) — create a pull request after plan execution
 - [`/version-sdlc`](../version-sdlc/SKILL.md) — tag a release after plan execution

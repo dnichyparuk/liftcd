@@ -129,7 +129,7 @@ function extractAgentRefs(content) {
 // Uses negative lookbehind/lookahead to exclude double-backtick code spans
 // (`` `REFERENCE.md` `` is an example in text, not a real file reference).
 // Also excludes known project artifact filenames that are never skill siblings.
-const RE_SIBLING_MD = /(?<!`)`([A-Z][A-Z0-9_-]*\.md)`(?!`)/g;
+const RE_SIBLING_MD = /(?<!`)`(?:resources\/)?([A-Z][A-Z0-9_-]*\.md)`(?!`)/g;
 const NON_SIBLING_MD = new Set(['CHANGELOG.md', 'README.md', 'LICENSE.md', 'CLAUDE.md', 'SKILL.md']);
 
 function extractSiblingFileRefs(content) {

@@ -1,6 +1,6 @@
 ---
 name: error-report-sdlc
-description: "Internal skill invoked by other SDLC skills when they encounter an actionable error (script crash, CLI failure, persistent API error, build failure after retries). Proposes creating a GitHub issue in rnagrodzki/sdlc-marketplace to track the error with full context capture, two-gate user consent, and pre-flight verification. NOT user-invocable — only dispatched from within another skill's error handling path. When dispatched, follow ./REFERENCE.md for the full procedure."
+description: "Internal skill invoked by other SDLC skills when they encounter an actionable error (script crash, CLI failure, persistent API error, build failure after retries). Proposes creating a GitHub issue in rnagrodzki/sdlc-marketplace to track the error with full context capture, two-gate user consent, and pre-flight verification. NOT user-invocable — only dispatched from within another skill's error handling path. When dispatched, follow ./resources/REFERENCE.md for the full procedure."
 user-invocable: false
 disable-model-invocation: true
 model: gemini-3.5-flash
@@ -38,19 +38,19 @@ error. The calling skill provides:
 
 The full procedural narrative — error classification (issue-worthy vs not),
 pre-flight verification, two-gate consent flow, template, and the `gh issue create`
-sequence — lives in `./REFERENCE.md`. The implementation flow below resolves
-sections from REFERENCE.md and dispatches the orchestrator.
+sequence — lives in `./resources/REFERENCE.md`. The implementation flow below resolves
+sections from resources/REFERENCE.md and dispatches the orchestrator.
 
 ### Step 1 — Classify and Pre-flight (main context)
 
-Follow REFERENCE.md sections 1 (Error Classification) and 2 (Pre-flight Verification)
+Follow resources/REFERENCE.md sections 1 (Error Classification) and 2 (Pre-flight Verification)
 in the main context. If the error is NOT issue-worthy, or any required pre-flight
 check fails, return to the calling skill's normal error handling immediately. Do
 not run the prepare script, do not dispatch the orchestrator.
 
 ### Step 2 — Consent Gate 1: Offer (main context)
 
-Follow REFERENCE.md section 3 verbatim. Use `AskUserQuestion`. The prompt MUST run
+Follow resources/REFERENCE.md section 3 verbatim. Use `AskUserQuestion`. The prompt MUST run
 in the main context (not inside the orchestrator agent) — the user's consent is
 required before any further work, including running the prepare script.
 
@@ -118,7 +118,7 @@ Capture the returned object as `PROPOSAL = { title, body }`. If the parse fails,
 
 ### Step 5 — Consent Gate 2: Review (main context)
 
-Follow REFERENCE.md section 5 verbatim. Display `PROPOSAL.title` and
+Follow resources/REFERENCE.md section 5 verbatim. Display `PROPOSAL.title` and
 `PROPOSAL.body` to the user along with the labels (`tooling-error` plus the
 calling skill's name) and the priority. Use `AskUserQuestion` for the
 `yes / edit / cancel` choice.
@@ -135,7 +135,7 @@ automatically on shell exit.
 
 ### Step 6 — Create the GitHub Issue (main context)
 
-Follow REFERENCE.md section 6 verbatim. The `gh issue create` call MUST run in the
+Follow resources/REFERENCE.md section 6 verbatim. The `gh issue create` call MUST run in the
 main context — the orchestrator agent has no `Bash` tool and is forbidden from
 invoking `gh`.
 
@@ -149,14 +149,14 @@ gh issue create \
 ```
 
 Apply the missing-label fallback (`gh label create … || true`) and retry per
-REFERENCE.md section 6a. On success, report the issue number and URL per 6b. On
+resources/REFERENCE.md section 6a. On success, report the issue number and URL per 6b. On
 failure after the retry, report the error per 6c.
 
 ### Step 7 — Cleanup and Return (main context)
 
 The `$ERROR_CONTEXT_FILE` is removed automatically by the `trap` declared at Step 1 on every exit path — no explicit cleanup is needed here.
 
-Return to the calling skill's normal error handling per REFERENCE.md
+Return to the calling skill's normal error handling per resources/REFERENCE.md
 section 7. The cleanup runs on every exit path (success, failure, cancel, edit
 loop exit).
 

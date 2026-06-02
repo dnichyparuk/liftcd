@@ -73,7 +73,7 @@ MANIFEST_FILE: {the temp file path from Step 0}
 PROJECT_ROOT: {current working directory}
 ```
 
-The orchestrator will read the manifest, resolve REFERENCE.md, dispatch dimension
+The orchestrator will read the manifest, resolve resources/REFERENCE.md, dispatch dimension
 subagents, critique/deduplicate, format the comment, and persist the consolidated
 comment body to `${diff_dir}/review-comment.md`. It does NOT post to a PR and does
 NOT prompt the user — the skill handles posting in Step 4.
@@ -236,7 +236,7 @@ rm -rf "{diff_dir}"
 ## DO NOT
 
 - Do NOT read the manifest JSON into main context (the orchestrator reads it)
-- Do NOT read REFERENCE.md in main context (the orchestrator resolves it)
+- Do NOT read resources/REFERENCE.md in main context (the orchestrator resolves it)
 - Do NOT read the orchestrator agent definition into main context — pass the file path or use the sdlc:review-orchestrator subagent_type
 - Do NOT invoke error-report-sdlc for user errors — only for script crashes (exit 2)
 - Do NOT re-dispatch the orchestrator to post the comment — use the `comment_file` from its summary
@@ -244,7 +244,7 @@ rm -rf "{diff_dir}"
 ## See Also
 
 - `agents/review-orchestrator.md` — full orchestration logic
-- `REFERENCE.md` — dimension format spec, subagent prompt template, comment template
+- `resources/REFERENCE.md` — dimension format spec, subagent prompt template, comment template
 - [`/setup-sdlc --dimensions`](../setup-sdlc/SKILL.md) — creates review dimensions
 - [`/received-review-sdlc`](../received-review-sdlc/SKILL.md) — responds to findings
 - [`/commit-sdlc`](../commit-sdlc/SKILL.md) — commit after review approval

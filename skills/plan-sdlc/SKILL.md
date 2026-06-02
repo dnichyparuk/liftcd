@@ -236,7 +236,7 @@ Wait for answer.
 - For each OpenSpec task: map to one plan task (or split if > 5 files), add Complexity/Risk/Depends on/Verify metadata, and expand the description to be self-contained for agent dispatch
 - If `tasks.md` is absent (prepare output shows `hasTasks: false`), fall back to standard decomposition from delta specs below
 
-**OpenSpec task annotation (implements R29 — Fixes #414):** When `fromOpenspecDirect` is true AND `openspecContext.tasks[]` is non-null in the prepare output, each plan task derived from one or more OpenSpec tasks MUST carry an `openspec-task:` block beneath its standard metadata fields. Format documented in `./plan-format-reference.md`:
+**OpenSpec task annotation (implements R29 — Fixes #414):** When `fromOpenspecDirect` is true AND `openspecContext.tasks[]` is non-null in the prepare output, each plan task derived from one or more OpenSpec tasks MUST carry an `openspec-task:` block beneath its standard metadata fields. Format documented in `./resources/plan-format-reference.md`:
 
 ```
 **openspec-task:**
@@ -263,7 +263,7 @@ Plan tasks NOT derived from any OpenSpec task MUST omit the field. N:1 mapping (
 
 **Key decisions:** Note every decision where you chose between valid approaches. Focus on choices where a reasonable implementer might differ without the rationale. Skip obvious decisions.
 
-**Per-task metadata (required, consumed by execute-plan-sdlc):** Use the exact format from `./plan-format-reference.md`:
+**Per-task metadata (required, consumed by execute-plan-sdlc):** Use the exact format from `./resources/plan-format-reference.md`:
 
 ```markdown
 ### Task N: [Component Name]
@@ -413,7 +413,7 @@ When `lensReviewers[i].promptTemplatePath` is null, skip that lens and log to `.
 3. **Recommendations**: collect all recommendations, dedup by string prefix (first 60 chars)
 4. **Iteration counter**: increment by 1 per complete fan-out dispatch, regardless of how many lenses returned
 
-**For plans with <5 tasks — Single reviewer (status quo):** Dispatch one reviewer with `{LENS}=all` using `./plan-reviewer-prompt.md` directly (same model acceptable). Status quo behavior preserved.
+**For plans with <5 tasks — Single reviewer (status quo):** Dispatch one reviewer with `{LENS}=all` using `./resources/plan-reviewer-prompt.md` directly (same model acceptable). Status quo behavior preserved.
 
 **Review loop:**
 - Approved → Step 6 is a no-op, proceed to Step 7
@@ -536,6 +536,6 @@ On selection, invoke the chosen skill using the Skill tool. On "done", end witho
 
 ## See Also
 
-- `./plan-reviewer-prompt.md` — plan review subagent template
-- `./plan-format-reference.md` — plan document format specification
+- `./resources/plan-reviewer-prompt.md` — plan review subagent template
+- `./resources/plan-format-reference.md` — plan document format specification
 - [`/execute-plan-sdlc`](../execute-plan-sdlc/SKILL.md) — skill that executes the plans this skill produces

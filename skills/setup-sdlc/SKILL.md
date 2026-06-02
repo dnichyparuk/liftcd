@@ -532,7 +532,7 @@ Before invoking `setup-dimensions` or `setup-pr-template`, run the project signa
 
 - **Dependency manifests:** Use Glob for `package.json`, `requirements.txt`, `Pipfile`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`. Read each found file.
 - **Framework config:** Use Glob for `**/jest.config.*`, `**/vitest.config.*`, `**/.eslintrc*`, `**/tsconfig.json`, `**/openapi.yaml`, `**/openapi.json`, `**/.prettierrc*`.
-- **Directory structure:** Use Glob for `src/`, `lib/`, `controllers/`, `services/`, `middleware/`, `models/`, `routes/`, `api/`, `pkg/`, `cmd/`, `internal/` and patterns from `@scan-patterns.md`.
+- **Directory structure:** Use Glob for `src/`, `lib/`, `controllers/`, `services/`, `middleware/`, `models/`, `routes/`, `api/`, `pkg/`, `cmd/`, `internal/` and patterns from `@resources/scan-patterns.md`.
 - **CI/CD config:** Use Glob for `.github/workflows/*.yml`, `Jenkinsfile`, `.circleci/config.yml`, `.gitlab-ci.yml`.
 - **Database presence:** Use Glob for `prisma/`, `migrations/`, `alembic.ini`, `db/migrate/`, `**/sequelize*`, `**/typeorm*`, `**/sqlalchemy*`.
 - **Test structure:** Use Glob for `test/`, `tests/`, `spec/`, `__tests__/`, `cypress/`, `**/playwright.config.*`.
