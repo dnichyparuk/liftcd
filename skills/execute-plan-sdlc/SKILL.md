@@ -400,7 +400,7 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
 
    Read `schemaOk`, `missingIds`, `extraIds`, `violations`, and `parsed` from the result.
 
-   > **Note:** The `<<< "$WAVE_RUNNER_OUTPUT"` here-string is pseudocode illustrating the intent. In practice, write `$WAVE_RUNNER_OUTPUT` to a temp file and pass it via stdin redirect (`node -e "..." < "$TMPFILE"`), or inline the content via `process.env` — shell here-strings have byte limits and can silently truncate large wave outputs.
+   > **Note:** The `<<< "$WAVE_RUNNER_OUTPUT"` here-string is pseudocode illustrating the intent. In practice, write `$WAVE_RUNNER_OUTPUT` to a temp file and pass it via stdin redirect (`<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/parse_wave.sh < "$TMPFILE"`), or inline the content via `process.env` — shell here-strings have byte limits and can silently truncate large wave outputs.
 
    - If `missingIds.length > 0` → **CONTEXT_OVERFLOW** (R-CONTEXT_OVERFLOW, #432): the wave-runner's context was exhausted before it could report all dispatched tasks. This is the sole discriminant — a schema-valid partial response (where `schemaOk` is true but `missingIds` is non-empty) also triggers this path, because absent IDs mean unconfirmed tasks regardless of schema validity. Invoke the auto-split-and-retry flow:
 
@@ -850,12 +850,8 @@ If `openspecSpecs` was loaded in Step 1 (the plan was OpenSpec-sourced), also su
 
 1. Extract the change name from the plan header's `**Source:**` field (the `openspec/changes/<name>/` path).
 2. Call `lib/openspec.js::validateChangeStrict(projectRoot, name)` via Bash:
-   ```bash
-   node -e "
-   const { validateChangeStrict } = require('<LIB>/openspec.js');
-   const result = validateChangeStrict(process.cwd(), '<name>');
-   console.log(JSON.stringify(result));
-   "
+   ```shell
+   <PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/openspec_validate.sh '<name>'
    ```
 3. **If `cliAvailable === false`:** emit the existing static advisory (no fabricated validation claim):
    - `/opsx:verify` — validate implementation completeness against the spec

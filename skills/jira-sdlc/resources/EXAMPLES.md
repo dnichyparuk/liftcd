@@ -424,9 +424,9 @@ mcp__atlassian__transitionJiraIssue({
 COMMENT_MD="Reviewed the implementation. Token refresh is working in staging. Ready for QA sign-off."
 
 # Step 2: Convert to ADF
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 SCRIPT="$SDLC_ROOT/scripts/lib/markdown-to-adf.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: markdown-to-adf.js not found"; node -e 'process.exit(2)'; }
+[ ! -f "$SCRIPT" ] && { echo "ERROR: markdown-to-adf.js not found"; exit 2; }
 ADF_JSON=$(echo "$COMMENT_MD" | node "$SCRIPT")
 
 # Step 3: Post with ADF format
@@ -446,9 +446,9 @@ mcp__atlassian__addCommentToJiraIssue({
 COMMENT_MD="## Root Cause Analysis\n\nThe blank page is caused by the SAML callback handler returning early when \`RelayState\` is empty.\n\n\`\`\`js\n// Before fix:\nif (!relayState) return; // silently drops the response\n\n// After fix:\nif (!relayState) relayState = '/dashboard';\n\`\`\`\n\n## Test Results\n\n| Browser | Status |\n|---------|--------|\n| Chrome  | Pass   |\n| Firefox | Pass   |\n| Safari  | Pass   |"
 
 # Step 2: Convert to ADF
-[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; node -e 'process.exit(2)'; }
+[ -z "$SDLC_ROOT" ] && { echo "ERROR: SDLC plugin root not found." >&2; exit 2; }
 SCRIPT="$SDLC_ROOT/scripts/lib/markdown-to-adf.js"
-[ ! -f "$SCRIPT" ] && { echo "ERROR: markdown-to-adf.js not found"; node -e 'process.exit(2)'; }
+[ ! -f "$SCRIPT" ] && { echo "ERROR: markdown-to-adf.js not found"; exit 2; }
 ADF_JSON=$(echo -e "$COMMENT_MD" | node "$SCRIPT")
 
 # Step 3: Post with ADF format

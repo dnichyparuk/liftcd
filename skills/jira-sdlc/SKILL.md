@@ -388,9 +388,9 @@ On non-zero exit (`LINK_EXIT != 0`):
 > - When the helper cannot be resolved (plugin not installed or `find` returns empty and the cwd fallback also misses), each block emits a single stderr WARNING and proceeds non-fatally. The downstream `[ -n "$HELPER" ] && node "$HELPER" ...` guards then skip the call without aborting the surrounding step. The warning satisfies the script-resolution convention while preserving R27's "telemetry is best-effort" design intent.
 > - `ANALYZE_JSON` is the raw JSON string emitted by `node "$HELPER" --analyze ...` — it is NOT an object. To use `.proposal.title` and `.proposal.body`, parse explicitly:
 >
->   ```bash
->   PROPOSAL_TITLE=$(printf '%s' "$ANALYZE_JSON" | node -e "let d=''; process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).proposal.title))")
->   PROPOSAL_BODY=$(printf  '%s' "$ANALYZE_JSON" | node -e "let d=''; process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).proposal.body))")
+>   ```shell
+>   PROPOSAL_TITLE=$(printf '%s' "$ANALYZE_JSON" | <PLUGIN_ROOT>/skills/jira-sdlc/scripts/parse_proposal.sh title)
+>   PROPOSAL_BODY=$(printf  '%s' "$ANALYZE_JSON" | <PLUGIN_ROOT>/skills/jira-sdlc/scripts/parse_proposal.sh body)
 >   ```
 >
 >   Every "Read `ANALYZE_JSON.proposal.title` / `.proposal.body`" instruction below refers to the result of this parse — pass `$PROPOSAL_BODY` (not raw `$ANALYZE_JSON`) to `error-report-sdlc --error-text`.
