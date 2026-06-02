@@ -867,8 +867,8 @@ function cleanupLegacyAntigravityFiles(projectRoot) {
   const sdlcRevOk  = fs.existsSync(sdlcRevDir) && fs.readdirSync(sdlcRevDir).length > 0;
 
   if (sdlcJsonOk) {
-    if (fs.existsSync(antigravityJson)) { fs.unlinkSync(antigravityJson); removed.push('.sdlc/sdlc.json'); }
-    if (fs.existsSync(antigravityBak))  { fs.unlinkSync(antigravityBak);  removed.push('.sdlc/sdlc.json.bak'); }
+    if (fs.existsSync(antigravityJson)) { fs.unlinkSync(antigravityJson); removed.push('.antigravity/antigravity.json'); }
+    if (fs.existsSync(antigravityBak))  { fs.unlinkSync(antigravityBak);  removed.push('.antigravity/antigravity.json.bak'); }
   }
   if (sdlcRevOk && fs.existsSync(antigravityRevDir)) {
     fs.rmSync(antigravityRevDir, { recursive: true, force: true });

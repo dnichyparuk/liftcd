@@ -3,13 +3,13 @@
  * check-changelog.cjs
  * CI script: validates that CHANGELOG.md contains an entry for the current version.
  *
- * Only runs when `changelog: true` is set in `.claude/version.json`.
+ * Only runs when `changelog: true` is set in `.antigravity/version.json`.
  * Designed to be copied into user projects under `.github/scripts/`.
  *
- * Usage (GitHub Actions — runs on push to main or in a PR check):
- *   node .github/scripts/check-changelog.cjs
+ * Usage (GitHub Actions):
+ *   node .github/scripts/check-changelog.cjs <base-branch>
  *
- * Reads: .claude/version.json  (sdlc versioning config)
+ * Reads: .antigravity/version.json  (sdlc versioning config)
  * Modes:
  *   "file" — version read from a version file (package.json, plugin.json, etc.)
  *   "tag"  — version derived from the latest git tag (no version file)
@@ -46,8 +46,8 @@ function exec(cmd, opts = {}) {
 
 /**
  * Read the version section from .sdlc/config.json, falling back to legacy
- * .claude/sdlc.json (with stderr deprecation warning), and finally to legacy
- * .claude/version.json. CI script runs in read-only context — never calls
+ * .antigravity/antigravity.json (with stderr deprecation warning), and finally to legacy
+ * .antigravity/version.json. CI script runs in read-only context — never calls
  * verifyAndMigrate (issue #232).
  */
 function readVersionConfig(repoRoot) {
@@ -57,29 +57,32 @@ function readVersionConfig(repoRoot) {
     try {
       const config = JSON.parse(fs.readFileSync(newPath, 'utf8'));
       return config.version || null;
-    } catch (_) {
-      return null;
+    } catch (err) {
+      process.stderr.write(`Error parsing .sdlc/config.json: ${err.message}\n`);
+      process.exit(1);
     }
   }
 
-  // Fallback: legacy .claude/sdlc.json
-  const legacyUnifiedPath = path.join(repoRoot, '.claude', 'sdlc.json');
+  // Fallback: legacy .antigravity/antigravity.json
+  const legacyUnifiedPath = path.join(repoRoot, '.antigravity', 'antigravity.json');
   if (fs.existsSync(legacyUnifiedPath)) {
-    process.stderr.write(`Deprecation: .claude/sdlc.json is the legacy project-config path. Run /setup-sdlc --migrate to relocate.\n`);
+    process.stderr.write(`Deprecation: .antigravity/antigravity.json is the legacy project-config path. Run /setup-sdlc --migrate to relocate.\n`);
     try {
       const config = JSON.parse(fs.readFileSync(legacyUnifiedPath, 'utf8'));
       return config.version || null;
-    } catch (_) {
-      return null;
+    } catch (err) {
+      process.stderr.write(`Error parsing .antigravity/antigravity.json: ${err.message}\n`);
+      process.exit(1);
     }
   }
 
-  // Legacy fallback: .claude/version.json
-  const legacyPath = path.join(repoRoot, '.claude', 'version.json');
+  // Legacy fallback: .antigravity/version.json
+  const legacyPath = path.join(repoRoot, '.antigravity', 'version.json');
   if (fs.existsSync(legacyPath)) {
     try {
       return JSON.parse(fs.readFileSync(legacyPath, 'utf8'));
-    } catch (_) {
+    } catch (err) {
+      process.stderr.write(`Error parsing .antigravity/version.json: ${err.message}\n`);
       return null;
     }
   }

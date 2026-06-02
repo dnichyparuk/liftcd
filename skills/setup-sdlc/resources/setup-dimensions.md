@@ -16,7 +16,7 @@ and validates with the validation script.
 
 Supporting references (dimension format spec, 5 example dimensions) are in
 `review-sdlc/REFERENCE.md` and `review-sdlc/EXAMPLES.md`. Locate them using Glob
-with `path: ~/.antigravity` and pattern `**/review-sdlc/REFERENCE.md`. If not found, retry
+with `path: ~/.gemini/config/plugins` and pattern `**/review-sdlc/REFERENCE.md`. If not found, retry
 Glob with the default path (cwd). Use the same approach for EXAMPLES.md.
 
 ---
