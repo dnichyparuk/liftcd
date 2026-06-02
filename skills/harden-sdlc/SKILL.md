@@ -200,9 +200,13 @@ When the user selects **apply**, validate the proposed change BEFORE writing:
   silently commit a schema-invalid edit.
 
 - For `surface == "review-dimensions"`: validate the prospective dimension file
-  against `schemas/review-dimension.schema.json` via
-  `lib/dimensions.js::validateDimensionFile`. Same retry/cancel handling on
-  failure.
+  by running the validator script against the file:
+
+  ```shell
+  <PLUGIN_ROOT>/skills/harden-sdlc/scripts/validate_dimension.sh "<targetFile>"
+  ```
+
+  Same retry/cancel handling on failure.
 
 - For `surface == "copilot-instructions"`: no schema — apply the edit directly
   after the user's `apply` answer.
