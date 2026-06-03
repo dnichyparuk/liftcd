@@ -33,9 +33,14 @@ fi
 # Step 3b: --workspace worktree — create worktree+branch, cd in main shell.
 if [ "$WORKSPACE_MODE" = "worktree" ]; then
 WORKTREE_CREATE_SCRIPT="$SDLC_ROOT/scripts/util/worktree-create.js"
-[ ! -f "$WORKTREE_CREATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/worktree-create.js. Is the sdlc plugin installed?" >&2; exit 2; }
-  [ -z "$WORKTREE_CREATE_SCRIPT" ] && [ -f "plugins/sdlc-utilities/scripts/util/worktree-create.js" ] && WORKTREE_CREATE_SCRIPT="plugins/sdlc-utilities/scripts/util/worktree-create.js"
-  [ -z "$WORKTREE_CREATE_SCRIPT" ] && { echo "ERROR: Could not locate scripts/util/worktree-create.js. Is the sdlc plugin installed?" >&2; exit 2; }
+if [ ! -f "$WORKTREE_CREATE_SCRIPT" ]; then
+  if [ -f "plugins/sdlc-utilities/scripts/util/worktree-create.js" ]; then
+    WORKTREE_CREATE_SCRIPT="plugins/sdlc-utilities/scripts/util/worktree-create.js"
+  else
+    echo "ERROR: Could not locate scripts/util/worktree-create.js. Is the sdlc plugin installed?" >&2
+    exit 2
+  fi
+fi
   result=$(node "$WORKTREE_CREATE_SCRIPT" --name "$EXECUTE_BRANCH")
   WORKTREE_PATH=$(echo "$result" | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).path)")
   # worktree-create.js may collision-suffix; use the resolved branch name.
