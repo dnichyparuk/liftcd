@@ -42,6 +42,29 @@ Open your global Antigravity settings file (typically located at `~/.gemini/anti
 
 These rules use standard regex to automatically trust any Node script or embedded bash script inside the plugin, regardless of your OS, username, or installation path.
 
+### Plans Directory Configuration
+
+By default, when you run `/plan-sdlc` in Normal Mode (not in an active plan session), the plugin writes your generated implementation plans to your home directory under `~/.gemini/plans/`. Since this path is outside your project workspace, it will trigger a permission prompt in the Antigravity sandbox.
+
+You can configure a custom location for your plans either globally or locally for a specific repository using the `plansDirectory` setting in `settings.json`.
+
+#### Global Configuration
+To save plans to a custom directory for all projects, edit `~/.gemini/antigravity-cli/settings.json`:
+```json
+{
+  "plansDirectory": "/absolute/path/to/your/global/plans"
+}
+```
+
+#### Project-Specific Configuration
+To save plans to a folder within a specific project (such as inside the `.sdlc` folder), create or edit `<project-root>/.gemini/antigravity-cli/settings.json`. Relative paths configured here resolve from the project root:
+```json
+{
+  "plansDirectory": ".sdlc/plans"
+}
+```
+The plugin automatically creates the directory structure if it does not already exist.
+
 ## Usage
 
 Once installed, the SDLC skills will be automatically registered with your Antigravity agent. You can invoke them via the chat interface, for example:
