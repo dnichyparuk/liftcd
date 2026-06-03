@@ -4,8 +4,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SDLC_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 # Resolve SDLC_LIB once — used by all subsequent node -e heredocs in this section.
-SDLC_LIB="$SDLC_ROOT/scripts/skill/config.js"
-[ ! -f "$SDLC_LIB" ] && { echo "ERROR: Could not locate scripts/skill/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
+SDLC_LIB="$SDLC_ROOT/scripts/lib"
+[ ! -f "$SDLC_LIB/config.js" ] && { echo "ERROR: Could not locate scripts/lib/config.js. Is the sdlc plugin installed?" >&2; exit 2; }
 
 # R61: Resolve workspace mode — flag → config → fail-fast. No interactive prompt.
 if [ -z "$WORKSPACE_MODE_FLAG" ]; then

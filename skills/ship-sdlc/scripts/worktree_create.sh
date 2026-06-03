@@ -27,7 +27,7 @@ fi
 
 # Step 3a: --workspace branch — simple git checkout, no cd needed (HEAD shared with main worktree).
 if [ "$WORKSPACE_MODE" = "branch" ]; then
-  git checkout -b "$EXECUTE_BRANCH"
+  git checkout "$EXECUTE_BRANCH" 2>/dev/null || git checkout -b "$EXECUTE_BRANCH"
 fi
 
 # Step 3b: --workspace worktree — create worktree+branch, cd in main shell.
