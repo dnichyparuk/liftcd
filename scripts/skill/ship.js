@@ -277,12 +277,15 @@ function mergeFlags(cli, config) {
 
   // -- Quality (model tier forwarded to execute-plan-sdlc) --
   //
-  // Only emitted when CLI explicitly passed --quality. When absent, ship does
-  // not forward the flag and execute-plan-sdlc applies its own selection
-  // logic (interactive prompt or its own config default).
+  // CLI --quality explicitly overrides. Otherwise, read from ship config.
+  // When entirely absent, ship does not forward the flag and execute-plan-sdlc
+  // applies its own selection logic (interactive prompt or its own config default).
   if (cli.quality !== null && cli.quality !== undefined) {
     merged.quality = cli.quality;
     sources.quality = 'cli';
+  } else if (cfg.quality !== undefined) {
+    merged.quality = cfg.quality;
+    sources.quality = 'config';
   }
   // Otherwise: no merged.quality / no sources.quality — intentionally absent.
 
