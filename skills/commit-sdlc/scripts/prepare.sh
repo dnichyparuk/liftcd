@@ -11,3 +11,7 @@ EXIT_CODE=$?
 # so it survives across separate Bash tool invocations. Error-path manifests still write to
 # os.tmpdir() via writeOutput. Explicit `rm -f "$COMMIT_CONTEXT_FILE"` at each exit path
 # handles both cases.
+
+echo "COMMIT_CONTEXT_FILE: $COMMIT_CONTEXT_FILE"
+echo "STATUS: $EXIT_CODE"
+

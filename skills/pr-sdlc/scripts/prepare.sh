@@ -9,3 +9,7 @@ SCRIPT="$SDLC_ROOT/scripts/skill/pr.js"
 PR_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
 EXIT_CODE=$?
 # the manifest is removed even if a PR creation/update path errors out.
+
+echo "PR_CONTEXT_FILE: $PR_CONTEXT_FILE"
+echo "STATUS: $EXIT_CODE"
+
