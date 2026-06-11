@@ -3,7 +3,6 @@ name: execute-plan-sdlc
 description: "Use when the user wants to execute an implementation plan with adaptive intelligence — classifies tasks by complexity and risk, builds optimized dependency waves, critiques wave structure before dispatch, verifies results after each wave, and recovers from failures without stopping. Self-contained: no external sub-skills required. Triggers on: execute plan, run plan, implement plan, autonomous execution, execute this plan. Also auto-triggered when the user accepts a plan from plan-sdlc (plan content is already in conversation context)."
 user-invocable: true
 argument-hint: "[plan-file-path] [--quality full|balanced|minimal] [--resume] [--workspace branch|worktree|prompt] [--rebase auto|skip|prompt] [--auto] [--branch <name>] [--commit-waves] [--plan-file <path>]"
-model: gemini-3.5-flash
 ---
 
 # Execute Plan (SDLC)
@@ -198,9 +197,9 @@ For each task, determine three things:
 **3. Dependencies** — which tasks must complete before this one (based on file outputs/inputs)
 
 **4. Model assignment** (drives which model the dispatched agent uses):
-- **Trivial** → `gemini-3.5-flash` — fast, cheap; frees main context for orchestration
-- **Standard** → `gemini-3.5-flash` — capable, cost-efficient
-- **Complex** → `gemini-3.1-pro` — most capable, required for architectural and cross-cutting work
+- **Trivial** → `gemini-3.5-flash-low` — fast, cheap; frees main context for orchestration
+- **Standard** → `gemini-3.5-flash-medium` — capable, cost-efficient
+- **Complex** → `gemini-3.1-pro-high` — most capable, required for architectural and cross-cutting work
 
 The user selects a quality tier (preset) in Step 4 that applies these mappings (or overrides them).
 
@@ -252,25 +251,25 @@ Valid values: `full` (Speed), `balanced` (Balanced), `minimal` (Quality). Legacy
 Execution Plan
 ────────────────────────────────────────────
 Pre-wave (1 batch agent, 2 trivial tasks):
-  - Task 1: "short description"     [Trivial → gemini-3.5-flash]
-  - Task 2: "short description"     [Trivial → gemini-3.5-flash]
+  - Task 1: "short description"     [Trivial → gemini-3.5-flash-low]
+  - Task 2: "short description"     [Trivial → gemini-3.5-flash-low]
 Wave 1 (N agents — includes 1 batch):
-  Batch (2 trivial tasks → 1 gemini-3.5-flash agent):
-    - Task A: "short description"   [Trivial → gemini-3.5-flash]
-    - Task B: "short description"   [Trivial → gemini-3.5-flash]
-  - Task C: "short description"     [Standard → gemini-3.5-flash]
-  - Task D: "short description"     [Complex  → gemini-3.1-pro]
+  Batch (2 trivial tasks → 1 gemini-3.5-flash-low agent):
+    - Task A: "short description"   [Trivial → gemini-3.5-flash-low]
+    - Task B: "short description"   [Trivial → gemini-3.5-flash-low]
+  - Task C: "short description"     [Standard → gemini-3.5-flash-medium]
+  - Task D: "short description"     [Complex  → gemini-3.1-pro-high]
 Wave 2 (N tasks, parallel):
-  - Task E: "short description"     [Standard → gemini-3.5-flash]
+  - Task E: "short description"     [Standard → gemini-3.5-flash-medium]
 Wave 3 (N tasks — HIGH RISK, will pause):
-  - Task F: "short description"     [Complex  → gemini-3.1-pro]
+  - Task F: "short description"     [Complex  → gemini-3.1-pro-high]
 ────────────────────────────────────────────
 Total: N tasks across N waves + pre-wave
 
 Quality Tiers (Model Presets):
-  minimal) Speed:       N × gemini-3.5-flash, N × gemini-3.5-flash              — fast, low cost (skips spec compliance review)
-  balanced) Balanced:  N × gemini-3.5-flash, N × gemini-3.5-flash, N × gemini-3.1-pro  — default ✓
-  full) Quality:    N × gemini-3.5-flash, N × gemini-3.1-pro              — max correctness
+  minimal) Speed:       N × gemini-3.5-flash-low, N × gemini-3.5-flash-medium      — fast, low cost (skips spec compliance review)
+  balanced) Balanced:  N × gemini-3.5-flash-low, N × gemini-3.5-flash-medium, N × gemini-3.1-pro-high  — default ✓
+  full) Quality:    N × gemini-3.5-flash-medium, N × gemini-3.1-pro-high       — max correctness
 
 Use AskUserQuestion to select a quality tier:
 > Select execution quality tier
@@ -376,7 +375,7 @@ Options:
    Pass the JSON output as `priorWaveSummary` in the wave-runner prompt. Main context MUST NOT accumulate unbounded per-task narrative across waves — use only the summarizer output for each wave dispatch. Fields: `planSummary`, `completedTaskIds`, `filesAdded`, `filesModified`, `interfacesCreated`, `decisionsFromPriorWaves` (each capped to the most-recent N entries).
 
 Dispatch with:
-- `model: <highest model among wave tasks>` — gemini-3.5-flash if all tasks are Trivial; gemini-3.5-flash if any Standard; gemini-3.1-pro if any Complex.
+- `model: <highest model among wave tasks>` — gemini-3.5-flash-low if all tasks are Trivial; gemini-3.5-flash-medium if any Standard; gemini-3.1-pro-high if any Complex.
 - `mode: bypassPermissions`
 - **`model:` is REQUIRED — no exceptions.** Omitting it causes the wave-runner to inherit the parent model (gemini-3.1-pro), defeating the quality-tier system.
 - **DO NOT pass `isolation: "worktree"` (or any other `isolation` value) to the Agent tool.** The SDLC `--workspace worktree` flag controls a separate concept (a sibling git worktree created via `util/worktree-create.js`). Adding `isolation` here creates ephemeral `.sdlc/worktrees/agent-<id>` paths that are not the intended SDLC worktree. Implements R-no-agent-sdk-isolation from spec. See issues #370 #372. (Mirrors the R-agent-isolation-script-driven constraint in ship-sdlc/SKILL.md.)
