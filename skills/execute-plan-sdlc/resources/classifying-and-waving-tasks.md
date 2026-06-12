@@ -69,6 +69,7 @@ Always present 3 presets in Step 4, regardless of plan size:
 ### Model Dispatch Enforcement
 
 The `model:` parameter is REQUIRED on every Agent tool dispatch — no exception. Omitting it causes the agent to inherit gemini-3.1-pro from the parent context, defeating the preset system's cost optimization.
+When dispatching a wave-runner Agent, determine the base model from the presets table above, and append the `contextSuffix` returned by `dispatch-budget.js` (e.g. `gemini-3.1-pro` + `-high` $\rightarrow$ `gemini-3.1-pro-high`).
 
 ## Wave-Building Algorithm
 

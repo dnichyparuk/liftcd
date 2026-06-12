@@ -3,7 +3,6 @@ name: harden-sdlc
 description: "Use this skill after an SDLC pipeline failure to analyze hardening surfaces (plan and execute guardrails, review dimensions, copilot instructions) and propose user-approved edits that would prevent the same class of failure next time. Strengthen-only in v1 — never relaxes or removes existing rules. Required arguments: --failure-text <string> --skill <caller-name>. Optional: --step, --operation, --exit-code, --error-type, --user-intent, --args-string. Triggers on: harden, strengthen guardrails, prevent this failure, learn from this failure, after pipeline failure."
 user-invocable: true
 argument-hint: "--failure-text <text> --skill <name> [--step <s>] [--operation <op>]"
-model: gemini-3.5-flash
 ---
 
 # Hardening After a Pipeline Failure
@@ -102,7 +101,7 @@ in all other cases. Continue to Step 3.
 Use the `Agent` tool with:
 
 - `subagent_type`: `sdlc:harden-orchestrator`
-- `model`: `haiku`
+- `model`: `gemini-3.5-flash-low`
 - `prompt` (exactly two lines, no other content):
 
   ```text

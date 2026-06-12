@@ -44,6 +44,14 @@ const SHIP_FIELDS = [
     description: 'Optional shortened step list used when ship-sdlc is invoked with --quick. Same enum as steps. Leave unset to disable the --quick flag for this project.',
   },
   {
+    name: 'quality',
+    label: 'Default execution quality tier',
+    type: 'enum',
+    options: ['full', 'balanced', 'minimal'],
+    default: 'balanced',
+    description: 'The model execution quality tier applied to the plan execution step. minimal (Speed), balanced (Balanced, default), full (Quality). Forwarded to execute-plan-sdlc automatically.',
+  },
+  {
     name: 'bump',
     label: 'Default version bump level',
     type: 'enum',

@@ -116,10 +116,16 @@ function computeWaveBudget({
   // perTaskCeiling: average bytes available per task slot
   const perTaskCeiling = maxConcurrent > 0 ? Math.floor(availableForTasks / maxConcurrent) : 0;
 
+  const totalReservedBytes = fixedBytes + usedBytes;
+  let contextSuffix = '-low';
+  if (totalReservedBytes > 200000) contextSuffix = '-high';
+  else if (totalReservedBytes > 50000) contextSuffix = '-medium';
+
   return {
     maxConcurrentTasks: maxConcurrent,
     perTaskCeiling,
-    totalReservedBytes: fixedBytes + usedBytes,
+    totalReservedBytes,
+    contextSuffix,
   };
 }
 

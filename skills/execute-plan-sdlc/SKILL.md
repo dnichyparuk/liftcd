@@ -3,7 +3,6 @@ name: execute-plan-sdlc
 description: "Use when the user wants to execute an implementation plan with adaptive intelligence — classifies tasks by complexity and risk, builds optimized dependency waves, critiques wave structure before dispatch, verifies results after each wave, and recovers from failures without stopping. Self-contained: no external sub-skills required. Triggers on: execute plan, run plan, implement plan, autonomous execution, execute this plan. Also auto-triggered when the user accepts a plan from plan-sdlc (plan content is already in conversation context)."
 user-invocable: true
 argument-hint: "[plan-file-path] [--quality full|balanced|minimal] [--resume] [--workspace branch|worktree|prompt] [--rebase auto|skip|prompt] [--auto] [--branch <name>] [--commit-waves] [--plan-file <path>]"
-model: gemini-3.5-flash
 ---
 
 # Execute Plan (SDLC)
@@ -268,9 +267,9 @@ Wave 3 (N tasks — HIGH RISK, will pause):
 Total: N tasks across N waves + pre-wave
 
 Quality Tiers (Model Presets):
-  minimal) Speed:       N × gemini-3.5-flash, N × gemini-3.5-flash              — fast, low cost (skips spec compliance review)
+  minimal) Speed:       N × gemini-3.5-flash, N × gemini-3.5-flash      — fast, low cost (skips spec compliance review)
   balanced) Balanced:  N × gemini-3.5-flash, N × gemini-3.5-flash, N × gemini-3.1-pro  — default ✓
-  full) Quality:    N × gemini-3.5-flash, N × gemini-3.1-pro              — max correctness
+  full) Quality:    N × gemini-3.5-flash, N × gemini-3.1-pro       — max correctness
 
 Use AskUserQuestion to select a quality tier:
 > Select execution quality tier
@@ -376,7 +375,7 @@ Options:
    Pass the JSON output as `priorWaveSummary` in the wave-runner prompt. Main context MUST NOT accumulate unbounded per-task narrative across waves — use only the summarizer output for each wave dispatch. Fields: `planSummary`, `completedTaskIds`, `filesAdded`, `filesModified`, `interfacesCreated`, `decisionsFromPriorWaves` (each capped to the most-recent N entries).
 
 Dispatch with:
-- `model: <highest model among wave tasks>` — gemini-3.5-flash if all tasks are Trivial; gemini-3.5-flash if any Standard; gemini-3.1-pro if any Complex.
+- `model: <highest base model> + <contextSuffix>` — base model is `gemini-3.5-flash` if all tasks are Trivial/Standard, `gemini-3.1-pro` if any Complex. `contextSuffix` is emitted by `dispatch-budget.js` (`-low`, `-medium`, or `-high`).
 - `mode: bypassPermissions`
 - **`model:` is REQUIRED — no exceptions.** Omitting it causes the wave-runner to inherit the parent model (gemini-3.1-pro), defeating the quality-tier system.
 - **DO NOT pass `isolation: "worktree"` (or any other `isolation` value) to the Agent tool.** The SDLC `--workspace worktree` flag controls a separate concept (a sibling git worktree created via `util/worktree-create.js`). Adding `isolation` here creates ephemeral `.sdlc/worktrees/agent-<id>` paths that are not the intended SDLC worktree. Implements R-no-agent-sdk-isolation from spec. See issues #370 #372. (Mirrors the R-agent-isolation-script-driven constraint in ship-sdlc/SKILL.md.)

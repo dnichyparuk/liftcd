@@ -9,3 +9,7 @@ SCRIPT="$SDLC_ROOT/scripts/skill/version.js"
 VERSION_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS)
 EXIT_CODE=$?
 # the manifest is removed even if the release is cancelled or errors out.
+
+echo "VERSION_CONTEXT_FILE: $VERSION_CONTEXT_FILE"
+echo "STATUS: $EXIT_CODE"
+

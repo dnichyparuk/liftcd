@@ -8,3 +8,7 @@ SCRIPT="$SDLC_ROOT/scripts/skill/jira.js"
 
 JIRA_CONTEXT_FILE=$(node "$SCRIPT" --output-file $ARGUMENTS --check)
 EXIT_CODE=$?
+
+echo "JIRA_CONTEXT_FILE: $JIRA_CONTEXT_FILE"
+echo "STATUS: $EXIT_CODE"
+

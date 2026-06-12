@@ -28,6 +28,34 @@ To upgrade to a new generation of models in the future, you must update the foll
 
 ---
 
+## Inventory Mapping Table
+
+The following table summarizes the explicit model mappings across the SDLC plugin skills, agents, and prompts, including the reasoning for their context-sizing allocations.
+
+| File Type | Component | Target Model | Reason |
+|-----------|-----------|--------------|--------|
+| Skill | `harden-sdlc` | `gemini-3.5-flash-low` | Explicit orchestrator constraint |
+| Skill | `error-report-sdlc` | `gemini-3.5-flash-low` | Explicit orchestrator constraint |
+| Skill | `commit-sdlc` | `gemini-3.5-flash-low` | Explicit orchestrator constraint |
+| Skill | `ship-sdlc` (Explicit dispatch) | `gemini-3.5-flash-medium` / `low`| Bypasses dynamic suffix; needs context buffer for logs |
+| Skill | `ship-sdlc` (Default pipeline) | `gemini-3.1-pro` | Receives dynamic suffix during step dispatch |
+| Skill | `plan-sdlc` | `gemini-3.5-flash-medium` & `gemini-3.1-pro`| Reflect the new tier mappings |
+| Agent | `error-report-orchestrator` | `gemini-3.5-flash-low` | Enforce tight context bounds natively in frontmatter |
+| Agent | `harden-orchestrator` | `gemini-3.5-flash-low` | Enforce tight context bounds natively in frontmatter |
+| Agent | `commit-orchestrator` | `gemini-3.5-flash-low` | Enforce tight context bounds natively in frontmatter |
+| Agent | `plan-explore-orchestrator`| `gemini-3.5-flash-low` | Enforce tight context bounds natively in frontmatter |
+| Agent | `review-orchestrator` | `gemini-3.5-flash-low` | Enforce tight context bounds natively in frontmatter |
+| Prompt | `lane-static-structural` | `gemini-3.5-flash-low` | Simple file structure check |
+| Prompt | `lens-requirements` | `gemini-3.5-flash-medium` | Needs context buffer for planning |
+| Prompt | `lane-guardrail-compliance`| `gemini-3.5-flash-medium` | Needs context buffer for planning |
+| Prompt | `lens-risk` | `gemini-3.5-flash-medium` | Needs context buffer for planning |
+| Prompt | `lens-architecture` | `gemini-3.5-flash-medium` | Needs context buffer for planning |
+| Prompt | `g17-dimension-coverage` | `gemini-3.5-flash-medium` | Needs context buffer for planning |
+| Prompt | `lane-file-existence` | `gemini-3.5-flash-low` | Simple check |
+| Prompt | `lane-content-coverage` | `gemini-3.5-flash-medium` | Needs context buffer for planning |
+
+---
+
 ## File Reference Map
 
 The following tables map exactly where specific models are hardcoded or referenced in the plugin source code.
