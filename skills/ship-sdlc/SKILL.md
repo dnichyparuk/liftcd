@@ -356,7 +356,9 @@ For each step that will run, apply the dispatch protocol based on `step.dispatch
 
 2. **Record step start** via state/ship.js.
 
-3. **Dispatch Agent** with: skill name, args from `step.invocation`, model from `step.model`, and brief pipeline context (branch, previous step results needed for this step). Pass `model: step.model` to the Agent tool on every dispatch. When `step.isolation` is non-null, additionally pass `isolation: step.isolation`; when `step.isolation` is null, omit the `isolation` parameter entirely (the Agent tool schema does not accept `null` for `isolation`). The LLM must not add, remove, or change the `isolation` parameter from what `ship.js` computed (implements R-agent-isolation-script-driven, C15). Agent prompt template:
+3. **Compute Context Suffix**: Right before dispatching the Agent, run `<PLUGIN_ROOT>/skills/ship-sdlc/scripts/compute_context_suffix.js`. It will output a JSON object with a `suffix` field (e.g. `{"suffix": "-low"}`). Append this suffix to `step.model` to form the final model string (e.g. `gemini-3.5-flash-low`).
+
+4. **Dispatch Agent** with: skill name, args from `step.invocation`, model from the final computed model string, and brief pipeline context (branch, previous step results needed for this step). Pass `model: <computed-model>` to the Agent tool on every dispatch. When `step.isolation` is non-null, additionally pass `isolation: step.isolation`; when `step.isolation` is null, omit the `isolation` parameter entirely (the Agent tool schema does not accept `null` for `isolation`). The LLM must not add, remove, or change the `isolation` parameter from what `ship.js` computed (implements R-agent-isolation-script-driven, C15). Agent prompt template:
    ```
    You are executing the <skill-name> skill. Invoke `/<skill-name> <args>` using the Skill tool — this loads the SKILL.md automatically. Return a structured result:
    (1) status — success or failure
@@ -365,15 +367,15 @@ For each step that will run, apply the dispatch protocol based on `step.dispatch
    (4) any warnings or issues encountered
    ```
 
-4. **Receive agent result.** Print result to user:
+5. **Receive agent result.** Print result to user:
    ```
      [done] Step 2 complete: a1b2c3d feat(auth): add OAuth2 PKCE flow
      State saved to .sdlc/execution/ship-<branch>-<timestamp>.json
    ```
 
-5. **Record step completion/failure** via state/ship.js.
+6. **Record step completion/failure** via state/ship.js.
 
-6. **Use result to determine next step** (e.g., review verdict → received-review decision). Print decision reasoning:
+7. **Use result to determine next step** (e.g., review verdict → received-review decision). Print decision reasoning:
    ```
      Review verdict: APPROVED WITH NOTES (2 medium)
      Decision: CONTINUING — no critical/high issues found
