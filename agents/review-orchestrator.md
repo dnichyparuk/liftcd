@@ -2,7 +2,7 @@
 name: review-orchestrator
 description: Orchestrates multi-dimension code review. Reads manifest from a temp file, resolves REFERENCE.md, dispatches dimension review subagents in parallel, critiques and deduplicates findings, and persists the consolidated comment body to disk for the skill to post.
 tools: Read, Write, Glob, Grep, Bash, Agent
-model: gemini-3.5-flash
+model: gemini-3.5-flash-low
 ---
 
 # Code Review Orchestrator
@@ -212,4 +212,4 @@ Before returning:
 - Implement `yes` / `save` / `cancel` branches or no-PR menu options
 - Invoke the `pr-sdlc` skill
 - Delete `manifest.diff_dir` or the manifest file — the skill cleans both up
-- Dispatch dimension subagents without `model:` — omitting the parameter defaults to opus. Use `dimension.model || manifest.subagent_model` (per-dimension override wins; manifest is the fallback)
+- Dispatch dimension subagents without `model:` — omitting the parameter defaults to gemini-3.1-pro. Use `dimension.model || manifest.subagent_model` (per-dimension override wins; manifest is the fallback)

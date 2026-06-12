@@ -101,7 +101,7 @@ in all other cases. Continue to Step 3.
 Use the `Agent` tool with:
 
 - `subagent_type`: `sdlc:harden-orchestrator`
-- `model`: `haiku`
+- `model`: `gemini-3.5-flash-low`
 - `prompt` (exactly two lines, no other content):
 
   ```text

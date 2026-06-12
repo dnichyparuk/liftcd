@@ -356,7 +356,7 @@ For each step that will run, apply the dispatch protocol based on `step.dispatch
 
 2. **Record step start** via state/ship.js.
 
-3. **Compute Context Suffix**: Right before dispatching the Agent, run `<PLUGIN_ROOT>/skills/ship-sdlc/scripts/compute_context_suffix.js`. It will output a JSON object with a `suffix` field (e.g. `{"suffix": "-low"}`). Append this suffix to `step.model` to form the final model string (e.g. `gemini-3.5-flash-low`).
+3. **Compute Context Suffix**: Right before dispatching the Agent, run `<PLUGIN_ROOT>/skills/ship-sdlc/scripts/compute_context_suffix.js`. It will output a JSON object with a `suffix` field (e.g. `{"suffix": "-low"}`). Append this suffix to `step.model` to form the final model string (e.g. `gemini-3.1-pro-low`). **CRITICAL: If `step.model` already ends with `-low`, `-medium`, or `-high`, do NOT append the suffix again.**
 
 4. **Dispatch Agent** with: skill name, args from `step.invocation`, model from the final computed model string, and brief pipeline context (branch, previous step results needed for this step). Pass `model: <computed-model>` to the Agent tool on every dispatch. When `step.isolation` is non-null, additionally pass `isolation: step.isolation`; when `step.isolation` is null, omit the `isolation` parameter entirely (the Agent tool schema does not accept `null` for `isolation`). The LLM must not add, remove, or change the `isolation` parameter from what `ship.js` computed (implements R-agent-isolation-script-driven, C15). Agent prompt template:
    ```
@@ -585,11 +585,11 @@ If the `verify-pipeline` step has `status: "will_run"` (gated by step membership
    > Wave verify-pipeline failed for PR #N. <X> failed checks: <names>.
    >
    > Options: **analyze** (Recommended) | **skip** | **abort**
-   - **analyze**: dispatch `verify-pipeline-sdlc` subagent (Agent tool, model sonnet) with `--pr <N>` and `--logs <inline-log-excerpt-from-failedChecks>`. On verdict `fix-applied`, dispatch `commit-sdlc` (Agent tool, model haiku, `--auto`) directly to commit and push. Then re-run verify-pipeline (loop). Iteration cap = `flags.verifyPipelineMaxIterations` (default 3, R47); after cap, log warning and proceed to `await-remote-review`. The pre-existing `commit-fixes` step entry (already visited before `pr`) is NOT involved — this dispatch is direct via the Agent tool.
+   - **analyze**: dispatch `verify-pipeline-sdlc` subagent (Agent tool, model gemini-3.5-flash-medium) with `--pr <N>` and `--logs <inline-log-excerpt-from-failedChecks>`. On verdict `fix-applied`, dispatch `commit-sdlc` (Agent tool, model gemini-3.5-flash-low, `--auto`) directly to commit and push. Then re-run verify-pipeline (loop). Iteration cap = `flags.verifyPipelineMaxIterations` (default 3, R47); after cap, log warning and proceed to `await-remote-review`. The pre-existing `commit-fixes` step entry (already visited before `pr`) is NOT involved — this dispatch is direct via the Agent tool.
    - **skip**: log warning, proceed to `await-remote-review`.
    - **abort**: write `verifyPipelineExhausted: true` to the ship state file, exit pipeline 1.
 
-   **`status === "failed"`** AND `flags.auto === true` — non-interactive (R46). Directly dispatch `verify-pipeline-sdlc` subagent (Agent tool, model sonnet) with `--pr <N> --logs <excerpt> --auto`. On `fix-applied`, dispatch `commit-sdlc --auto` directly. Loop with the same iteration cap (`flags.verifyPipelineMaxIterations`, R47). On cap exhaustion, log warning and proceed.
+   **`status === "failed"`** AND `flags.auto === true` — non-interactive (R46). Directly dispatch `verify-pipeline-sdlc` subagent (Agent tool, model gemini-3.5-flash-medium) with `--pr <N> --logs <excerpt> --auto`. On `fix-applied`, dispatch `commit-sdlc --auto` directly. Loop with the same iteration cap (`flags.verifyPipelineMaxIterations`, R47). On cap exhaustion, log warning and proceed.
 
    **`status === "timeout"`** — log warning `verify-pipeline: timeout after Ns`. The script has already written `verifyPipelineExhausted: true` to the state file. Proceed to `await-remote-review`. Cites R48, R49.
 
@@ -615,7 +615,7 @@ If the `await-remote-review` step has `status: "will_run"` (gated by step member
    ```
 3. Parse the single JSON line on stdout. Branch on `status`:
 
-   **`status === "actionable"`** — directly dispatch `received-review-sdlc` (Agent tool, model sonnet) with `--pr <verdict.prNumber>` (and `--auto` when `flags.auto === true`). After the subagent completes, run `git status --porcelain` in the main context; if there are working-tree changes, directly dispatch `commit-sdlc` (Agent tool, model haiku, `--auto`) to commit and push. The pre-existing `received-review` and `commit-fixes` step entries (already visited before `pr`) are NOT involved — these dispatches are direct via the Agent tool. Cites R52.
+   **`status === "actionable"`** — directly dispatch `received-review-sdlc` (Agent tool, model gemini-3.5-flash-medium) with `--pr <verdict.prNumber>` (and `--auto` when `flags.auto === true`). After the subagent completes, run `git status --porcelain` in the main context; if there are working-tree changes, directly dispatch `commit-sdlc` (Agent tool, model gemini-3.5-flash-low, `--auto`) to commit and push. The pre-existing `received-review` and `commit-fixes` step entries (already visited before `pr`) are NOT involved — these dispatches are direct via the Agent tool. Cites R52.
 
    **`status === "approved-clean"`** — log `await-remote-review: APPROVED by <reviewer>` and proceed. Do NOT dispatch received-review-sdlc. Cites R53.
 
@@ -882,7 +882,7 @@ Each sub-skill has its own error recovery. ship-sdlc does not duplicate their re
 - Skip pipeline steps that were marked "will run" in the pipeline plan. The pipeline plan is a contract with the user. If a step was planned to run and the user confirmed the pipeline, it MUST run. The LLM does not have authority to skip planned steps based on its own assessment of change complexity or risk. Only the skip set and auto-skip rules (computed by skill/ship.js) control which steps run.
 - Copy example args from this document when dispatching sub-skill Agents — use the `invocation` field from the skill/ship.js output, which contains the exact computed args
 - Add `--steps` flags not present in the user's original invocation. Pipeline composition derives from CLI `--steps` > config `ship.steps[]` > built-in defaults. Legacy `--preset` and `--skip` are hard-removed (#190); passing them produces an error.
-- Dispatch pipeline step Agents without `model: step.model` — the model field is computed by skill/ship.js from each skill's spec. Omitting it defaults all steps to opus.
+- Dispatch pipeline step Agents without `model: step.model` — the model field is computed by skill/ship.js from each skill's spec. Omitting it defaults all steps to gemini-3.1-pro.
 - Add, remove, or change the `isolation` parameter on Agent dispatches — isolation comes verbatim from `step.isolation`. Adding `isolation: "worktree"` when `step.isolation` is null causes hidden Agent SDK worktrees that conflict with `--workspace branch` (issue #350).
 - Ignore cleanup validation failures — if `state/ship.js cleanup` exits with code 1, the pipeline contract was violated. Surface the violation and preserve state.
 - Skip the post-version ancestry HARD GATE. The check is the only safeguard against tags landing on orphaned commits (issue #349). The gate is a no-op when `NEW_TAG` is unset — do not pre-empt it by skipping it when you believe the version step succeeded on the right branch.
