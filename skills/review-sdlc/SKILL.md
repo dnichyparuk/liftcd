@@ -151,6 +151,10 @@ Wait for the user's reply.
 <PLUGIN_ROOT>/skills/review-sdlc/scripts/validate_links.sh
 ```
 
+> **Contract (Input/Output):**
+> - **Input**: Concatenated reply bodies (one per line) fed strictly via `stdin`. No CLI arguments are expected.
+> - **Output**: Prints violations to `stderr` and exits non-zero if invalid links are found. Exits 0 on success.
+
   On non-zero exit (`LINK_EXIT != 0`):
   - The script has already printed the violation list to stderr.
   - Do NOT execute `gh api … /comments`. Surface the violation list verbatim to the user.

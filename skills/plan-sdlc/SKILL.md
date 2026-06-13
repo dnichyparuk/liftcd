@@ -85,6 +85,9 @@ Write an implementation plan from requirements, a spec, or a user description. P
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Prints JSON manifest of current branch state.
 
 If `--from-openspec <name>` was passed to plan-sdlc, include it in the node command: `node "$SCRIPT" --output-file --from-openspec <name>`.
 
@@ -137,6 +140,9 @@ Each `--mark` block re-resolves `$SCRIPT` independently: SKILL.md bash blocks ea
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/mark_plan_file.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Plan file path.
+> - **Output**: Tags plan file for execution.
 
 Replace `<resolved-plan-path>` with the actual absolute path: in plan mode it is the designated plan file path extracted at the top of Step 0; in normal mode it is the path resolved above (from `plansDirectory` or the default fallback).
 
@@ -349,12 +355,18 @@ Note every issue from `allIssues`. Do NOT write to the plan file in this step.
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/mark_guardrails.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Guardrails content via stdin.
+> - **Output**: Appends guardrails to configuration.
 
 **JOIN barrier — `critiqueRan` (implements R20, R35, issue #285):** After ALL five lanes have returned and the merged issue list is complete (including G17/lanes[4] findings parsed into `g17Findings`), record the checkpoint. **Do NOT write this marker until all five lanes have returned.** This extends the existing G17 join semantics to every lane.
 
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/mark_critique.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Critique text via stdin.
+> - **Output**: Saves critique to pipeline state.
 
 ## Step 4 (IMPROVE): Revise Plan and Present for Approval
 
@@ -434,6 +446,9 @@ After the reviewer loop converges (or the user resolves remaining issues), valid
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/validate_links.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Text via stdin.
+> - **Output**: Prints violations to stderr and exits non-zero on broken links.
 
 On non-zero exit (`LINK_EXIT != 0`):
 - The script has already printed the violation list to stderr.
@@ -450,6 +465,9 @@ On zero exit, proceed to Step 7. `SDLC_LINKS_OFFLINE=1` skips network reachabili
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/handoff_advisory.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Prints advisory text for downstream agent handoff.
 
 The wrapper reads `$TMPDIR/sdlc-context-stats.json` (written by the `UserPromptSubmit` hook `hooks/context-stats.js`) and emits a `/compact` advisory only when transcript ≥60% of model budget. Pipeline state is preserved across `/compact` (PreCompact + SessionStart hooks), so re-invoking after compaction is safe.
 

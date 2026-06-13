@@ -53,6 +53,9 @@ Pass `--from-issue "$ISSUE_NUM"` to the prepare script invocation in Step 1.
 ```shell
 <PLUGIN_ROOT>/skills/harden-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Failure text context.
+> - **Output**: Prints JSON manifest of hardening targets.
 
 Substitute the shell variables with values from the parsed arguments. Empty
 values for optional fields are tolerated.
@@ -192,6 +195,9 @@ When the user selects **apply**, validate the proposed change BEFORE writing:
   ```shell
 <PLUGIN_ROOT>/skills/harden-sdlc/scripts/validate_guardrails.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Guardrail JSON.
+> - **Output**: Exits non-zero if schema is invalid.
 
   Run the validator against the prospective config. On non-zero exit, surface
   the validator's error to the user and use AskUserQuestion to offer **retry**
@@ -204,6 +210,9 @@ When the user selects **apply**, validate the proposed change BEFORE writing:
   ```shell
   <PLUGIN_ROOT>/skills/harden-sdlc/scripts/validate_dimension.sh "<targetFile>"
   ```
+  > **Contract (Input/Output):**
+  > - **Input**: `<targetFile>`.
+  > - **Output**: Exits non-zero if dimension file is malformed.
 
   Same retry/cancel handling on failure.
 

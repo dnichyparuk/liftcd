@@ -129,6 +129,10 @@ When a PR number or URL is provided (via arguments or user input), run the prepa
 <PLUGIN_ROOT>/skills/received-review-sdlc/scripts/prepare.sh
 ```
 
+> **Contract (Input/Output):**
+> - **Input**: No arguments required (automatically infers PR from git branch context).
+> - **Output**: Prints JSON manifest of review comments to `stdout`. On success (exit 0), read the manifest JSON to extract `flags.auto`. On exit 1, no PR found.
+
 **On exit code 0:** Read the manifest JSON. Extract `flags.auto` from the manifest and store it as a boolean (defaults to `false` if absent). If `--auto` was passed in `$ARGUMENTS` but not in the manifest, treat it as `true`. Display the incremental summary:
 
 ```

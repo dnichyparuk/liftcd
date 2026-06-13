@@ -39,6 +39,9 @@ If the system context contains "Plan mode is active":
 ```shell
 <PLUGIN_ROOT>/skills/commit-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Prints JSON manifest of staged diffs and commit history.
 
 Read and parse `COMMIT_CONTEXT_FILE` as `COMMIT_CONTEXT_JSON`.
 
@@ -193,6 +196,9 @@ Show `Amend:` instead of `Commit:` heading when `flags.amend` is true.
    ```shell
    <PLUGIN_ROOT>/skills/commit-sdlc/scripts/validate_subject.sh "<subjectPattern>" "<subject line>"
    ```
+   > **Contract (Input/Output):**
+   > - **Input**: `"<pattern>"` and `"<subject>"`.
+   > - **Output**: Fails if subject violates the regex pattern.
 
    - If the check **passes** (exit 0): continue to step 1.
    - If the check **fails** (exit 1): show the error message from `commitConfig.subjectPatternError` if set, otherwise show the pattern itself as a fallback. Do **not** proceed with the commit. Use AskUserQuestion to offer:
@@ -206,6 +212,9 @@ Show `Amend:` instead of `Commit:` heading when `flags.amend` is true.
    ```shell
 <PLUGIN_ROOT>/skills/commit-sdlc/scripts/validate_links.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Commit body via stdin.
+> - **Output**: Prints violations to stderr and exits non-zero on broken links.
 
    On non-zero exit (`LINK_EXIT != 0`):
    - The script has already printed the violation list to stderr (URL, line, reason code, observed/expected detail).

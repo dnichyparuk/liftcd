@@ -20,6 +20,9 @@ If the system context contains "Plan mode is active":
    ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/plan_mode_check.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Exits non-zero if plan mode violates pipeline rules.
 3. If `PLAN_MODE_EXIT` is non-zero: show any errors from the output file and stop.
 4. Read the output JSON from `$PLAN_MODE_OUTPUT_FILE`. Confirm `planModeBlocked === true`. Extract `stateFile`, `flags.bump`, `flags.steps`.
 5. Announce:
@@ -51,6 +54,9 @@ If `--init-config` was passed:
 ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/init.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Pipeline initialization flags.
+> - **Output**: Scaffolds internal ship state.
 3. Parse the output JSON from `$INIT_OUTPUT_FILE`:
    - If `errors` is non-empty, display them and stop.
    - Otherwise display the `created` files list and `config` JSON for user confirmation.
@@ -63,6 +69,9 @@ If `--gc` (with optional `--ttl-days <N>`) was passed, run `skill/ship.js --gc` 
 ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/gc.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Garbage collects stale ship runs.
 
 Read the prepare output. The top-level `action` field will be `"gc"`; the `report` field contains `{ttlDays, ship: {deleted, kept}, execute: {deleted, kept}}`.
 
@@ -97,6 +106,9 @@ Locate and run `skill/ship.js` with all CLI flags to pre-compute flags, context,
 ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Current branch context.
+> - **Output**: Prints JSON manifest containing PR and ship status.
 
 Parse the output JSON from `$PREPARE_OUTPUT_FILE`. If `errors` is non-empty, display them and stop. The parsed output replaces manual computation in subsequent sub-steps (1d–1g).
 
@@ -435,6 +447,9 @@ SETUP_JSON=$(<PLUGIN_ROOT>/skills/ship-sdlc/scripts/workspace_setup.sh \
   --logical-type "<logical-type>" \
   --derived-slug "<derived-slug>")
 ```
+> **Contract (Input/Output):**
+> - **Input**: Workspace flags.
+> - **Output**: Prints JSON containing `worktreePath` and branch data.
 
 Where `$WORKSPACE_MODE_FLAG` is set from the `--workspace` CLI flag parsed by the prepare script, and `$PREPARE_OUTPUT_FILE` is the path to the prepare JSON file.
 
@@ -470,6 +485,9 @@ Assign `PLAN_FILE` by parsing the JSON output of the resolve plan script:
 ```shell
 PLAN_FILE=$(<PLUGIN_ROOT>/skills/ship-sdlc/scripts/resolve_plan_file.sh "$SHIP_PREPARE_OUTPUT_FILE" | node -e "process.stdin.on('data',d=>{try{process.stdout.write(JSON.parse(d).planFile||'')}catch(_){}})")
 ```
+> **Contract (Input/Output):**
+> - **Input**: Prepare output file path.
+> - **Output**: Prints resolved plan file path.
 
 Where `$SHIP_PREPARE_OUTPUT_FILE` is the path to the temp file holding the `skill/ship.js` JSON output. When `PLAN_FILE` is empty, the `ship-todos.js` execute event will fail. Surface that error before dispatching.
 
@@ -478,6 +496,9 @@ Before dispatching `execute-plan-sdlc`, run:
 ```bash
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/todos_wrapper.sh --state-file "$STATE_FILE" --plan-file "$PLAN_FILE" --event execute --current-step execute
 ```
+> **Contract (Input/Output):**
+> - **Input**: `--state-file`, `--event`, `--current-step`.
+> - **Output**: Updates the IDE Todo UI and prints confirmation.
 
 `$PLAN_FILE` is the resolved plan file path. The helper expands the `execute` step's placeholder substep to one substep per plan task (one `### Task N:` heading per substep). Parse JSON, call `TodoWrite`, echo `marker`.
 
@@ -486,6 +507,9 @@ Then dispatch `execute-plan-sdlc` as below. On Agent return (success), run the p
 ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/verify_completeness.sh --state-file "$STATE_FILE" --plan-file "$PLAN_FILE"
 ```
+> **Contract (Input/Output):**
+> - **Input**: `--state-file`, `--plan-file`.
+> - **Output**: Evaluates task completeness and exits non-zero if incomplete.
 
 If `verify-completeness` exits 65, the pipeline MUST halt before commit. The missing task IDs appear on stderr as JSON `{missingIds, totalPlanned, totalAccounted}`. Do NOT advance to the commit step.
 
@@ -536,6 +560,9 @@ After the version step dispatches and returns, capture the new tag from the vers
 ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/verify_ancestry.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Fails if the branch is not properly rebased.
 
 `NEW_TAG` is the tag string emitted by version-sdlc (e.g. `v1.2.3`). `EXECUTE_BRANCH` is the feature branch variable set during pre-execute workspace isolation (already available in the pipeline shell context). This gate is a **no-op when `NEW_TAG` is unset** (version step was skipped or not in `flags.steps`, e.g., under `workspace: worktree`). Works correctly under both `workspace: branch` and `workspace: worktree`.
 
@@ -548,12 +575,18 @@ If the `archive-openspec` step has `status: "conditional"` in the pipeline plan,
    ```shell
    <PLUGIN_ROOT>/skills/ship-sdlc/scripts/openspec_validate.sh '<name>'
    ```
+   > **Contract (Input/Output):**
+   > - **Input**: Spec `<name>`.
+   > - **Output**: Validates OpenSpec shape, exits non-zero on error.
 3. **If `ok === false`:** halt the pipeline. Print the validation errors (`stderr`) and save state for `--resume`.
 4. **If `ok === true`:** prompt the user for approval (skip prompt in `--auto` mode).
 5. On approval, run the archive:
    ```shell
    <PLUGIN_ROOT>/skills/ship-sdlc/scripts/openspec_archive.sh '<name>'
    ```
+   > **Contract (Input/Output):**
+   > - **Input**: Spec `<name>`.
+   > - **Output**: Archives the specification.
 6. If archive succeeds, commit:
    ```bash
    git add openspec/
@@ -571,6 +604,9 @@ If the `verify-pipeline` step has `status: "will_run"` (gated by step membership
    ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/verify_pipeline.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Fetches CI status, exits non-zero on pipeline failure.
 2. Run the script with the args from `step.args` plus `--state-file <ship-state-path>`:
    ```bash
    node "$VP_SCRIPT" $STEP_ARGS --state-file "$SHIP_STATE_PATH"
@@ -607,6 +643,9 @@ If the `await-remote-review` step has `status: "will_run"` (gated by step member
    ```shell
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/await_review.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Blocks until PR is approved or returns review findings.
 2. Run the script with the args from `step.args` plus `--state-file <ship-state-path>`:
    ```bash
    node "$AR_SCRIPT" $STEP_ARGS --state-file "$SHIP_STATE_PATH"
@@ -708,6 +747,9 @@ At pipeline start (after Step 1 completes), initialize the state file:
 ```bash
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/state_wrapper.sh init --branch <branch> --flags '<flags JSON>'
 ```
+> **Contract (Input/Output):**
+> - **Input**: Action (`init`, `start`, `complete`, etc.) and step args.
+> - **Output**: Mutates pipeline state files.
 
 Before each step: `<PLUGIN_ROOT>/skills/ship-sdlc/scripts/state_wrapper.sh` start --step <name>
 After each step: `<PLUGIN_ROOT>/skills/ship-sdlc/scripts/state_wrapper.sh` complete --step <name> --result "<summary>" (or skip --step <name> --reason "<reason>" or fail --step <name> --error "<error>")
@@ -735,6 +777,9 @@ Before invoking the cleanup Bash command, run:
 ```bash
 <PLUGIN_ROOT>/skills/ship-sdlc/scripts/todos_wrapper.sh --state-file "$STATE_FILE" --event cleanup --current-step cleanup
 ```
+> **Contract (Input/Output):**
+> - **Input**: `--state-file`, `--event`, `--current-step`.
+> - **Output**: Updates the IDE Todo UI and prints confirmation.
 
 Call `TodoWrite`, echo `marker`. After the cleanup command returns (success or contract violation), run per-step-completion with `--mark-completed cleanup`.
 

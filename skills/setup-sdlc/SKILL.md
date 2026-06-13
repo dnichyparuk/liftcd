@@ -54,6 +54,9 @@ Run `skill/setup.js` via Bash to get current state:
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: None.
+> - **Output**: Prints JSON manifest of current SDLC configuration state.
 
 Parse the JSON output from `$PREPARE_OUTPUT_FILE`. If exit code != 0, display the error and stop.
 
@@ -192,12 +195,18 @@ On **yes**: Run migration via inline Node.js that calls `migrateConfig()` from `
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/migrate_config.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Legacy config context.
+> - **Output**: Migrates config to latest version.
 
 Then dispatch the jira-templates migration shim if `prepare.legacy.jiraTemplates.exists` is true (R-LEGACY-DETECT, #423):
 
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/migrate_jira.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Legacy Jira context.
+> - **Output**: Migrates Jira caching configuration.
 
 Parse the output. Report what was migrated:
 - List each file from `migrated` array
@@ -569,6 +578,9 @@ Before invoking `util/setup-init.js`, render an end-of-run diff preview comparin
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/diff_write_config.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Config changes.
+> - **Output**: Applies updates to `.sdlc/config.json`.
 
 Render `DIFF_JSON.changed[]` as a markdown table:
 
@@ -590,6 +602,9 @@ After collecting all answers AND confirming the diff preview above, write projec
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/init.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Configuration parameters.
+> - **Output**: Bootstraps the `.sdlc` directory structure.
 
 Parse the output JSON from `$INIT_OUTPUT_FILE`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls.
 

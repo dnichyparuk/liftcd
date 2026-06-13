@@ -342,6 +342,10 @@ Options:
    ```bash
    node "$STATE_SCRIPT" wave-start --wave <N> --tasks-json '<json-array-of-task-objects>' --run-id <run-id>
    ```
+
+   > **Contract (Input/Output):**
+   > - **Input**: `--wave <N>`, `--tasks-json '<json-array>'`, `--run-id <id>`.
+   > - **Output**: Prints JSON containing `factSheets: [paths]` to `stdout`.
    This writes `<stateDir>/execution/<runId>/task-<id>.md` for each task. The printed JSON includes `factSheets: [...]` — the absolute paths to use as `factSheetPath` in the manifest. Task name, description, files, and acceptance criteria live in the fact sheet; do NOT inline them in the manifest.
 
    **Manifest extensions (Fixes #392 — R33/R34):** every wave manifest MUST additionally carry:
@@ -389,6 +393,10 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
    ```shell
 <PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/parse_wave.sh
 ```
+
+> **Contract (Input/Output):**
+> - **Input**: `WAVE_RUNNER_OUTPUT` string via stdin redirect.
+> - **Output**: Prints JSON with schemaOk, missingIds, extraIds, violations, and parsed tasks.
 
    Read `schemaOk`, `missingIds`, `extraIds`, `violations`, and `parsed` from the result.
 

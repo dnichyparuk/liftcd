@@ -26,6 +26,9 @@ If `--logs` is omitted but `--pr` is present (R6): resolve logs internally via `
 ```shell
 <PLUGIN_ROOT>/skills/verify-pipeline-sdlc/scripts/fetch_logs.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: PR context.
+> - **Output**: Prints CI failure logs to stdout.
 
 If gh is unauthenticated and logs cannot be resolved, emit `{"status":"abort","reason":"gh not authenticated"}` and stop (E2).
 
@@ -36,6 +39,9 @@ Pipe the resolved log text into the classifier helper:
 ```shell
 <PLUGIN_ROOT>/skills/verify-pipeline-sdlc/scripts/classify_logs.sh
 ```
+> **Contract (Input/Output):**
+> - **Input**: Log text via stdin.
+> - **Output**: Prints JSON verdict on stdout.
 
 Read the JSON verdict on stdout: `{"category": "<one of seven>", "signals": [...]}`.
 
