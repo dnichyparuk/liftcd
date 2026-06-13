@@ -1,4 +1,16 @@
 {
+  "file-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "view_file|grep_search",
+        "hooks": [
+          {
+            "command": "node ./hooks/pre-tool-file-guard.js"
+          }
+        ]
+      }
+    ]
+  },
   "git-guard": {
     "PreToolUse": [
       {
