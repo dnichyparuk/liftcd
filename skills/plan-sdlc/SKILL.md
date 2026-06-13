@@ -391,7 +391,7 @@ Skip for lightweight plans (2–3 file scope from Step 0 routing).
 
 For each `lensReviewers[i]` entry (i = 0..2):
 - `subagent_type`: `lensReviewers[i].subagentType`
-- `model`: override with the **opposite-of-plan-author model** at dispatch time (cross-model property — plan written by gemini-3.5-flash-medium → dispatch reviewer as gemini-3.1-pro; plan written by gemini-3.1-pro → dispatch reviewer as gemini-3.5-flash-medium). This overrides the default `lensReviewers[i].model` value from the prepare output for ≥5-task plans.
+- `model`: override with the **opposite-of-plan-author model** at dispatch time (cross-model property — plan written by gemini-3.5-flash-medium → dispatch reviewer as gemini-3.1-pro-low; plan written by gemini-3.1-pro-low → dispatch reviewer as gemini-3.5-flash-medium). This overrides the default `lensReviewers[i].model` value from the prepare output for ≥5-task plans.
 - prompt body: Read `lensReviewers[i].promptTemplatePath` and fill template variables:
   - `{PLAN_FILE_PATH}` — absolute path to the plan file
   - `{LENS}` — `lensReviewers[i].lens` (one of `architecture`, `requirements`, `risk`)

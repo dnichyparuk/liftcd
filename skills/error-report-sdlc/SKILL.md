@@ -164,7 +164,7 @@ loop exit).
 - Invoke this skill directly in response to user requests — it is internal only.
 - Pin `model:` in this skill's frontmatter — the harness will route the skill into a
   subagent that inherits the full conversation transcript (issue #202). The
-  orchestrator agent (Step 4) is the correct place to pin `model: gemini-3.5-flash`.
+  orchestrator agent (Step 4) is the correct place to pin `model: gemini-3.5-flash-low`.
 - Run consent gates inside the orchestrator agent. Both gates (Section 3 and
   Section 5) MUST execute in the main context.
 - Run `gh issue create` inside the orchestrator agent. The agent has no `Bash`

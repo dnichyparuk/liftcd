@@ -578,7 +578,7 @@ function main() {
   const manifest = {
     version:        1,
     timestamp:      new Date().toISOString(),
-    subagent_model: 'gemini-3.5-flash',
+    subagent_model: 'gemini-3.5-flash-medium',
     plugin_version: getPluginVersion(),
     scope,
     base_branch:    base || null,

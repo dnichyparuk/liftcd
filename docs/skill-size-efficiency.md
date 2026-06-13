@@ -30,3 +30,9 @@ The skills mapped to `gemini-3.5-flash-low` natively in their orchestrator front
 
 ### 3. High Density where it Counts
 `ship-sdlc` and `execute-plan-sdlc` are the largest files because they contain dense state-machine logic, retry mechanisms, and complex pipeline routing. These are the skills that natively receive `-medium` or `pro` mappings, perfectly handling their slightly heavier system prompts while leaving ample context for pipeline logs and execution traces.
+
+---
+
+## See Also
+
+*   **Architecture & Agent Relations**: To understand how these efficient skills fit into the broader Layer 1/Layer 2 agent architecture, see the [SDLC Plugin Architecture Report](./sdlc-plugin-architecture-report.md).

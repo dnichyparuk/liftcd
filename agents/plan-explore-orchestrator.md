@@ -45,7 +45,7 @@ Read `MANIFEST_FILE`. Extract:
     "description": "One sentence describing what this dimension explores",
     "files": ["path/relative/to/project/root.ts"],
     "mode": "code | web | hybrid",
-    "model": "gemini-3.5-flash-low | gemini-3.5-flash-medium | gemini-3.1-pro"
+    "model": "gemini-3.5-flash-low | gemini-3.5-flash-medium | gemini-3.1-pro-low"
   }
 ]
 ```
@@ -70,7 +70,7 @@ Read `MANIFEST_FILE`. Extract:
 **Model assignment:**
 - `gemini-3.5-flash-low` — fast surface scan, file enumeration, simple pattern matching
 - `gemini-3.5-flash-medium` — moderate analysis requiring judgement, cross-file reasoning
-- `gemini-3.1-pro` — complex architectural analysis, deep integration tracing
+- `gemini-3.1-pro-low` — complex architectural analysis, deep integration tracing
 
 **Files array:** Populated from `scopeHintFiles` + your own judgement about which files are most relevant to each dimension. Empty array is valid when the dimension is exploratory (e.g., web research).
 
@@ -286,7 +286,7 @@ Every field is required. Use `0` for counts and `"none"` for empty lists.
 - Write to anything outside `manifest.outDir`
 - Modify or delete `manifest.json`
 - Delete `manifest.outDir` — plan-sdlc owns cleanup
-- Omit `model:` on any Agent dispatch — omitting it silently inherits the parent model (gemini-3.1-pro)
+- Omit `model:` on any Agent dispatch — omitting it silently inherits the parent model (gemini-3.1-pro-low)
 - Dispatch dimension subagents without an explicit `model:` parameter
 - Dispatch dimensions sequentially — all must be in a SINGLE message
 - Add web/hybrid dimensions for pure rename/move/dead-code refactors when `webResearchSignal: false`

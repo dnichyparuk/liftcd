@@ -158,7 +158,7 @@ function buildGithubHosting(projectRoot) {
 function buildG17Dispatch() {
   const templateName = 'g17-dimension-coverage-prompt.md';
   const subagentType = 'general-purpose';
-  const model = 'gemini-3.5-flash';
+  const model = 'gemini-3.5-flash-medium';
 
   // 1. Try installed plugin path via find
   const findResult = spawnSync(
@@ -243,25 +243,25 @@ function buildLanes(g17Dispatch) {
   const laneDefs = [
     {
       name: 'static-structural',
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.5-flash-low',
       templateName: 'lane-static-structural-prompt.md',
       gateIds: ['G1', 'G2', 'G3', 'G7', 'G12'],
     },
     {
       name: 'content-coverage',
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.5-flash-medium',
       templateName: 'lane-content-coverage-prompt.md',
       gateIds: ['G5', 'G6', 'G8', 'G9', 'G11', 'G13', 'G15', 'G16'],
     },
     {
       name: 'file-existence',
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.5-flash-low',
       templateName: 'lane-file-existence-prompt.md',
       gateIds: ['G4', 'G10'],
     },
     {
       name: 'guardrail-compliance',
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.5-flash-medium',
       templateName: 'lane-guardrail-compliance-prompt.md',
       gateIds: ['G14'],
     },
@@ -314,7 +314,7 @@ function buildLensReviewers() {
   return lensDefs.map(def => ({
     lens: def.lens,
     subagentType: 'general-purpose',
-    model: 'gemini-3.5-flash',
+    model: 'gemini-3.5-flash-medium',
     promptTemplatePath: resolveSkillTemplate(def.templateName),
     focusCategories: def.focusCategories,
   }));

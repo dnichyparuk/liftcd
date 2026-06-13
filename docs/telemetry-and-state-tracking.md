@@ -141,8 +141,8 @@ Using 75% of context for inputs, 25% reserved for reasoning:
 
 | Model | Input Limit | Byte Budget |
 |-------|-------------|-------------|
-| gemini-3.5-flash | 1M tokens | ~3M bytes |
-| gemini-3.1-pro | 2M tokens | ~6M bytes |
+| gemini-3.5-flash (all variants) | 1M tokens | ~3M bytes |
+| gemini-3.1-pro (all variants) | 1M tokens | ~3M bytes |
 
 #### Static Cap Table
 Progressive caps based on total remaining tasks:
@@ -364,6 +364,7 @@ node hooks/stop-state-save.js
 
 ## See Also
 
+- [SDLC Plugin Architecture Report](./sdlc-plugin-architecture-report.md): Overview of the four-layer architecture
 - [Scripts README](../scripts/README.md): Overview of all helper scripts
 - [Plugin README](../README.md): General plugin documentation
 - [hooks.json](../hooks.json): Hook registration definitions

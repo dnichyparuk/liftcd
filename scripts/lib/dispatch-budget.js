@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------------
 const MODEL_MAX_INPUT_BYTES = {
   'gemini-3.5-flash': Math.floor(1_000_000 * 4 * 0.75),
-  'gemini-3.1-pro': Math.floor(2_000_000 * 4 * 0.75),
+  'gemini-3.1-pro': Math.floor(1_000_000 * 4 * 0.75), // all models share 1M token window
 };
 
 // Static wave-size cap table (tasks 4-8 → 4, 9-15 → 5, 16+ → 6).
@@ -71,9 +71,10 @@ function computeWaveBudget({
   modelMaxInputBytes: modelMaxInputBytesOverride,
   totalRemainingTasks,
 }) {
+  const baseModel = model.replace(/-(low|medium|high)$/, '');
   const maxInputBytes = modelMaxInputBytesOverride != null
     ? modelMaxInputBytesOverride
-    : (MODEL_MAX_INPUT_BYTES[model] || MODEL_MAX_INPUT_BYTES['gemini-3.5-flash']);
+    : (MODEL_MAX_INPUT_BYTES[baseModel] || MODEL_MAX_INPUT_BYTES['gemini-3.5-flash']);
 
   const numCandidates = perTaskFactSheetBytes.length;
   const totalRemaining = totalRemainingTasks != null ? totalRemainingTasks : numCandidates;
@@ -117,15 +118,11 @@ function computeWaveBudget({
   const perTaskCeiling = maxConcurrent > 0 ? Math.floor(availableForTasks / maxConcurrent) : 0;
 
   const totalReservedBytes = fixedBytes + usedBytes;
-  let contextSuffix = '-low';
-  if (totalReservedBytes > 200000) contextSuffix = '-high';
-  else if (totalReservedBytes > 50000) contextSuffix = '-medium';
 
   return {
     maxConcurrentTasks: maxConcurrent,
     perTaskCeiling,
     totalReservedBytes,
-    contextSuffix,
   };
 }
 

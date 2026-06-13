@@ -356,9 +356,7 @@ For each step that will run, apply the dispatch protocol based on `step.dispatch
 
 2. **Record step start** via state/ship.js.
 
-3. **Compute Context Suffix**: Right before dispatching the Agent, run `<PLUGIN_ROOT>/skills/ship-sdlc/scripts/compute_context_suffix.js`. It will output a JSON object with a `suffix` field (e.g. `{"suffix": "-low"}`). Append this suffix to `step.model` to form the final model string (e.g. `gemini-3.1-pro-low`). **CRITICAL: If `step.model` already ends with `-low`, `-medium`, or `-high`, do NOT append the suffix again.**
-
-4. **Dispatch Agent** with: skill name, args from `step.invocation`, model from the final computed model string, and brief pipeline context (branch, previous step results needed for this step). Pass `model: <computed-model>` to the Agent tool on every dispatch. When `step.isolation` is non-null, additionally pass `isolation: step.isolation`; when `step.isolation` is null, omit the `isolation` parameter entirely (the Agent tool schema does not accept `null` for `isolation`). The LLM must not add, remove, or change the `isolation` parameter from what `ship.js` computed (implements R-agent-isolation-script-driven, C15). Agent prompt template:
+3. **Dispatch Agent** with: skill name, args from `step.invocation`, model from `step.model` (which natively carries the correctly mapped suffix from ship.js), and brief pipeline context (branch, previous step results needed for this step). Pass `model: step.model` to the Agent tool on every dispatch. When `step.isolation` is non-null, additionally pass `isolation: step.isolation`; when `step.isolation` is null, omit the `isolation` parameter entirely (the Agent tool schema does not accept `null` for `isolation`). The LLM must not add, remove, or change the `isolation` parameter from what `ship.js` computed (implements R-agent-isolation-script-driven, C15). Agent prompt template:
    ```
    You are executing the <skill-name> skill. Invoke `/<skill-name> <args>` using the Skill tool — this loads the SKILL.md automatically. Return a structured result:
    (1) status — success or failure
@@ -367,7 +365,7 @@ For each step that will run, apply the dispatch protocol based on `step.dispatch
    (4) any warnings or issues encountered
    ```
 
-5. **Receive agent result.** Print result to user:
+4. **Receive agent result.** Print result to user:
    ```
      [done] Step 2 complete: a1b2c3d feat(auth): add OAuth2 PKCE flow
      State saved to .sdlc/execution/ship-<branch>-<timestamp>.json
@@ -882,7 +880,7 @@ Each sub-skill has its own error recovery. ship-sdlc does not duplicate their re
 - Skip pipeline steps that were marked "will run" in the pipeline plan. The pipeline plan is a contract with the user. If a step was planned to run and the user confirmed the pipeline, it MUST run. The LLM does not have authority to skip planned steps based on its own assessment of change complexity or risk. Only the skip set and auto-skip rules (computed by skill/ship.js) control which steps run.
 - Copy example args from this document when dispatching sub-skill Agents — use the `invocation` field from the skill/ship.js output, which contains the exact computed args
 - Add `--steps` flags not present in the user's original invocation. Pipeline composition derives from CLI `--steps` > config `ship.steps[]` > built-in defaults. Legacy `--preset` and `--skip` are hard-removed (#190); passing them produces an error.
-- Dispatch pipeline step Agents without `model: step.model` — the model field is computed by skill/ship.js from each skill's spec. Omitting it defaults all steps to gemini-3.1-pro.
+- Dispatch pipeline step Agents without `model: step.model` — the model field is computed by skill/ship.js from each skill's spec. Omitting it defaults all steps to gemini-3.1-pro-low.
 - Add, remove, or change the `isolation` parameter on Agent dispatches — isolation comes verbatim from `step.isolation`. Adding `isolation: "worktree"` when `step.isolation` is null causes hidden Agent SDK worktrees that conflict with `--workspace branch` (issue #350).
 - Ignore cleanup validation failures — if `state/ship.js cleanup` exits with code 1, the pipeline contract was violated. Surface the violation and preserve state.
 - Skip the post-version ancestry HARD GATE. The check is the only safeguard against tags landing on orphaned commits (issue #349). The gate is a no-op when `NEW_TAG` is unset — do not pre-empt it by skipping it when you believe the version step succeeded on the right branch.

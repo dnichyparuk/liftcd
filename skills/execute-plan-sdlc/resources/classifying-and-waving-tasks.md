@@ -41,35 +41,35 @@ Model assignment derives from the complexity class. The three presets in Step 4 
 
 | Complexity | Default Model | Rationale |
 |---|---|---|
-| Trivial | `gemini-3.5-flash` | Fast, cheap; frees main context for orchestration. Single trivial → execute inline. Two or more trivials in the same phase → dispatch as one batch agent. |
-| Standard | `gemini-3.5-flash` | Capable, cost-efficient |
-| Complex | `gemini-3.1-pro` | Most capable; needed for architectural work |
+| Trivial | `gemini-3.5-flash-low` | Fast, cheap; frees main context for orchestration. Single trivial → execute inline. Two or more trivials in the same phase → dispatch as one batch agent. |
+| Standard | `gemini-3.5-flash-medium` | Capable, cost-efficient |
+| Complex | `gemini-3.1-pro-low` | Most capable; needed for architectural work |
 
 ### Override signals
 
-Assign `gemini-3.1-pro` to a Standard task when:
+Assign `gemini-3.1-pro-low` to a Standard task when:
 - The task involves unfamiliar or poorly documented code
 - The task requires nuanced judgment (choosing between multiple valid approaches)
-- A prior `gemini-3.5-flash` attempt on a similar task in this project failed
+- A prior `gemini-3.5-flash-medium` attempt on a similar task in this project failed
 
-Assign `gemini-3.5-flash` to a Complex task when:
+Assign `gemini-3.5-flash-medium` to a Complex task when:
 - The task is complex only because it touches many files, but each individual change is mechanical
 - The changes are fully specified with exact code to write (no design judgment needed)
 
 ### Model Presets
 
-Always present 3 presets in Step 4, regardless of plan size:
+Always present 3 presets in Step 4, regardless of plan size. The actual subagents dispatched by the wave-runner will explicitly inherit these reasoning budgets.
 
 | Preset | Trivial | Standard | Complex | Best when |
 |---|---|---|---|---|
-| **Speed** | gemini-3.5-flash | gemini-3.5-flash | gemini-3.5-flash | Plan is well-specified, changes are mechanical |
-| **Balanced** | gemini-3.5-flash | gemini-3.5-flash | gemini-3.1-pro | Default — matches complexity to capability |
-| **Quality** | gemini-3.5-flash | gemini-3.1-pro | gemini-3.1-pro | Codebase is unfamiliar, tasks are ambiguous |
+| **Speed** | gemini-3.5-flash-low | gemini-3.5-flash-medium | gemini-3.5-flash-high | Plan is well-specified, changes are mechanical |
+| **Balanced** | gemini-3.5-flash-low | gemini-3.5-flash-medium | gemini-3.1-pro-low | Default — matches complexity to capability |
+| **Quality** | gemini-3.5-flash-low | gemini-3.1-pro-low | gemini-3.1-pro-high | Codebase is unfamiliar, tasks are ambiguous |
 
 ### Model Dispatch Enforcement
 
-The `model:` parameter is REQUIRED on every Agent tool dispatch — no exception. Omitting it causes the agent to inherit gemini-3.1-pro from the parent context, defeating the preset system's cost optimization.
-When dispatching a wave-runner Agent, determine the base model from the presets table above, and append the `contextSuffix` returned by `dispatch-budget.js` (e.g. `gemini-3.1-pro` + `-high` $\rightarrow$ `gemini-3.1-pro-high`).
+The `model:` parameter is REQUIRED on every Agent tool dispatch — no exception. Omitting it causes the agent to inherit gemini-3.1-pro-low from the parent context, defeating the preset system's cost optimization.
+When dispatching a wave-runner Agent, permanently lock the orchestrator to `gemini-3.5-flash-low` regardless of the preset. The presets above apply strictly to the *per-task worker subagents* that the wave-runner spawns.
 
 ## Wave-Building Algorithm
 
@@ -113,7 +113,7 @@ When dispatching a wave-runner Agent, determine the base model from the presets 
 
 7. **Identify pre-wave trivials:** Trivial tasks that have downstream dependents in Wave 1 should run in the pre-wave. If there is only 1 pre-wave trivial, execute it inline. If there are 2+, dispatch them as a single batch agent (see Batched Trivial Tasks Prompt Template below).
 
-8. **Identify in-wave trivial batches:** Within each wave, if 2 or more tasks are classified Trivial, dispatch them together as a single gemini-3.5-flash batch agent rather than executing each inline. A single trivial task in a wave is still executed inline. Same-file ordering rules apply within the batch (see Batched Trivial Tasks Prompt Template below).
+8. **Identify in-wave trivial batches:** Within each wave, if 2 or more tasks are classified Trivial, dispatch them together as a single gemini-3.5-flash-low batch agent rather than executing each inline. A single trivial task in a wave is still executed inline. Same-file ordering rules apply within the batch (see Batched Trivial Tasks Prompt Template below).
 
 ## Adaptive Wave Size Cap
 
@@ -231,7 +231,7 @@ Review your work before reporting. Check:
 If you find issues during self-review, fix them before reporting.
 
 ## Execution Context
-- Assigned model: {MODEL — gemini-3.5-flash, gemini-3.5-flash, or gemini-3.1-pro}
+- Assigned model: {MODEL — gemini-3.5-flash-low, gemini-3.5-flash-medium, gemini-3.5-flash-high, gemini-3.1-pro-low, gemini-3.1-pro-medium, or gemini-3.1-pro-high}
 - Permission mode: bypassPermissions (set explicitly on this agent — do not change).
 - Attempt: {first attempt | retry N — previous attempt failed: {failure description}}
 - {If model was escalated: "Model escalated from {previous-model} to {this-model} due to prior failure."}
@@ -325,7 +325,7 @@ VERIFY Task {N}: <symbol_name> in <file_path>
 Use the primary symbol added or modified in each task. The orchestrator greps for these symbols to confirm changes persisted.
 
 ## Execution Context
-- Assigned model: {MODEL — gemini-3.5-flash, gemini-3.5-flash, or gemini-3.1-pro}
+- Assigned model: {MODEL — gemini-3.5-flash-low, gemini-3.5-flash-medium, gemini-3.5-flash-high, gemini-3.1-pro-low, gemini-3.1-pro-medium, or gemini-3.1-pro-high}
 - Permission mode: bypassPermissions (set explicitly on this agent — do not change).
 - Attempt: {first attempt | retry N — previous attempt failed: {failure description}}
 - {If model was escalated: "Model escalated from {previous-model} to {this-model} due to prior failure."}
