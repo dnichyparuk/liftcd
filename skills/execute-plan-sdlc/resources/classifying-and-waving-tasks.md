@@ -41,7 +41,7 @@ Model assignment derives from the complexity class. The three presets in Step 4 
 
 | Complexity | Default Model | Rationale |
 |---|---|---|
-| Trivial | `gemini-3.5-flash-low` | Fast, cheap; frees main context for orchestration. Single trivial → execute inline. Two or more trivials in the same phase → dispatch as one batch agent. |
+| Trivial | `gemini-3.5-flash-medium` | Capable baseline; avoids syntax errors on simple tasks. Single trivial → execute inline. Two or more trivials in the same phase → dispatch as one batch agent. |
 | Standard | `gemini-3.5-flash-medium` | Capable, cost-efficient |
 | Complex | `gemini-3.1-pro-low` | Most capable; needed for architectural work |
 
@@ -63,8 +63,8 @@ Always present 3 presets in Step 4, regardless of plan size. The actual subagent
 | Preset | Trivial | Standard | Complex | Best when |
 |---|---|---|---|---|
 | **Speed** | gemini-3.5-flash-low | gemini-3.5-flash-medium | gemini-3.5-flash-high | Plan is well-specified, changes are mechanical |
-| **Balanced** | gemini-3.5-flash-low | gemini-3.5-flash-medium | gemini-3.1-pro-low | Default — matches complexity to capability |
-| **Quality** | gemini-3.5-flash-low | gemini-3.1-pro-low | gemini-3.1-pro-high | Codebase is unfamiliar, tasks are ambiguous |
+| **Balanced** | gemini-3.5-flash-medium | gemini-3.5-flash-high | gemini-3.1-pro-low | Default — matches complexity to capability |
+| **Quality** | gemini-3.5-flash-medium | gemini-3.1-pro-low | gemini-3.1-pro-high | Codebase is unfamiliar, tasks are ambiguous |
 
 ### Model Dispatch Enforcement
 
@@ -113,7 +113,7 @@ When dispatching a wave-runner Agent, permanently lock the orchestrator to `gemi
 
 7. **Identify pre-wave trivials:** Trivial tasks that have downstream dependents in Wave 1 should run in the pre-wave. If there is only 1 pre-wave trivial, execute it inline. If there are 2+, dispatch them as a single batch agent (see Batched Trivial Tasks Prompt Template below).
 
-8. **Identify in-wave trivial batches:** Within each wave, if 2 or more tasks are classified Trivial, dispatch them together as a single gemini-3.5-flash-low batch agent rather than executing each inline. A single trivial task in a wave is still executed inline. Same-file ordering rules apply within the batch (see Batched Trivial Tasks Prompt Template below).
+8. **Identify in-wave trivial batches:** Within each wave, if 2 or more tasks are classified Trivial, dispatch them together as a single batch agent (using the assigned model for Trivial tasks, e.g., gemini-3.5-flash-medium) rather than executing each inline. A single trivial task in a wave is still executed inline. Same-file ordering rules apply within the batch (see Batched Trivial Tasks Prompt Template below).
 
 ## Adaptive Wave Size Cap
 

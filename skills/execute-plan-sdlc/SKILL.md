@@ -3,6 +3,7 @@ name: execute-plan-sdlc
 description: "Use when the user wants to execute an implementation plan with adaptive intelligence — classifies tasks by complexity and risk, builds optimized dependency waves, critiques wave structure before dispatch, verifies results after each wave, and recovers from failures without stopping. Self-contained: no external sub-skills required. Triggers on: execute plan, run plan, implement plan, autonomous execution, execute this plan. Also auto-triggered when the user accepts a plan from plan-sdlc (plan content is already in conversation context)."
 user-invocable: true
 argument-hint: "[plan-file-path] [--quality full|balanced|minimal] [--resume] [--workspace branch|worktree|prompt] [--rebase auto|skip|prompt] [--auto] [--branch <name>] [--commit-waves] [--plan-file <path>]"
+model: gemini-3.5-flash-medium
 ---
 
 # Execute Plan (SDLC)
@@ -41,15 +42,23 @@ To prevent context bloat and token exhaustion:
 
 Once the plan content is available, validate it:
 
+If loading from file, ensure the plan file exists and is readable. If not, stop with error.
+
+**Phase 1 Validation (Plan Integrity):**
+Dispatch the `sdlc:plan-execution-validator` subagent exactly once with inputs:
+- `PHASE`: "plan-integrity"
+- `PLAN_FILE_PATH`: <absolute path to plan>
+- `WAVE_STRUCTURE`: "none"
+
+The subagent will perform the following checks:
 | Validation Check | Fail Action |
 |---|---|
-| Plan file exists and is readable (if loading from file) | Stop with error |
 | At least 2 tasks present | Stop — single-task plans don't need orchestration; just do the work directly |
-| Each task has a clear deliverable (files to create/modify, behavior to implement) | Flag vague tasks; ask user to clarify before proceeding |
+| Each task has a clear deliverable | Flag vague tasks; ask user to clarify before proceeding |
 | No circular dependencies detected | Stop with error, show the cycle |
-| No tasks reference inaccessible external systems | Warn user, mark as high-risk |
+| No tasks reference inaccessible systems | Warn user, mark as high-risk |
 
-Blocking issues → stop and ask. Warnings only → show them and proceed.
+Wait for the subagent's JSON response. If `status` is "failed", present the issues to the user and halt execution until the plan is corrected.
 
 **OpenSpec context loading (optional):** After the plan is loaded, check the plan header's `**Source:**` field. If it points to an `openspec/changes/<name>/` path, Read all markdown files matching `openspec/changes/<name>/specs/*.md` (the delta specs). Store these as `openspecSpecs` for use in Step 5c-bis. If the path does not exist or yields no files, proceed without OpenSpec context — this is not a blocking error.
 
@@ -201,9 +210,9 @@ For each task, determine three things:
 
 **3. Dependencies** — which tasks must complete before this one (based on file outputs/inputs)
 
-**4. Model assignment** (drives which model the dispatched agent uses):
-- **Trivial** → `gemini-3.5-flash-low` — fast, cheap; frees main context for orchestration
-- **Standard** → `gemini-3.5-flash-medium` — capable, cost-efficient
+**4. Model assignment** (drives which model the dispatched agent uses - Balanced Default):
+- **Trivial** → `gemini-3.5-flash-medium` — capable baseline; avoids syntax errors on simple tasks
+- **Standard** → `gemini-3.5-flash-high` — highly capable, cost-efficient
 - **Complex** → `gemini-3.1-pro-low` — most capable, required for architectural and cross-cutting work
 
 The user selects a quality tier (preset) in Step 4 that applies these mappings (or overrides them).
@@ -233,16 +242,14 @@ Skip Steps 3–4 (wave critique and confirmation). Apply the 2-retry budget and 
 
 ## Step 3 (CRITIQUE): Critique Wave Structure
 
-Before executing any wave, self-review the entire plan:
+Before executing any wave, self-review the entire plan by dispatching the `sdlc:plan-execution-validator` subagent exactly once with inputs:
+- `PHASE`: "wave-integrity"
+- `PLAN_FILE_PATH`: <absolute path to plan>
+- `WAVE_STRUCTURE`: <string representation of the generated waves from Step 2>
 
-- **File conflicts**: Any two tasks in the same wave touching the same file? → Split into sequential waves
-- **Dependency integrity**: Does every Wave N+1 task actually depend on something in Wave N? If not, move it earlier
-- **Risk clustering**: Multiple high-risk tasks in the same wave? → Spread across waves for easier rollback
-- **Context sufficiency**: Is each task self-contained enough to dispatch as an agent? Vague tasks produce vague output
-- **Trivial aggregation**: Are trivial tasks that have downstream dependents identified for pre-wave execution? If 2+ pre-wave trivials exist, are they flagged for batch agent dispatch?
-- **In-wave trivial batching**: If a wave contains 2+ trivial tasks, are they flagged for a single batch agent dispatch rather than inline execution?
+The subagent will evaluate file conflicts, dependency integrity, risk clustering, and trivial aggregation.
 
-Note every issue found.
+Wait for the subagent's JSON response. Note every issue found in the `issues` array and pass them to Step 4.
 
 ## Step 4 (IMPROVE): Revise and Confirm
 
@@ -256,16 +263,16 @@ Valid values: `full` (Speed), `balanced` (Balanced), `minimal` (Quality). Legacy
 Execution Plan
 ────────────────────────────────────────────
 Pre-wave (1 batch agent, 2 trivial tasks):
-  - Task 1: "short description"     [Trivial → gemini-3.5-flash-low]
-  - Task 2: "short description"     [Trivial → gemini-3.5-flash-low]
+  - Task 1: "short description"     [Trivial → gemini-3.5-flash-medium]
+  - Task 2: "short description"     [Trivial → gemini-3.5-flash-medium]
 Wave 1 (N agents — includes 1 batch):
-  Batch (2 trivial tasks → 1 gemini-3.5-flash-low agent):
-    - Task A: "short description"   [Trivial → gemini-3.5-flash-low]
-    - Task B: "short description"   [Trivial → gemini-3.5-flash-low]
-  - Task C: "short description"     [Standard → gemini-3.5-flash-medium]
+  Batch (2 trivial tasks → 1 gemini-3.5-flash-medium agent):
+    - Task A: "short description"   [Trivial → gemini-3.5-flash-medium]
+    - Task B: "short description"   [Trivial → gemini-3.5-flash-medium]
+  - Task C: "short description"     [Standard → gemini-3.5-flash-high]
   - Task D: "short description"     [Complex  → gemini-3.1-pro-low]
 Wave 2 (N tasks, parallel):
-  - Task E: "short description"     [Standard → gemini-3.5-flash-medium]
+  - Task E: "short description"     [Standard → gemini-3.5-flash-high]
 Wave 3 (N tasks — HIGH RISK, will pause):
   - Task F: "short description"     [Complex  → gemini-3.1-pro-low]
 ────────────────────────────────────────────
@@ -273,8 +280,8 @@ Total: N tasks across N waves + pre-wave
 
 Quality Tiers (Model Presets):
   minimal) Speed:      N × gemini-3.5-flash-low, N × gemini-3.5-flash-medium, N × gemini-3.5-flash-high  — fast, low cost
-  balanced) Balanced:  N × gemini-3.5-flash-low, N × gemini-3.5-flash-medium, N × gemini-3.1-pro-low      — default ✓
-  full) Quality:       N × gemini-3.5-flash-low, N × gemini-3.1-pro-low, N × gemini-3.1-pro-high         — max correctness
+  balanced) Balanced:  N × gemini-3.5-flash-medium, N × gemini-3.5-flash-high, N × gemini-3.1-pro-low      — default ✓
+  full) Quality:       N × gemini-3.5-flash-medium, N × gemini-3.1-pro-low, N × gemini-3.1-pro-high         — max correctness
 
 Use AskUserQuestion to select a quality tier:
 > Select execution quality tier
@@ -287,9 +294,9 @@ Always present all 3 tiers. Default is Balanced. When the user selects a tier (f
 
 ## Step 5 (DO): Execute
 
-**Pre-wave:** If there is 1 pre-wave trivial task, execute it inline in the main context. If there are 2+ pre-wave trivials, dispatch them as a single batch agent (gemini-3.5-flash-low) using the Batched Trivial Tasks Prompt Template in `./resources/classifying-and-waving-tasks.md`. Mark each complete in TodoWrite after inline execution or after the batch agent returns.
+**Pre-wave:** If there is 1 pre-wave trivial task, execute it inline in the main context. If there are 2+ pre-wave trivials, dispatch them as a single batch agent (using the assigned model for Trivial tasks, e.g., gemini-3.5-flash-medium) using the Batched Trivial Tasks Prompt Template in `./resources/classifying-and-waving-tasks.md`. Mark each complete in TodoWrite after inline execution or after the batch agent returns.
 
-This dispatch is NOT a wave-runner Agent — it is a direct batch-gemini-3.5-flash-low dispatch from main context for tasks that have no in-wave dependencies.
+This dispatch is NOT a wave-runner Agent — it is a direct batch dispatch from main context for tasks that have no in-wave dependencies.
 
 **For each wave:**
 
