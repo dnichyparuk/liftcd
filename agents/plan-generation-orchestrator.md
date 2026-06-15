@@ -2,7 +2,7 @@
 name: plan-generation-orchestrator
 description: Receives exploration brief, requirements, and codebase context to write the implementation plan file containing tasks with dependencies, complexity, and verification metadata.
 tools: Read, Write, Glob, Grep, Bash
-model: gemini-3.1-pro-low
+model: gemini-3.1-pro-high
 ---
 
 # Plan Generation Orchestrator
@@ -98,6 +98,10 @@ Write the generated plan to `PLAN_FILE_PATH`. The plan must follow this exact st
 
 **Description:**
 [What to implement, expected behavior, edge cases. Cite `F-<DIM>-<n>` finding IDs from the brief if applicable, or mark "out-of-scope addition" with rationale if a task doesn't map to any finding.]
+
+**Implementation Guidelines:**
+- [Explicit constraints, such as specific patterns or functions to use]
+- [Context boundaries: what NOT to change in the target files]
 
 **Acceptance criteria:**
 - [ ] [Criterion 1]

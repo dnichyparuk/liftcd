@@ -18,7 +18,12 @@ If the system context contains "Plan mode is active":
 1. Announce: "This skill requires write operations (file edits, shell commands). Exit plan mode first, then re-invoke `/execute-plan-sdlc`."
 2. Stop. Do not proceed to subsequent steps.
 
----
+## Context Optimization Constraints
+
+To prevent context bloat and token exhaustion:
+1. **Subagent File Parsing (R4):** NEVER use `view_file` directly on large codebase files (>200 lines). If you need to understand a file's structure or locate a function, use `invoke_subagent` to spawn a sandboxed agent with explicit instructions to extract a targeted, minimal summary (e.g., "Find the signature for X").
+2. **Enforced Parallelism (R5):** If you need to execute multiple commands, read multiple files, or invoke multiple subagents, you MUST batch them in a single JSON tool call array rather than waiting for each to finish sequentially.
+3. **Strict Thought Protocol (R6):** Do not return an empty chat response just to explain intermediate thoughts, acknowledge an async task completion, or summarize to the user. All internal reasoning must remain in the `thought` block. You must execute the next logical step immediately.
 
 ## Step 0: Prerequisites
 
@@ -434,7 +439,7 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
 
 3. **Conflict detection:** Check `git diff --stat` for files touched by multiple tasks in this wave. If found, treat as a file conflict.
 
-4. **Verification suite:** Run verification commands specified in the plan (tests, build, lint).
+4. **Verification suite:** Run verification commands specified in the plan (tests, build, lint). **CRITICAL:** Always run tests, builds, and linters via the truncated wrapper script to prevent context bloat: `<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/run_truncated.sh "<command>"`.
 
 5. **Task status handling** (from `WAVE_SUMMARY.tasks[].status`):
    - STATUS: DONE → proceed normally
@@ -450,7 +455,7 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
 
 Skip for waves containing only Trivial tasks. Skip if the Speed quality tier (`--quality full`) was selected.
 
-After mechanical verification passes (Steps 5c.1–4), dispatch a single spec compliance reviewer (gemini-3.5-flash-medium). At dispatch time, Read `./resources/spec-compliance-reviewer.md` and use it as the prompt template. Provide:
+After mechanical verification passes (Steps 5c.1–4), dispatch a single spec compliance reviewer (gemini-3.5-flash-high). At dispatch time, Read `./resources/spec-compliance-reviewer.md` and use it as the prompt template. Provide:
 - Each non-trivial task's full specification text
 - The files each task's `WAVE_SUMMARY.tasks[].filesTouched` listed as modified
 
@@ -660,7 +665,7 @@ Skip this sub-step if `openspecSpecs` is empty (no OpenSpec context was loaded i
 
 Also skip if ALL per-wave spec compliance reviews (Step 5c-bis) passed without issues AND the plan has 3 or fewer waves — the per-wave reviews already provided sufficient coverage in that case.
 
-Otherwise, dispatch a single spec compliance reviewer (gemini-3.5-flash-medium). Read `./resources/spec-compliance-reviewer.md` for the prompt template. Unlike the per-wave review in Step 5c-bis which provides only that wave's tasks, provide:
+Otherwise, dispatch a single spec compliance reviewer (gemini-3.5-flash-high). Read `./resources/spec-compliance-reviewer.md` for the prompt template. Unlike the per-wave review in Step 5c-bis which provides only that wave's tasks, provide:
 
 - **ALL non-trivial tasks from ALL waves** — full specification text from the plan
 - **Complete `git diff --stat` output** for the entire execution (all waves combined)

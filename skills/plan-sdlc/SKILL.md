@@ -11,6 +11,13 @@ Write an implementation plan from requirements, a spec, or a user description. P
 
 **Announce at start:** "I'm using plan-sdlc (sdlc v{sdlc_version})." — extract the version from the `sdlc:` line in the session-start system-reminder. If no version is in context, omit the parenthetical.
 
+## Context Optimization Constraints
+
+To prevent context bloat and token exhaustion:
+1. **Targeted File Reads (R4):** Avoid reading entire large codebase files directly into memory. When exploring the codebase, use `<PLUGIN_ROOT>/skills/plan-sdlc/scripts/outline_file.sh <file>` to extract file structure (classes, interfaces, functions) instead of using the `view_file` tool on massive files.
+2. **Enforced Parallelism (R5):** If you need to execute multiple exploration commands or read multiple files, you MUST batch them in a single JSON tool call array rather than waiting for each to finish sequentially.
+3. **Strict Thought Protocol (R6):** Do not return an empty chat response just to explain intermediate thoughts. All internal reasoning must remain in the `thought` block. You must execute the next logical step immediately.
+
 ## Step 0: Mode Detection, Routing, and Setup
 
 **Mode detection:** Check whether a system-reminder contains "Plan mode is active". If yes, extract the designated plan file path from "You should create your plan at `<path>`". That path is the only writable file.
@@ -202,12 +209,12 @@ fi
 Wait for answers before continuing.
 
 **Codebase exploration (skip for lightweight):** Use read-only tools (Glob, Grep, Read, LSP):
-- Relevant file structure and patterns in affected areas
+- Relevant file structure and patterns in affected areas. **CRITICAL:** Use `<PLUGIN_ROOT>/skills/plan-sdlc/scripts/outline_file.sh <file>` to extract file outlines instead of natively reading large files.
 - Existing modules, interfaces, and types the feature touches
 - Testing patterns used in the project
 - Build/lint/test commands (from Makefile, package.json, or similar)
 - Naming conventions and code style
-- All Glob/Grep/Read calls above MUST be issued in a SINGLE message as parallel tool calls — mirror the in-skill precedent at the OpenSpec artifact reads (`Read in parallel: …`). (implements R37, Fixes #418)
+- All Glob/Grep/Read/Outline calls above MUST be issued in a SINGLE message as parallel tool calls — mirror the in-skill precedent at the OpenSpec artifact reads (`Read in parallel: …`). (implements R37, Fixes #418)
 
 Identify constraints: language, framework, existing conventions, testing approach.
 
