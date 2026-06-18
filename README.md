@@ -1,6 +1,6 @@
 # LiftCD — Antigravity Agentic SDLC Plugin
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 LiftCD is a comprehensive suite of skills and commands for Software Development Lifecycle (SDLC) workflows — planning, execution, commits, code review, pull requests, CI verification, and releases — that run natively inside Google Antigravity. It is an Antigravity-native, cross-platform (POSIX and Windows) rewrite inspired by [`rnagrodzki/sdlc-marketplace`](https://github.com/rnagrodzki/sdlc-marketplace), rebuilt as a flat, single plugin for the Antigravity platform.
 
@@ -239,6 +239,25 @@ When a coding agent fails, the wave-runner escalates one model tier per retry (m
 | flash-high | Gemini 3.5 Flash High |
 | pro-low | Gemini 3.1 Pro Low |
 | pro-high | Gemini 3.1 Pro High |
+
+---
+
+## Contributing
+
+Contributions are welcome! Whether you're fixing a bug, improving documentation, or proposing a new skill, we'd love your help making LiftCD better.
+
+- **Report issues:** Found a bug or have a feature idea? [Open an issue](https://github.com/dnichyparuk/liftcd/issues) and describe it as clearly as you can.
+- **Submit changes:** Fork the repository, create a feature branch, and open a pull request. Keep changes focused and reference any related issue.
+- **Dogfood the workflow:** This plugin implements a complete SDLC pipeline — feel free to use the LiftCD skills (`/plan-sdlc`, `/commit-sdlc`, `/pr-sdlc`, and friends) to author your own contributions.
+- **Be respectful:** Please keep discussions constructive and welcoming to contributors of all experience levels.
+
+Thanks for helping improve LiftCD!
+
+---
+
+## License
+
+LiftCD is released under the [MIT License](LICENSE), the same license as the [`rnagrodzki/sdlc-marketplace`](https://github.com/rnagrodzki/sdlc-marketplace) project it was inspired by. The upstream license at the time this work was derived is pinned at commit [`f0e3afc`](https://github.com/rnagrodzki/sdlc-marketplace/blob/f0e3afc219e6b9d53b840ff4051b4befbd14778c/LICENSE). See the [LICENSE](LICENSE) file for full terms.
 
 ---
 
