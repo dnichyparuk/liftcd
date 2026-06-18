@@ -361,7 +361,7 @@ the `.sdlc/learnings/` directory and `log.md` file if they don't exist.
 
 - `docs/specs/harden-sdlc.md` — behavioral spec (source of truth)
 - `docs/skills/harden-sdlc.md` — usage reference for end users
-- `plugins/sdlc-utilities/agents/harden-orchestrator.md` — orchestrator agent
-- `plugins/sdlc-utilities/scripts/skill/harden-prepare.js` — surface loader
+- `agents/harden-orchestrator.md` — orchestrator agent
+- `scripts/skill/harden-prepare.js` — surface loader
 - [`/error-report-sdlc`](../error-report-sdlc/SKILL.md) — plugin-defect route
 - [`/setup-sdlc`](../setup-sdlc/SKILL.md) — initial guardrail/dimension authoring

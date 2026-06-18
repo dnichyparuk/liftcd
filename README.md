@@ -4,9 +4,9 @@
 
 This plugin provides a comprehensive suite of skills and commands for Software Development Lifecycle (SDLC) workflows (pull requests, code reviews, releases) within Google Antigravity. It is a cross-platform port (POSIX and Windows) of the Antigravity Code SDLC plugin built on the basis of https://github.com/dnichyparuk/liftcd.
 
-## ⚡ The Origin & Architecture
+## ⚡ Origin & Architecture
 
-LiftCD began as a hard fork of [`rnagrodzki/sdlc-marketplace`](https://rnagrodzki.github.io/sdlc-marketplace), but its aim is to fill the corresponding gap in Antigravity ecosystem.
+LiftCD is an Antigravity-native rewrite inspired by [`rnagrodzki/sdlc-marketplace`](https://github.com/rnagrodzki/sdlc-marketplace), rebuilt as a flat single-plugin for the Antigravity platform.
 
 ## Quick Start
 
@@ -19,7 +19,7 @@ Once installed, the SDLC skills are automatically registered with your Antigravi
 
 ### 🚀 See It In Action
 
-Writing code and managing your release lifecycle has never been simpler. With the SDLC plugin, you can go from an issue to a Pull Request by calling dedicated skills directly:
+Writing code and managing your release lifecycle has never been simpler. With LiftCD, you can go from an issue to a Pull Request by calling dedicated skills directly:
 
 > **You:** `/github-sdlc view issue #42`
 > 
@@ -80,7 +80,7 @@ Open your global Antigravity settings file (typically located at `~/.gemini/anti
   "permissions": {
     "allow": [
       "command(node .*/\\.gemini/config/plugins/.*)",
-      "command(.*/\\.gemini/config/plugins/sdlc/skills/.*/scripts/.*)"
+      "command(.*/\.gemini/config/plugins/liftcd/skills/.*/scripts/.*)"
     ]
   }
 }

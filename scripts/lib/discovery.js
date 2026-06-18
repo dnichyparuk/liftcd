@@ -1,7 +1,7 @@
 /**
  * discovery.js
  * Validates the plugin discovery and cross-reference chain.
- * Checks that every manifest, command, skill, script, hook, and agent is
+ * Checks that every manifest, skill, script, hook, and agent is
  * correctly wired so the plugin will work after installation.
  *
  * Zero external dependencies — Node.js built-ins only.
@@ -9,22 +9,15 @@
  * Exports: validateAll
  *
  * Check IDs:
- *   PD1  marketplace-manifest-exists     — plugin.json valid JSON
- *   PD2  marketplace-schema-reference    — $schema field present
- *   PD3  marketplace-required-fields     — name + plugins array
- *   PD4  plugin-source-paths-valid       — each source has plugin.json
- *   PD5  name-consistency               — marketplace name matches plugin.json name
- *   PD6  plugin-required-fields         — name, description, version in plugin.json
- *   PD7  semver-format                  — version is valid semver
- *   PD8  commands-discoverable          — commands have frontmatter with description
- *   PD9  command-skill-refs-valid       — skill names referenced in commands exist
- *   PD10 command-script-refs-valid      — scripts referenced in commands exist
- *   PD11 skills-discoverable            — skills have SKILL.md with name+description
- *   PD12 skill-supporting-files-exist   — sibling .md files referenced in SKILL.md exist
- *   PD13 skill-agent-refs-valid         — agents referenced in skills exist
- *   PD14 skill-script-refs-valid        — scripts referenced in skills exist
- *   PD15 hooks-valid-json               — hooks.json exists and parses
- *   PD16 agents-discoverable            — agents have frontmatter with name+description+tools
+ *   PD1  plugin-manifest-exists          — plugin.json exists and is valid JSON
+ *   PD2  plugin-required-fields          — name present; description/version recommended
+ *   PD3  semver-format                   — version, if present, is valid semver
+ *   PD4  skills-discoverable             — skills have SKILL.md with name+description
+ *   PD5  skill-supporting-files-exist    — sibling .md files referenced in SKILL.md exist
+ *   PD6  skill-agent-refs-valid          — agents referenced in skills exist
+ *   PD7  skill-script-refs-valid         — scripts referenced in skills exist
+ *   PD8  hooks-valid-json                — hooks.json exists and parses
+ *   PD9  agents-discoverable             — agents have frontmatter with name+description+tools
  */
 
 'use strict';
@@ -66,8 +59,8 @@ const RE_FIND_SCRIPT = /find\s[^`\n]*?-name\s+["']([^"'<>]+\.js)["']/g;
 const RE_PATH_SCRIPT = /-path\s+["']\*\/sdlc\*\/scripts\/([^\s"'<>]+\.js)["']/g;
 
 // Extract script filenames from direct-path fallback pattern:
-// plugins/sdlc-utilities/scripts/<subdir>/<script>.js
-const RE_DIRECT_SCRIPT = /plugins\/sdlc-utilities\/scripts\/([^\s"'<>]+\.js)/g;
+// plugins/liftcd/scripts/<subdir>/<script>.js
+const RE_DIRECT_SCRIPT = /plugins\/liftcd\/scripts\/([^\s"'<>]+\.js)/g;
 
 function extractScriptRefs(content) {
   const names = new Set();
@@ -169,13 +162,13 @@ function checkPD1(projectRoot) {
   const rel = 'plugin.json';
 
   if (!isFile(filePath)) {
-    return { finding: fail('PD1', 'marketplace-manifest-exists', 'error',
+    return { finding: fail('PD1', 'plugin-manifest-exists', 'error',
       `${rel} not found`, [`Expected at: ${filePath}`]), data: null };
   }
 
   const content = readFile(filePath);
   if (content === null) {
-    return { finding: fail('PD1', 'marketplace-manifest-exists', 'error',
+    return { finding: fail('PD1', 'plugin-manifest-exists', 'error',
       `${rel} is not readable`, []), data: null };
   }
 
@@ -183,405 +176,202 @@ function checkPD1(projectRoot) {
   try {
     data = JSON.parse(content);
   } catch (err) {
-    return { finding: fail('PD1', 'marketplace-manifest-exists', 'error',
+    return { finding: fail('PD1', 'plugin-manifest-exists', 'error',
       `${rel} contains invalid JSON`, [err.message]), data: null };
   }
 
-  return { finding: pass('PD1', 'marketplace-manifest-exists',
+  return { finding: pass('PD1', 'plugin-manifest-exists',
     `${rel} exists and is valid JSON`), data };
 }
 
-function checkPD2(marketplace) {
-  if (!marketplace) return skip('PD2', 'marketplace-schema-reference', 'PD1 failed — cannot check');
-  const expected = 'https://anthropic.com/antigravity-code/marketplace.schema.json';
-  if (!marketplace.$schema) {
-    return fail('PD2', 'marketplace-schema-reference', 'warning',
-      '$schema field missing from marketplace.json',
-      [`Add: "$schema": "${expected}"`]);
-  }
-  return pass('PD2', 'marketplace-schema-reference', '$schema field present');
-}
-
-function checkPD3(marketplace) {
-  if (!marketplace) return skip('PD3', 'marketplace-required-fields', 'PD1 failed — cannot check');
+function checkPD2(projectRoot, manifest) {
+  if (!manifest) return skip('PD2', 'plugin-required-fields', 'PD1 failed — cannot check');
+  const rel = 'plugin.json';
   const details = [];
-  if (!marketplace.name) details.push('Missing required field: name');
-  if (!Array.isArray(marketplace.plugins) || marketplace.plugins.length === 0) {
-    details.push('Missing or empty required field: plugins (array)');
+  if (!manifest.name) details.push(`${rel}: missing required field "name"`);
+  if (!manifest.description) details.push(`${rel}: missing recommended field "description" (optional but strongly advised)`);
+  if (!manifest.version) details.push(`${rel}: missing recommended field "version" (optional but strongly advised)`);
+  if (details.filter(d => d.includes('required')).length > 0) {
+    return fail('PD2', 'plugin-required-fields', 'error',
+      `${rel} is missing required fields`, details);
   }
   if (details.length > 0) {
-    return fail('PD3', 'marketplace-required-fields', 'error',
-      'marketplace.json is missing required fields', details);
+    return fail('PD2', 'plugin-required-fields', 'warning',
+      `${rel} is missing recommended fields`, details);
   }
-  return pass('PD3', 'marketplace-required-fields',
-    'marketplace.json has required fields (name, plugins)');
-}
-
-function checkPD4(projectRoot, marketplace) {
-  if (!marketplace || !Array.isArray(marketplace.plugins)) {
-    return { finding: skip('PD4', 'plugin-source-paths-valid', 'PD1/PD3 failed — cannot check'), plugins: [] };
-  }
-
-  const findings = [];
-  const validPlugins = [];
-
-  for (const entry of marketplace.plugins) {
-    if (!entry.name || !entry.source) {
-      findings.push(`Plugin entry missing name or source: ${JSON.stringify(entry)}`);
-      continue;
-    }
-    const sourcePath = entry.source.replace(/^\.\//, '');
-    const pluginDir  = path.join(projectRoot, sourcePath);
-    const manifestPath = path.join(pluginDir, 'plugin.json');
-
-    if (!isDir(pluginDir)) {
-      findings.push(`Plugin "${entry.name}": source directory not found: ${pluginDir}`);
-      continue;
-    }
-    if (!isFile(manifestPath)) {
-      findings.push(`Plugin "${entry.name}": plugin.json not found in ${pluginDir}`);
-      continue;
-    }
-
-    const content = readFile(manifestPath);
-    let pluginData = null;
-    try {
-      pluginData = JSON.parse(content);
-    } catch (err) {
-      findings.push(`Plugin "${entry.name}": plugin.json is invalid JSON — ${err.message}`);
-      continue;
-    }
-
-    validPlugins.push({ entry, pluginDir, pluginData, manifestPath });
-  }
-
-  if (findings.length > 0) {
-    return { finding: fail('PD4', 'plugin-source-paths-valid', 'error',
-      'One or more plugin source paths are invalid', findings), plugins: validPlugins };
-  }
-  return { finding: pass('PD4', 'plugin-source-paths-valid',
-    `All ${validPlugins.length} plugin source path(s) resolve to valid plugin.json`), plugins: validPlugins };
-}
-
-function checkPD5(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD5', 'name-consistency', 'PD4 failed — cannot check');
-  const details = [];
-  for (const { entry, pluginData } of plugins) {
-    if (entry.name !== pluginData.name) {
-      details.push(
-        `Plugin entry name "${entry.name}" in marketplace.json does not match ` +
-        `plugin.json name "${pluginData.name}" — this causes "plugin not found" on update`
-      );
-    }
-  }
-  if (details.length > 0) {
-    return fail('PD5', 'name-consistency', 'error',
-      'marketplace.json plugin name(s) do not match plugin.json name(s)', details);
-  }
-  return pass('PD5', 'name-consistency',
-    'marketplace.json plugin names match plugin.json names');
-}
-
-function checkPD6(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD6', 'plugin-required-fields', 'PD4 failed — cannot check');
-  const details = [];
-  for (const { pluginData, manifestPath } of plugins) {
-    // KEEP: display string — do not change to resolveSdlcRoot()
-    const rel = path.relative(process.cwd(), manifestPath);
-    if (!pluginData.name) details.push(`${rel}: missing required field "name"`);
-    if (!pluginData.description) details.push(`${rel}: missing required field "description"`);
-    if (!pluginData.version) details.push(`${rel}: missing required field "version"`);
-  }
-  if (details.length > 0) {
-    return fail('PD6', 'plugin-required-fields', 'error',
-      'One or more plugin.json files are missing required fields', details);
-  }
-  return pass('PD6', 'plugin-required-fields',
-    'All plugin.json files have required fields (name, description, version)');
+  return pass('PD2', 'plugin-required-fields',
+    `${rel} has required field "name" and recommended fields`);
 }
 
 const RE_SEMVER = /^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/;
 
-function checkPD7(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD7', 'semver-format', 'PD4 failed — cannot check');
-  const details = [];
-  for (const { pluginData, manifestPath } of plugins) {
-    // KEEP: display string — do not change to resolveSdlcRoot()
-    const rel = path.relative(process.cwd(), manifestPath);
-    if (pluginData.version && !RE_SEMVER.test(pluginData.version)) {
-      details.push(`${rel}: version "${pluginData.version}" is not valid semver (expected X.Y.Z or X.Y.Z-pre)`);
-    }
+function checkPD3(manifest) {
+  if (!manifest) return skip('PD3', 'semver-format', 'PD1 failed — cannot check');
+  if (!manifest.version) return skip('PD3', 'semver-format', 'version field absent — skipping semver check');
+  if (!RE_SEMVER.test(manifest.version)) {
+    return fail('PD3', 'semver-format', 'error',
+      `plugin.json version "${manifest.version}" is not valid semver (expected X.Y.Z or X.Y.Z-pre)`, []);
   }
-  if (details.length > 0) {
-    return fail('PD7', 'semver-format', 'error',
-      'One or more plugin.json files have invalid semver version', details);
-  }
-  return pass('PD7', 'semver-format', 'All plugin versions are valid semver');
+  return pass('PD3', 'semver-format', `version "${manifest.version}" is valid semver`);
 }
 
-function checkPD8(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD8', 'commands-discoverable', 'PD4 failed — cannot check');
+function checkPD4(projectRoot) {
+  const skillsDir = path.join(projectRoot, 'skills');
+  const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
   const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const cmdDir = path.join(pluginDir, 'commands');
-    const files = listDir(cmdDir).filter(f => f.endsWith('.md'));
-    for (const f of files) {
-      const filePath = path.join(cmdDir, f);
-      const content = readFile(filePath);
-      if (!content) { details.push(`${entry.name}/commands/${f}: cannot read file`); continue; }
-      const rawFm = extractFrontmatter(content);
-      if (!rawFm) {
-        details.push(`${entry.name}/commands/${f}: missing YAML frontmatter (--- delimiters)`);
-        continue;
-      }
-      const fm = parseSimpleYaml(rawFm);
-      if (!fm.description) {
-        details.push(`${entry.name}/commands/${f}: frontmatter missing required "description" field`);
-      }
+  for (const d of skillDirs) {
+    const skillFile = path.join(skillsDir, d, 'SKILL.md');
+    if (!isFile(skillFile)) {
+      details.push(`skills/${d}: SKILL.md is missing`);
+      continue;
     }
+    const content = readFile(skillFile);
+    if (!content) { details.push(`skills/${d}/SKILL.md: cannot read`); continue; }
+    const rawFm = extractFrontmatter(content);
+    if (!rawFm) {
+      details.push(`skills/${d}/SKILL.md: missing YAML frontmatter`);
+      continue;
+    }
+    const fm = parseSimpleYaml(rawFm);
+    if (!fm.name)        details.push(`skills/${d}/SKILL.md: frontmatter missing "name"`);
+    if (!fm.description) details.push(`skills/${d}/SKILL.md: frontmatter missing "description"`);
   }
   if (details.length > 0) {
-    return fail('PD8', 'commands-discoverable', 'error',
-      'One or more command files are missing discoverable frontmatter', details);
-  }
-  return pass('PD8', 'commands-discoverable',
-    'All command files have frontmatter with description');
-}
-
-function checkPD9(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD9', 'command-skill-refs-valid', 'PD4 failed — cannot check');
-  const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const cmdDir   = path.join(pluginDir, 'commands');
-    const skillDir = path.join(pluginDir, 'skills');
-    const files = listDir(cmdDir).filter(f => f.endsWith('.md'));
-    for (const f of files) {
-      const content = readFile(path.join(cmdDir, f));
-      if (!content) continue;
-      const skillRefs = extractSkillRefs(content);
-      for (const skillName of skillRefs) {
-        const skillPath = path.join(skillDir, skillName, 'SKILL.md');
-        if (!isFile(skillPath)) {
-          details.push(
-            `${entry.name}/commands/${f}: references skill "${skillName}" ` +
-            `but skills/${skillName}/SKILL.md does not exist`
-          );
-        }
-      }
-    }
-  }
-  if (details.length > 0) {
-    return fail('PD9', 'command-skill-refs-valid', 'error',
-      'One or more commands reference skills that do not exist', details);
-  }
-  return pass('PD9', 'command-skill-refs-valid',
-    'All command skill references resolve to existing skill directories');
-}
-
-function checkPD10(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD10', 'command-script-refs-valid', 'PD4 failed — cannot check');
-  const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const cmdDir    = path.join(pluginDir, 'commands');
-    const scriptDir = path.join(pluginDir, 'scripts');
-    const files = listDir(cmdDir).filter(f => f.endsWith('.md'));
-    for (const f of files) {
-      const content = readFile(path.join(cmdDir, f));
-      if (!content) continue;
-      const scriptRefs = extractScriptRefs(content);
-      for (const scriptName of scriptRefs) {
-        const scriptPath = path.join(scriptDir, scriptName);
-        if (!isFile(scriptPath)) {
-          details.push(
-            `${entry.name}/commands/${f}: references script "${scriptName}" ` +
-            `but scripts/${scriptName} does not exist`
-          );
-        }
-      }
-    }
-  }
-  if (details.length > 0) {
-    return fail('PD10', 'command-script-refs-valid', 'error',
-      'One or more commands reference scripts that do not exist', details);
-  }
-  return pass('PD10', 'command-script-refs-valid',
-    'All command script references resolve to existing files');
-}
-
-function checkPD11(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD11', 'skills-discoverable', 'PD4 failed — cannot check');
-  const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const skillsDir = path.join(pluginDir, 'skills');
-    const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
-    for (const d of skillDirs) {
-      const skillFile = path.join(skillsDir, d, 'SKILL.md');
-      if (!isFile(skillFile)) {
-        details.push(`${entry.name}/skills/${d}: SKILL.md is missing`);
-        continue;
-      }
-      const content = readFile(skillFile);
-      if (!content) { details.push(`${entry.name}/skills/${d}/SKILL.md: cannot read`); continue; }
-      const rawFm = extractFrontmatter(content);
-      if (!rawFm) {
-        details.push(`${entry.name}/skills/${d}/SKILL.md: missing YAML frontmatter`);
-        continue;
-      }
-      const fm = parseSimpleYaml(rawFm);
-      if (!fm.name)        details.push(`${entry.name}/skills/${d}/SKILL.md: frontmatter missing "name"`);
-      if (!fm.description) details.push(`${entry.name}/skills/${d}/SKILL.md: frontmatter missing "description"`);
-    }
-  }
-  if (details.length > 0) {
-    return fail('PD11', 'skills-discoverable', 'error',
+    return fail('PD4', 'skills-discoverable', 'error',
       'One or more skills are missing SKILL.md or required frontmatter', details);
   }
-  return pass('PD11', 'skills-discoverable',
-    'All skill directories have SKILL.md with name and description');
+  return pass('PD4', 'skills-discoverable',
+    `All ${skillDirs.length} skill(s) have SKILL.md with name and description`);
 }
 
-function checkPD12(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD12', 'skill-supporting-files-exist', 'PD4 failed — cannot check');
+function checkPD5(projectRoot) {
+  const skillsDir = path.join(projectRoot, 'skills');
+  const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
   const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const skillsDir = path.join(pluginDir, 'skills');
-    const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
-    for (const d of skillDirs) {
-      const skillFile = path.join(skillsDir, d, 'SKILL.md');
-      const content = readFile(skillFile);
-      if (!content) continue;
-      const siblingRefs = extractSiblingFileRefs(content);
-      for (const ref of siblingRefs) {
-        // Skip SKILL.md itself (it always exists) and common false-positive patterns
-        if (ref === 'SKILL.md') continue;
-        const siblingPath = path.join(skillsDir, d, ref);
-        if (!isFile(siblingPath)) {
-          details.push(
-            `${entry.name}/skills/${d}/SKILL.md: references \`${ref}\` ` +
-            `but the file does not exist in the skill directory`
-          );
-        }
+  for (const d of skillDirs) {
+    const skillFile = path.join(skillsDir, d, 'SKILL.md');
+    const content = readFile(skillFile);
+    if (!content) continue;
+    const siblingRefs = extractSiblingFileRefs(content);
+    for (const ref of siblingRefs) {
+      if (ref === 'SKILL.md') continue;
+      const siblingPath = path.join(skillsDir, d, ref);
+      if (!isFile(siblingPath)) {
+        details.push(
+          `skills/${d}/SKILL.md: references \`${ref}\` ` +
+          `but the file does not exist in the skill directory`
+        );
       }
     }
   }
   if (details.length > 0) {
-    return fail('PD12', 'skill-supporting-files-exist', 'error',
+    return fail('PD5', 'skill-supporting-files-exist', 'error',
       'One or more skills reference supporting files that do not exist', details);
   }
-  return pass('PD12', 'skill-supporting-files-exist',
+  return pass('PD5', 'skill-supporting-files-exist',
     'All sibling file references in SKILL.md files resolve to existing files');
 }
 
-function checkPD13(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD13', 'skill-agent-refs-valid', 'PD4 failed — cannot check');
+function checkPD6(projectRoot) {
+  const skillsDir = path.join(projectRoot, 'skills');
+  const agentsDir = path.join(projectRoot, 'agents');
+  const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
   const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const skillsDir = path.join(pluginDir, 'skills');
-    const agentsDir = path.join(pluginDir, 'agents');
-    const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
-    for (const d of skillDirs) {
-      const content = readFile(path.join(skillsDir, d, 'SKILL.md'));
-      if (!content) continue;
-      const agentRefs = extractAgentRefs(content);
-      for (const agentName of agentRefs) {
-        const agentPath = path.join(agentsDir, `${agentName}.md`);
-        if (!isFile(agentPath)) {
-          details.push(
-            `${entry.name}/skills/${d}/SKILL.md: references agent "${agentName}" ` +
-            `but agents/${agentName}.md does not exist`
-          );
-        }
+  for (const d of skillDirs) {
+    const content = readFile(path.join(skillsDir, d, 'SKILL.md'));
+    if (!content) continue;
+    const agentRefs = extractAgentRefs(content);
+    for (const agentName of agentRefs) {
+      const agentPath = path.join(agentsDir, `${agentName}.md`);
+      if (!isFile(agentPath)) {
+        details.push(
+          `skills/${d}/SKILL.md: references agent "${agentName}" ` +
+          `but agents/${agentName}.md does not exist`
+        );
       }
     }
   }
   if (details.length > 0) {
-    return fail('PD13', 'skill-agent-refs-valid', 'error',
+    return fail('PD6', 'skill-agent-refs-valid', 'error',
       'One or more skills reference agents that do not exist', details);
   }
-  return pass('PD13', 'skill-agent-refs-valid',
+  return pass('PD6', 'skill-agent-refs-valid',
     'All agent references in skills resolve to existing agent files');
 }
 
-function checkPD14(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD14', 'skill-script-refs-valid', 'PD4 failed — cannot check');
+function checkPD7(projectRoot) {
+  const skillsDir = path.join(projectRoot, 'skills');
+  const scriptDir = path.join(projectRoot, 'scripts');
+  const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
   const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const skillsDir = path.join(pluginDir, 'skills');
-    const scriptDir = path.join(pluginDir, 'scripts');
-    const skillDirs = listDir(skillsDir).filter(d => isDir(path.join(skillsDir, d)));
-    for (const d of skillDirs) {
-      const content = readFile(path.join(skillsDir, d, 'SKILL.md'));
-      if (!content) continue;
-      const scriptRefs = extractScriptRefs(content);
-      for (const scriptName of scriptRefs) {
-        const scriptPath = path.join(scriptDir, scriptName);
-        if (!isFile(scriptPath)) {
-          details.push(
-            `${entry.name}/skills/${d}/SKILL.md: references script "${scriptName}" ` +
-            `but scripts/${scriptName} does not exist`
-          );
-        }
+  for (const d of skillDirs) {
+    const content = readFile(path.join(skillsDir, d, 'SKILL.md'));
+    if (!content) continue;
+    const scriptRefs = extractScriptRefs(content);
+    for (const scriptName of scriptRefs) {
+      const scriptPath = path.join(scriptDir, scriptName);
+      if (!isFile(scriptPath)) {
+        details.push(
+          `skills/${d}/SKILL.md: references script "${scriptName}" ` +
+          `but scripts/${scriptName} does not exist`
+        );
       }
     }
   }
   if (details.length > 0) {
-    return fail('PD14', 'skill-script-refs-valid', 'warning',
+    return fail('PD7', 'skill-script-refs-valid', 'warning',
       'One or more skills reference scripts that do not exist', details);
   }
-  return pass('PD14', 'skill-script-refs-valid',
+  return pass('PD7', 'skill-script-refs-valid',
     'All script references in skills resolve to existing files');
 }
 
-function checkPD15(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD15', 'hooks-valid-json', 'PD4 failed — cannot check');
-  const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const hooksPath = path.join(pluginDir, 'hooks', 'hooks.json');
-    if (!isFile(hooksPath)) {
-      details.push(`${entry.name}/hooks/hooks.json: file not found`);
-      continue;
-    }
-    const content = readFile(hooksPath);
-    if (!content) { details.push(`${entry.name}/hooks/hooks.json: cannot read`); continue; }
-    try {
-      JSON.parse(content);
-    } catch (err) {
-      details.push(`${entry.name}/hooks/hooks.json: invalid JSON — ${err.message}`);
-    }
+function checkPD8(projectRoot) {
+  // Accept both plugin-root hooks.json (Antigravity spec) and hooks/hooks.json (liftcd convention)
+  const hooksRoot  = path.join(projectRoot, 'hooks.json');
+  const hooksSubdir = path.join(projectRoot, 'hooks', 'hooks.json');
+  const hooksPath  = isFile(hooksRoot) ? hooksRoot : isFile(hooksSubdir) ? hooksSubdir : null;
+
+  if (!hooksPath) {
+    return fail('PD8', 'hooks-valid-json', 'error',
+      'hooks.json not found', [`Expected at: ${hooksRoot} or ${hooksSubdir}`]);
   }
-  if (details.length > 0) {
-    return fail('PD15', 'hooks-valid-json', 'error',
-      'One or more hooks.json files are missing or invalid', details);
+  const content = readFile(hooksPath);
+  if (!content) {
+    return fail('PD8', 'hooks-valid-json', 'error', `${hooksPath}: cannot read`, []);
   }
-  return pass('PD15', 'hooks-valid-json', 'All hooks.json files exist and are valid JSON');
+  try {
+    JSON.parse(content);
+  } catch (err) {
+    return fail('PD8', 'hooks-valid-json', 'error',
+      `${hooksPath}: invalid JSON — ${err.message}`, []);
+  }
+  return pass('PD8', 'hooks-valid-json', `${path.relative(projectRoot, hooksPath)} exists and is valid JSON`);
 }
 
-function checkPD16(plugins) {
-  if (!plugins || plugins.length === 0) return skip('PD16', 'agents-discoverable', 'PD4 failed — cannot check');
+function checkPD9(projectRoot) {
+  const agentsDir = path.join(projectRoot, 'agents');
+  const files = listDir(agentsDir).filter(f => f.endsWith('.md'));
   const details = [];
-  for (const { pluginDir, entry } of plugins) {
-    const agentsDir = path.join(pluginDir, 'agents');
-    const files = listDir(agentsDir).filter(f => f.endsWith('.md'));
-    for (const f of files) {
-      const content = readFile(path.join(agentsDir, f));
-      if (!content) { details.push(`${entry.name}/agents/${f}: cannot read`); continue; }
-      const rawFm = extractFrontmatter(content);
-      if (!rawFm) {
-        details.push(`${entry.name}/agents/${f}: missing YAML frontmatter`);
-        continue;
-      }
-      const fm = parseSimpleYaml(rawFm);
-      if (!fm.name)        details.push(`${entry.name}/agents/${f}: frontmatter missing "name"`);
-      if (!fm.description) details.push(`${entry.name}/agents/${f}: frontmatter missing "description"`);
-      if (!fm.tools)       details.push(`${entry.name}/agents/${f}: frontmatter missing "tools"`);
+  for (const f of files) {
+    const content = readFile(path.join(agentsDir, f));
+    if (!content) { details.push(`agents/${f}: cannot read`); continue; }
+    const rawFm = extractFrontmatter(content);
+    if (!rawFm) {
+      details.push(`agents/${f}: missing YAML frontmatter`);
+      continue;
     }
+    const fm = parseSimpleYaml(rawFm);
+    if (!fm.name)        details.push(`agents/${f}: frontmatter missing "name"`);
+    if (!fm.description) details.push(`agents/${f}: frontmatter missing "description"`);
+    if (!fm.tools)       details.push(`agents/${f}: frontmatter missing "tools"`);
   }
   if (details.length > 0) {
-    return fail('PD16', 'agents-discoverable', 'warning',
+    return fail('PD9', 'agents-discoverable', 'warning',
       'One or more agent files are missing required frontmatter', details);
   }
-  return pass('PD16', 'agents-discoverable',
-    'All agent files have frontmatter with name, description, and tools');
+  return pass('PD9', 'agents-discoverable',
+    `All ${files.length} agent file(s) have frontmatter with name, description, and tools`);
 }
 
 // ---------------------------------------------------------------------------
@@ -591,31 +381,21 @@ function checkPD16(plugins) {
 function validateAll(projectRoot) {
   const checks = [];
 
-  // PD1 — marketplace manifest
-  const { finding: pd1, data: marketplace } = checkPD1(projectRoot);
+  // PD1 — plugin manifest
+  const { finding: pd1, data: manifest } = checkPD1(projectRoot);
   checks.push(pd1);
 
-  // PD2-PD3 — marketplace structure (depend on PD1 data)
-  checks.push(checkPD2(marketplace));
-  checks.push(checkPD3(marketplace));
+  // PD2–PD3 — manifest fields (depend on PD1 data)
+  checks.push(checkPD2(projectRoot, manifest));
+  checks.push(checkPD3(manifest));
 
-  // PD4 — plugin source paths (depends on PD1 data)
-  const { finding: pd4, plugins } = checkPD4(projectRoot, marketplace);
-  checks.push(pd4);
-
-  // PD5-PD16 — per-plugin checks (depend on PD4 plugins list)
-  checks.push(checkPD5(plugins));
-  checks.push(checkPD6(plugins));
-  checks.push(checkPD7(plugins));
-  checks.push(checkPD8(plugins));
-  checks.push(checkPD9(plugins));
-  checks.push(checkPD10(plugins));
-  checks.push(checkPD11(plugins));
-  checks.push(checkPD12(plugins));
-  checks.push(checkPD13(plugins));
-  checks.push(checkPD14(plugins));
-  checks.push(checkPD15(plugins));
-  checks.push(checkPD16(plugins));
+  // PD4–PD9 — plugin component checks (all operate on projectRoot directly)
+  checks.push(checkPD4(projectRoot));
+  checks.push(checkPD5(projectRoot));
+  checks.push(checkPD6(projectRoot));
+  checks.push(checkPD7(projectRoot));
+  checks.push(checkPD8(projectRoot));
+  checks.push(checkPD9(projectRoot));
 
   const failed  = checks.filter(c => c.status === 'fail');
   const errors  = failed.filter(c => c.severity === 'error').length;

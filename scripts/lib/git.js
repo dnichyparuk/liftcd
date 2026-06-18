@@ -1,6 +1,6 @@
 /**
  * git.js
- * Shared git and GitHub utilities for sdlc-utilities scripts.
+ * Shared git and GitHub utilities for LiftCD scripts.
  * Zero external dependencies — Node.js built-ins only.
  *
  * Exports (shared — used by review-prepare.js and pr-prepare.js):

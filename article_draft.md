@@ -1,4 +1,4 @@
-# Don't Just Vibe Code with Antigravity - Deliver with LiftCD
+# Don't Just Vibe Code with Antigravity! Deliver with LiftCD - Antigravity SDLC Plugin
 
 There’s a phrase that’s been floating around the developer community lately: **"Vibe Coding."** Popularized by AI luminaries, it describes the magical feeling of writing software by simply telling an AI what you want. You don't wrestle with boilerplate; you just sit back, direct the flow, and watch the system generate logic at the speed of thought. 
 
@@ -12,7 +12,7 @@ When the prototype needs to become a production-ready system, the vibe often com
 
 This is the reality of transitioning to an **Agentic SDLC (Software Development Life Cycle)**—where AI agents autonomously manage the entire lifecycle loop.
 
-Here is how I automated my developer workflow—achieving **zero context-switching** and **drastically reducing manual toil**—using [LiftCD](https://github.com/dnichyparuk/liftcd) (a powerful cross-platform fork of the tools detailed at the [SDLC Marketplace](https://rnagrodzki.github.io/sdlc-marketplace)).
+Here is how I automated my developer workflow—achieving **zero context-switching** and **drastically reducing manual toil**—using [LiftCD](https://github.com/dnichyparuk/liftcd), a Google Antigravity plugin that enforces a structured, agent-driven SDLC.
 
 ---
 
@@ -94,7 +94,7 @@ Before any code is written, a separate `plan-execution-validator` agent critique
 
 ## 3. Autonomous Code Review & Self-Healing
 
-The SDLC plugin doesn't just write code; it scrutinizes it.
+LiftCD doesn't just write code; it scrutinizes it.
 
 ### Under the Hood: The Multi-Dimensional Reviewer
 Instead of using one massive prompt to review your code, the `/review-sdlc` orchestrator dispatches multiple specialized sub-agents in parallel (e.g., one focusing purely on Security, another on Performance). Once they return, the orchestrator runs a rigorous Deduplication and Critique phase—merging conflicting advice and correcting overblown severities—before producing a consolidated, deterministic verdict (e.g., `APPROVED WITH NOTES` or `CHANGES REQUESTED`).
@@ -157,7 +157,7 @@ By transitioning to this automated SDLC workflow, you gain several immediate ben
 
 Vibe coding proved that AI can write syntax. Agentic SDLC proves that AI can deliver software. By automating the connective tissue of the development lifecycle, we elevate the developer's role from a code typist to a system director. The AI handles the boilerplate, the commits, and the reviews, leaving you to focus on the one thing algorithms still can't do: **decide what to build next.**
 
-Ready to step beyond vibe coding? Check out [LiftCD on GitHub](https://github.com/dnichyparuk/liftcd) and explore the core concepts at the [SDLC Marketplace](https://rnagrodzki.github.io/sdlc-marketplace). 
+Ready to step beyond vibe coding? Check out [LiftCD on GitHub](https://github.com/dnichyparuk/liftcd). 
 
 *Try it out, star the repository, and let me know how it changes your workflow!*
 

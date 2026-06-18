@@ -1,6 +1,6 @@
 /**
  * openspec.js
- * Shared OpenSpec detection and validation utilities for sdlc-utilities scripts.
+ * Shared OpenSpec detection and validation utilities for LiftCD scripts.
  * Zero external dependencies — Node.js built-ins only (+ lib/git.js).
  *
  * Exports:

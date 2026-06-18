@@ -14,7 +14,7 @@ const { execSync } = require('child_process');
 const LIB = path.join(__dirname, '..', 'lib');
 
 const { detectVersionFile } = require(path.join(LIB, 'version'));
-const { LEGACY, PROJECT_CONFIG_PATH, LOCAL_CONFIG_PATH, PROJECT_SECTIONS, resolveSdlcRoot } = require(path.join(LIB, 'config'));
+const { PROJECT_CONFIG_PATH, LOCAL_CONFIG_PATH, PROJECT_SECTIONS, resolveSdlcRoot } = require(path.join(LIB, 'config'));
 const { writeOutput } = require(path.join(LIB, 'output'));
 const { SHIP_FIELDS } = require(path.join(LIB, 'ship-fields'));
 const { SETUP_SECTIONS } = require(path.join(LIB, 'setup-sections'));
@@ -113,33 +113,6 @@ function detect(projectRoot) {
   const localPath = path.join(projectRoot, LOCAL_CONFIG_PATH);
   const localExists = fs.existsSync(localPath);
 
-  // Detect v1 ship-section shape (legacy preset/skip keys, or missing
-  // top-level version stamp). Drives needsMigration so `/setup-sdlc` reports
-  // the migration to the user even though readLocalConfig will run it
-  // automatically on next read.
-  let localIsV1 = false;
-  if (localExists) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-      const hasLegacyShipKeys =
-        parsed.ship && (
-          Object.prototype.hasOwnProperty.call(parsed.ship, 'preset') ||
-          Object.prototype.hasOwnProperty.call(parsed.ship, 'skip')
-        );
-      const noVersion = parsed.schemaVersion == null && parsed.version == null;
-      localIsV1 = hasLegacyShipKeys || (noVersion && !!parsed.ship);
-    } catch (_) {
-      // unreadable JSON — leave localIsV1 false; downstream tooling handles errors
-    }
-  }
-
-  // --- Legacy files ---
-  const legacyVersionPath = path.join(projectRoot, LEGACY.version);
-  const legacyShipPath = path.join(projectRoot, LEGACY.ship);
-  const legacyJiraPath = path.join(projectRoot, LEGACY.jira);
-  const legacyReviewSdlcPath = path.join(projectRoot, LEGACY.reviewSdlc);
-  const legacyReviewAntigravityPath = path.join(projectRoot, LEGACY.reviewAntigravity);
-
   // --- Content files ---
   const reviewDimensionsDir = path.join(projectRoot, '.sdlc', 'review-dimensions');
   // Issue #260: scaffold target is now .sdlc/pr-template.md (canonical).
@@ -155,7 +128,7 @@ function detect(projectRoot) {
   if (openspecConfigExists) {
     try {
       const configContent = fs.readFileSync(openspecConfigPath, 'utf8');
-      const beginMatch = /^# BEGIN MANAGED BY sdlc-utilities \(v(\d+)\)$/m.exec(configContent);
+      const beginMatch = /^# BEGIN MANAGED BY liftcd \(v(\d+)\)$/m.exec(configContent);
       if (beginMatch) {
         openspecManagedBlockVersion = parseInt(beginMatch[1], 10);
       }
@@ -202,18 +175,6 @@ function detect(projectRoot) {
       exists: localExists,
       path: LOCAL_CONFIG_PATH,
     },
-    legacy: {
-      version: { exists: fs.existsSync(legacyVersionPath), path: LEGACY.version },
-      ship:    { exists: fs.existsSync(legacyShipPath),    path: LEGACY.ship    },
-      review:  { exists: fs.existsSync(legacyReviewSdlcPath),   path: LEGACY.reviewSdlc   },
-      reviewLegacy: { exists: fs.existsSync(legacyReviewAntigravityPath), path: LEGACY.reviewAntigravity },
-      jira:    { exists: fs.existsSync(legacyJiraPath),    path: LEGACY.jira    },
-      // R-LEGACY-DETECT (#423): detect legacy jira-templates dir for migration reporting.
-      jiraTemplates: {
-        exists: fs.existsSync(path.join(projectRoot, '.sdlc', 'jira-templates')),
-        path: path.join('.sdlc', 'jira-templates') + path.sep,
-      },
-    },
     content: {
       reviewDimensions: {
         count: countFiles(reviewDimensionsDir, '.md'),
@@ -259,7 +220,6 @@ function detect(projectRoot) {
     for (const entry of scaffoldCi.MANIFEST) {
       const srcPath  = path.join(PLUGIN_ROOT, entry.src);
       const destPath = path.join(projectRoot, entry.dest);
-      const legacyPath = entry.legacyDest ? path.join(projectRoot, entry.legacyDest) : null;
       const destExists   = fs.existsSync(srcPath) && (() => {
         try { fs.readFileSync(srcPath, 'utf8'); return true; } catch (_) { return false; }
       })();
@@ -270,20 +230,14 @@ function detect(projectRoot) {
       } catch (_) { /* source missing */ }
 
       const ciDestExists   = fs.existsSync(destPath);
-      const ciLegacyExists = legacyPath ? fs.existsSync(legacyPath) : false;
       let installedVersion = null;
       let action = 'current';
       try {
         if (ciDestExists) {
           const destContent = fs.readFileSync(destPath, 'utf8');
           installedVersion = scaffoldCi.extractVersion(destContent, entry.versionRegex);
-        } else if (ciLegacyExists) {
-          const legacyContent = fs.readFileSync(legacyPath, 'utf8');
-          installedVersion = scaffoldCi.extractVersion(legacyContent, entry.versionRegex);
         }
-        if (!ciDestExists && ciLegacyExists) {
-          action = 'outdated';
-        } else if (!ciDestExists) {
+        if (!ciDestExists) {
           action = 'missing';
         } else if (currentVersion !== null && installedVersion !== null && installedVersion < currentVersion) {
           action = 'outdated';
@@ -303,11 +257,7 @@ function detect(projectRoot) {
     result.scriptVersions = { files: [], outdatedCount: 0 };
   }
 
-  result.needsMigration =
-    Object.values(result.legacy).some(l => l.exists) ||
-    misplacedSections.length > 0 ||
-    localIsV1;
-  result.localIsV1 = localIsV1;
+  result.needsMigration = misplacedSections.length > 0;
 
   // ---------------------------------------------------------------------------
   // sections[] — joined view of SETUP_SECTIONS × detect() state. Drives the
@@ -359,22 +309,7 @@ function detect(projectRoot) {
 
   // Compute state: 'set' | 'not-set' | 'legacy'
   function computeState(section) {
-    // Legacy detection per section
-    if (section.id === 'version' && result.legacy.version.exists) return 'legacy';
-    if (section.id === 'ship') {
-      if (result.legacy.ship.exists) return 'legacy';
-      if (localIsV1) return 'legacy';
-    }
-    if (section.id === 'review') {
-      if (result.legacy.review.exists || result.legacy.reviewLegacy.exists) return 'legacy';
-      if (localIsV1) return 'legacy';
-    }
-    if (section.id === 'jira' && result.legacy.jira.exists) return 'legacy';
     if (section.id === 'openspec-block') {
-      // Legacy when managed block version is set but below the current plugin-shipped
-      // version (OPENSPEC_ENRICH_VERSION from util/openspec-enrich.js). Keep this
-      // conservative — a false 'set' is safer than a false 'legacy'; the user can
-      // re-run with --force anyway.
       const v = result.openspecConfig.managedBlockVersion;
       if (v != null && v < OPENSPEC_ENRICH_VERSION) return 'legacy';
     }

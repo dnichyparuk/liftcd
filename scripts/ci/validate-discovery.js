@@ -3,14 +3,14 @@
  * validate-discovery.js
  * Validates the plugin discovery and cross-reference chain.
  *
- * Checks that marketplace.json, plugin.json, commands, skills, scripts,
- * hooks, and agents are correctly wired so the plugin works after installation.
+ * Checks that plugin.json, skills, scripts, hooks, and agents are correctly
+ * wired so the plugin works after installation.
  *
  * Usage:
  *   node validate-discovery.js [options]
  *
  * Options:
- *   --project-root <path>   Marketplace repository root (default: cwd)
+ *   --project-root <path>   Plugin root directory (default: cwd)
  *   --json                  JSON output to stdout (default)
  *   --markdown              Formatted markdown report to stdout
  *

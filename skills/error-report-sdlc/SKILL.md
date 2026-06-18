@@ -104,7 +104,7 @@ Use the `Agent` tool with:
   Step 3. Substitute `<cwd>` with the current working directory.
 
 The orchestrator reads the manifest, reads
-`plugins/sdlc-utilities/skills/error-report-sdlc/templates/ToolingError.md`, fills
+`skills/error-report-sdlc/templates/ToolingError.md`, fills
 every `{placeholder}` strictly from manifest fields, removes sections whose
 manifest fields are empty, and returns ONLY a JSON object:
 

@@ -1,12 +1,12 @@
 # Quality Tiers & Workflow Configuration Guide
 
-This guide explains how quality tiers work within the SDLC plugin, the available options for model routing, and how to configure workflows to enforce different quality presets dynamically or via configuration files.
+This guide explains how quality tiers work within LiftCD, the available options for model routing, and how to configure workflows to enforce different quality presets dynamically or via configuration files.
 
 ---
 
 ## 1. What are Quality Tiers?
 
-The SDLC plugin uses a **quality-tier model routing system** to balance execution speed, correctness, and API cost. Instead of using a single global model for every action, orchestrators dispatch sub-agents using models tailored to the complexity and risk of each task.
+LiftCD uses a **quality-tier model routing system** to balance execution speed, correctness, and API cost. Instead of using a single global model for every action, orchestrators dispatch sub-agents using models tailored to the complexity and risk of each task.
 
 Tasks are categorized as:
 - **Trivial / Standard Tasks**: Single-file changes, small edits (< 15 lines), or routine test writing.
@@ -93,10 +93,10 @@ Selecting an option will automatically save it to your local config file.
 
 ## 5. Code & Implementation References
 
-If you are developing the SDLC plugin or updating the model definitions, refer to the following source files:
+If you are developing LiftCD or updating the model definitions, refer to the following source files:
 
-*   **Configuration Schema**: [scripts/lib/ship-fields.js](file:///home/dzmitry/.gemini/config/plugins/sdlc/scripts/lib/ship-fields.js) is the single source of truth defining the `quality` config field schema, option validations, and description text.
-*   **Resolution and Precedence**: [scripts/skill/ship.js](file:///home/dzmitry/.gemini/config/plugins/sdlc/scripts/skill/ship.js#L277-L290) handles merging the config files with any command-line options and passes the resolved flag down.
-*   **Orchestration Logic**: [skills/execute-plan-sdlc/SKILL.md](file:///home/dzmitry/.gemini/config/plugins/sdlc/skills/execute-plan-sdlc/SKILL.md#L247-L283) defines how the executing agent reads the `--quality` flag and dynamically maps tasks to model engines (e.g., `gemini-3.5-flash-low` vs `gemini-3.1-pro-low`).
+*   **Configuration Schema**: [scripts/lib/ship-fields.js](scripts/lib/ship-fields.js) is the single source of truth defining the `quality` config field schema, option validations, and description text.
+*   **Resolution and Precedence**: [scripts/skill/ship.js](scripts/skill/ship.js) handles merging the config files with any command-line options and passes the resolved flag down.
+*   **Orchestration Logic**: [skills/execute-plan-sdlc/SKILL.md](skills/execute-plan-sdlc/SKILL.md) defines how the executing agent reads the `--quality` flag and dynamically maps tasks to model engines (e.g., `gemini-3.5-flash-low` vs `gemini-3.1-pro-low`).
 *   **Architecture & Agent Relations**: For a comprehensive view of how quality tiers integrate across all agent layers, see the [SDLC Plugin Architecture Report](./sdlc-plugin-architecture-report.md).
 

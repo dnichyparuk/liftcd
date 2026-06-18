@@ -41,7 +41,7 @@ Read the manifest JSON from `MANIFEST_FILE`. The manifest contains:
 
 ## Step 1 — Load Template
 
-Read `plugins/sdlc-utilities/skills/error-report-sdlc/templates/ToolingError.md` from `PROJECT_ROOT`. The template uses `{placeholder}` markers — see REFERENCE.md section 4 for the full placeholder-to-source mapping.
+Read `skills/error-report-sdlc/templates/ToolingError.md` from `PROJECT_ROOT`. The template uses `{placeholder}` markers — see REFERENCE.md section 4 for the full placeholder-to-source mapping.
 
 ## Step 2 — Fill the Template
 

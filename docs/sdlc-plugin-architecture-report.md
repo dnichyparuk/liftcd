@@ -6,7 +6,7 @@ This document provides a comprehensive analysis of the architecture, agent struc
 
 ## 1. Architectural Overview
 
-The SDLC plugin is structured as a hierarchical multi-agent system designed to isolate heavy context processing from the main user-facing chat session. It splits responsibilities into four distinct layers:
+LiftCD is structured as a hierarchical multi-agent system designed to isolate heavy context processing from the main user-facing chat session. It splits responsibilities into four distinct layers:
 
 ```mermaid
 graph TD
@@ -33,7 +33,7 @@ Specialized tasks dispatched in parallel by orchestrator agents or orchestrator 
 
 ### Layer 4: CLI Scripts & Libraries
 Programmatic helper scripts (written in Node.js/Bash) invoked by the main skills to serialize git history, calculate token budgets, and track state.
-* **Key Modules:** [state.js](file:///home/dzmitry/.gemini/config/plugins/sdlc/scripts/lib/state.js) for state management and [dispatch-budget.js](file:///home/dzmitry/.gemini/config/plugins/sdlc/scripts/lib/dispatch-budget.js) for context constraints.
+* **Key Modules:** [state.js](scripts/lib/state.js) for state management and [dispatch-budget.js](scripts/lib/dispatch-budget.js) for context constraints.
 
 ---
 
@@ -193,7 +193,7 @@ For agent dispatches, computational reasoning limits are assigned statically via
 
 ## 4. State Persistence, Telemetry, and Resume Patterns
 
-The SDLC plugin operates a **local-only** session tracking system. No telemetry data leaves the developer's computer.
+LiftCD operates a **local-only** session tracking system. No telemetry data leaves the developer's computer.
 
 ### A. State Files
 State files are written atomically (`temp write` + `rename` pattern) in the main worktree directory under `.sdlc/execution/`.
@@ -215,7 +215,7 @@ Since conversation history is regularly compacted by the IDE sandbox to save tok
 
 ## 5. Token Budgets & Fan-Out Sizing
 
-Parallel worker dispatches (such as fanning out 5 plan lanes or multiple review dimensions) are gated by a context-budget calculator in [dispatch-budget.js](file:///home/dzmitry/.gemini/config/plugins/sdlc/scripts/lib/dispatch-budget.js).
+Parallel worker dispatches (such as fanning out 5 plan lanes or multiple review dimensions) are gated by a context-budget calculator in [dispatch-budget.js](scripts/lib/dispatch-budget.js).
 
 1. **Input Budget Allocation:** The engine reserves **75%** of the model's total context window for inputs (e.g., templates, guardrails, diffs, logs), leaving **25%** for reasoning output space.
    * `gemini-3.5-flash` and `gemini-3.1-pro` variants context ceiling: 1M tokens (~3MB) (all models uniformly share the same window)
@@ -234,8 +234,8 @@ Parallel worker dispatches (such as fanning out 5 plan lanes or multiple review 
 ## 6. Key Architecture References
 
 For deeper design decisions, config files, and implementation details:
-* **Telemetry Details:** Refer to [telemetry-and-state-tracking.md](file:///home/dzmitry/.gemini/config/plugins/sdlc/docs/telemetry-and-state-tracking.md)
-* **Model Configurations:** Refer to [model-references.md](file:///home/dzmitry/.gemini/config/plugins/sdlc/docs/model-references.md)
-* **Quality Setup:** Refer to [quality-tiers.md](file:///home/dzmitry/.gemini/config/plugins/sdlc/docs/quality-tiers.md)
-* **Token Budget Calculator:** Code in [dispatch-budget.js](file:///home/dzmitry/.gemini/config/plugins/sdlc/scripts/lib/dispatch-budget.js)
-* **State Manager:** Code in [state.js](file:///home/dzmitry/.gemini/config/plugins/sdlc/scripts/lib/state.js)
+* **Telemetry Details:** Refer to [telemetry-and-state-tracking.md](docs/telemetry-and-state-tracking.md)
+* **Model Configurations:** Refer to [model-references.md](docs/model-references.md)
+* **Quality Setup:** Refer to [quality-tiers.md](docs/quality-tiers.md)
+* **Token Budget Calculator:** Code in [dispatch-budget.js](scripts/lib/dispatch-budget.js)
+* **State Manager:** Code in [state.js](scripts/lib/state.js)

@@ -36,19 +36,6 @@ const { resolveSkipConfigCheck, ensureConfigVersion } = require(path.join(LIB, '
 const { resolveSdlcRoot } = require(path.join(LIB, 'config'));
 
 // ---------------------------------------------------------------------------
-// Auto-migration: .sdlc/jira-templates/ → .sdlc/jira-templates/ (R-MIGR, #423)
-// Runs at most once per process (module-level flag). Errors are non-fatal.
-// ---------------------------------------------------------------------------
-let _migrationRan = false;
-function runAutoMigration() {
-  if (_migrationRan) return;
-  _migrationRan = true;
-  try {
-    require(path.join(__dirname, 'migrate-jira-templates'));
-  } catch (_) { /* non-fatal — missing shim should not break jira ops */ }
-}
-
-// ---------------------------------------------------------------------------
 // Home-cache path helpers
 // ---------------------------------------------------------------------------
 
@@ -101,76 +88,16 @@ function resolveCandidatePaths(projectKey, explicitSite) {
 }
 
 /**
- * Load the `jira` section of project config from `.sdlc/config.json`, falling
- * back to legacy `.sdlc/jira-config.json` if present. Returns `{}` on any
- * failure — callers treat missing/invalid config as "no multi-project setup".
+ * Load the `jira` section of project config from `.sdlc/config.json`.
+ * Returns `{}` on any failure.
  */
 function loadJiraConfig(projectRoot) {
   try {
     const { readSection } = require(path.join(LIB, 'config.js'));
     const section = readSection(projectRoot, 'jira');
     if (section && typeof section === 'object') return section;
-  } catch (_) { /* fall through to legacy */ }
-
-  // Legacy location — retained for migration scenarios.
-  const legacy = path.join(projectRoot, '.sdlc', 'jira-config.json');
-  if (fs.existsSync(legacy)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(legacy, 'utf8'));
-      if (parsed && typeof parsed === 'object') return parsed;
-    } catch (_) { /* ignore */ }
-  }
+  } catch (_) { /* ignore */ }
   return {};
-}
-
-/**
- * Legacy cache probe: check `.sdlc/jira-cache/<KEY>.json` (newer deprecation
- * path) then `.sdlc/jira-cache/<KEY>.json` (older deprecation path).
- * Returns `{ path, source } | null`.
- */
-function findLegacyCache(projectKey, projectRoot) {
-  const candidates = [
-    { path: path.join(projectRoot, '.sdlc', 'jira-cache', `${projectKey}.json`), source: '.sdlc/jira-cache' },
-    { path: path.join(projectRoot, '.sdlc', 'jira-cache', `${projectKey}.json`), source: '.sdlc/jira-cache' },
-  ];
-  for (const c of candidates) {
-    if (fs.existsSync(c.path)) return c;
-  }
-  return null;
-}
-
-/**
- * Migrate a legacy cache file into the home-cache layout using the `siteUrl`
- * embedded in the file. The legacy file is left in place for the user to
- * clean up; the migration is idempotent because subsequent calls find the
- * home cache first.
- *
- * Returns `{ migrated: true, path, site, warning }` on success, or
- * `{ migrated: false, warning }` when siteUrl is missing.
- */
-function migrateLegacyCache(legacy, projectKey) {
-  let cache;
-  try {
-    cache = JSON.parse(fs.readFileSync(legacy.path, 'utf8'));
-  } catch (err) {
-    return { migrated: false, warning: `Legacy cache at ${legacy.path} is not valid JSON: ${err.message}` };
-  }
-  const site = sanitizeSiteHost(cache.siteUrl);
-  if (!site) {
-    return { migrated: false, warning: `Legacy cache at ${legacy.path} has no siteUrl; cannot migrate automatically. Run --force-refresh to rebuild.` };
-  }
-  const destDir  = path.join(getHomeCacheRoot(), site);
-  const destPath = path.join(destDir, `${projectKey}.json`);
-  if (!fs.existsSync(destPath)) {
-    fs.mkdirSync(destDir, { recursive: true });
-    fs.copyFileSync(legacy.path, destPath);
-  }
-  return {
-    migrated: true,
-    path:     destPath,
-    site,
-    warning:  `Migrated legacy cache from ${legacy.source}/${projectKey}.json to ~/.sdlc-cache/jira/${site}/${projectKey}.json (legacy file preserved; delete manually when confident).`,
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -317,7 +244,7 @@ function resolveTemplatesDir(overridePath) {
   const installs = findPluginInstalls();
   if (installs.length > 0) return installs[0];
 
-  return path.join(process.cwd(), 'plugins', 'sdlc-utilities', 'skills', 'jira-sdlc', 'templates');
+  return path.join(process.cwd(), 'plugins', 'liftcd', 'skills', 'jira-sdlc', 'templates');
 }
 
 // ---------------------------------------------------------------------------
@@ -356,8 +283,6 @@ function resolveTemplateStatus(projectKey, cachePath, templatesDir) {
     } catch (_) { /* ignore parse errors */ }
   }
 
-  // R-MIGR (#423): auto-migrate .sdlc/jira-templates/ → .sdlc/jira-templates/ once per process.
-  runAutoMigration();
   // R-projectroot: main-worktree-rooted resolution (#360).
   const customDir = path.join(resolveSdlcRoot(), '.sdlc', 'jira-templates');
 
@@ -443,17 +368,6 @@ function resolveEffectiveCachePath({ projectKey, cacheDir, site }) {
     const sites = matches.map(m => m.site);
     warnings.push(`Cache key '${projectKey}' exists under multiple sites: ${sites.join(', ')}. Pass --site <host> to disambiguate.`);
     return { path: null, warnings, candidateSites: sites };
-  }
-
-  // No home matches — probe legacy
-  const legacy = findLegacyCache(projectKey, process.cwd());
-  if (legacy) {
-    const result = migrateLegacyCache(legacy, projectKey);
-    warnings.push(result.warning);
-    if (result.migrated) {
-      return { path: result.path, warnings, candidateSites: [] };
-    }
-    // Migration failed (no siteUrl) — treat as fresh install.
   }
 
   return { path: null, warnings, candidateSites: [] };
@@ -786,8 +700,6 @@ function initTemplates({ projectKey, cacheDir, site }, templatesDir) {
     } catch (_) { /* ignore */ }
   }
 
-  // R-MIGR (#423): auto-migrate .sdlc/jira-templates/ → .sdlc/jira-templates/ once per process.
-  runAutoMigration();
   // R-projectroot: main-worktree-rooted resolution (#360).
   const customDir    = path.join(resolveSdlcRoot(), '.sdlc', 'jira-templates');
   const initialized  = [];
@@ -847,8 +759,6 @@ function copyTemplate(copyType, copyFrom, templatesDir) {
     return;
   }
 
-  // R-MIGR (#423): auto-migrate .sdlc/jira-templates/ → .sdlc/jira-templates/ once per process.
-  runAutoMigration();
   // R-projectroot: main-worktree-rooted resolution (#360).
   const dst = path.join(resolveSdlcRoot(), '.sdlc', 'jira-templates', copyType + '.md');
   fs.mkdirSync(path.dirname(dst), { recursive: true });
@@ -1000,8 +910,6 @@ module.exports = {
   sanitizeSiteHost,
   resolveCandidatePaths,
   loadJiraConfig,
-  findLegacyCache,
-  migrateLegacyCache,
   resolveEffectiveCachePath,
   validateProjectMembership,
   resolveTemplatesDir,

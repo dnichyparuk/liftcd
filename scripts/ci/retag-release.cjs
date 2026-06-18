@@ -10,7 +10,7 @@
  * Usage (GitHub Actions — runs on push to main):
  *   node .github/scripts/retag-release.cjs
  *
- * Reads: .antigravity/version.json  (sdlc versioning config)
+ * Reads: .sdlc/config.json  (sdlc versioning config)
  * Modes:
  *   "file" — version read from a version file (package.json, plugin.json, etc.)
  *   "tag"  — version derived from the latest git tag (no version file)
@@ -51,13 +51,10 @@ function execOrThrow(cmd, opts = {}) {
 // ---------------------------------------------------------------------------
 
 /**
- * Read the version section from .sdlc/config.json, falling back to legacy
- * .antigravity/antigravity.json (with stderr deprecation warning), and finally to legacy
- * .antigravity/version.json. CI scripts run in read-only context — they never
- * call verifyAndMigrate (issue #232).
+ * Read the version section from .sdlc/config.json.
+ * CI scripts run in read-only context — they never call verifyAndMigrate.
  */
 function readVersionConfig(repoRoot) {
-  // Primary: .sdlc/config.json → .version (issue #231)
   const newPath = path.join(repoRoot, '.sdlc', 'config.json');
   if (fs.existsSync(newPath)) {
     try {
@@ -65,30 +62,6 @@ function readVersionConfig(repoRoot) {
       return config.version || null;
     } catch (err) {
       process.stderr.write(`Error parsing .sdlc/config.json: ${err.message}\n`);
-      process.exit(1);
-    }
-  }
-
-  // Fallback: legacy .antigravity/antigravity.json
-  const legacyUnifiedPath = path.join(repoRoot, '.antigravity', 'antigravity.json');
-  if (fs.existsSync(legacyUnifiedPath)) {
-    process.stderr.write(`Deprecation: .antigravity/antigravity.json is the legacy project-config path. Run /setup-sdlc --migrate to relocate.\n`);
-    try {
-      const config = JSON.parse(fs.readFileSync(legacyUnifiedPath, 'utf8'));
-      return config.version || null;
-    } catch (err) {
-      process.stderr.write(`Error parsing .antigravity/antigravity.json: ${err.message}\n`);
-      process.exit(1);
-    }
-  }
-
-  // Legacy fallback: .antigravity/version.json
-  const legacyPath = path.join(repoRoot, '.antigravity', 'version.json');
-  if (fs.existsSync(legacyPath)) {
-    try {
-      return JSON.parse(fs.readFileSync(legacyPath, 'utf8'));
-    } catch (err) {
-      process.stderr.write(`Error parsing .antigravity/version.json: ${err.message}\n`);
       process.exit(1);
     }
   }
@@ -227,7 +200,7 @@ function main() {
 
   const config = readVersionConfig(repoRoot);
   if (!config) {
-    console.log('No .antigravity/version.json found. Skipping retag.');
+    console.log('No version config found in .sdlc/config.json. Skipping retag.');
     process.exit(0);
   }
 

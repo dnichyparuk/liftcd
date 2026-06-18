@@ -18,5 +18,5 @@ mcp-failure[{CLASS}]: {TOOL} on {SITE}
 {CLASS}-class failure on `{TOOL}`: see classification rules in `scripts/lib/mcp-failure.js`.
 
 ## Relevant references
-- SKILL.md callsite: search for `{R_PATH}` in `plugins/sdlc-utilities/skills/jira-sdlc/SKILL.md`
+- SKILL.md callsite: search for `{R_PATH}` in `skills/jira-sdlc/SKILL.md`
 - Spec requirement: see `R26`/`R28` in `docs/specs/jira-sdlc.md`

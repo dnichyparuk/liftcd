@@ -29,7 +29,7 @@ const { extractFrontmatter, parseSimpleYaml } = require('./dimensions');
  * @returns {string} absolute resolved path, or '' on failure
  */
 function resolveSibling(callerDirname, segments, errors, surfaceLabel) {
-  // Resolve sibling path: callerDirname is lib/, so ../../ reaches sdlc-utilities/ plugin root.
+  // Resolve sibling path: callerDirname is lib/, so ../../ reaches the plugin root.
   // segments are relative to the plugin root (e.g. ['skills', 'error-report-sdlc', 'REFERENCE.md']).
   const resolved = path.join(callerDirname, '..', '..', ...segments);
   if (fs.existsSync(resolved)) return path.resolve(resolved);

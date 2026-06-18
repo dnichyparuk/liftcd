@@ -176,7 +176,7 @@ function main() {
 
   // 1b. Ensure managed block in project-root .gitignore (issue #209 — defence
   // in depth against transient skill artifacts leaking into VCS). Project-
-  // agnostic: works in any consumer repo, not only sdlc-marketplace.
+  // agnostic: works in any consumer repo.
   const rootGitignoreAction = ensureRootGitignore(projectRoot);
 
   // 2. Write project config (.sdlc/config.json) if sections provided
