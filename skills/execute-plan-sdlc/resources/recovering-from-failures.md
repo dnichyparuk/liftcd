@@ -39,13 +39,16 @@ Max 1 retry. If it fails again, escalate.
 
 ### Model escalation on retry
 
-When re-dispatching a failed task, escalate the model's reasoning budget / capability up the chain:
+When re-dispatching a failed task, escalate the model one step up the fixed ladder per retry:
 
 ```
-[base-model] → [base-model]-high (Retry 1) → gemini-3.1-pro-low → gemini-3.1-pro-high → user (escalate, do not retry further)
+gemini-3.5-flash-low → gemini-3.5-flash-medium → gemini-3.5-flash-high → gemini-3.1-pro-low → gemini-3.1-pro-high → user (escalate, do not retry further)
 ```
+
+The starting point is the task's `assignedModel`; each retry advances exactly one position along this ladder.
 
 Examples:
+- If a task starts on `gemini-3.5-flash-low`, it escalates to `gemini-3.5-flash-medium` (Retry 1), and then to `gemini-3.5-flash-high` (Retry 2).
 - If a task starts on `gemini-3.5-flash-medium`, it escalates to `gemini-3.5-flash-high` (Retry 1), and then to `gemini-3.1-pro-low` (Retry 2).
 - If a task starts on `gemini-3.5-flash-high`, it escalates to `gemini-3.1-pro-low` (Retry 1), and then to `gemini-3.1-pro-high` (Retry 2).
 - If a task starts on `gemini-3.1-pro-low`, it escalates to `gemini-3.1-pro-high` (Retry 1), and then to `gemini-3.1-pro-high` with failure context (Retry 2).
@@ -150,7 +153,7 @@ When an agent reports successful completion but `git diff --stat` shows no chang
 
    Complete the task from scratch — assume none of your previous work exists.
    ```
-    Escalate model one step per the dynamic escalation path (e.g. `[base-model] → [base-model]-high → gemini-3.1-pro-low → gemini-3.1-pro-high`) and pass `mode: "bypassPermissions"` explicitly. This counts toward the 2-retry budget.
+    Escalate model one step per the dynamic escalation path (`gemini-3.5-flash-low → gemini-3.5-flash-medium → gemini-3.5-flash-high → gemini-3.1-pro-low → gemini-3.1-pro-high`) and pass `mode: "bypassPermissions"` explicitly. This counts toward the 2-retry budget.
 
 4. **After the retry, re-run filesystem verification.** Run `git diff --stat` and grep for the verification token. If still no changes, escalate to the user immediately — do not retry a third time. Include: "Agent reported success twice but produced no filesystem changes. Manual implementation required."
 
