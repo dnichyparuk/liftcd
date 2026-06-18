@@ -1,5 +1,7 @@
 # LiftCD — Antigravity Agentic SDLC Plugin
 
+> 🚀 **Native SDLC pipeline for Antigravity agents** — plan, commit, review, PR, ship, all from chat. Take work from issue to shipped release without leaving your editor.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 LiftCD is a comprehensive suite of skills and commands for Software Development Lifecycle (SDLC) workflows — planning, execution, commits, code review, pull requests, CI verification, and releases — that run natively inside Google Antigravity. It is an Antigravity-native, cross-platform (POSIX and Windows) rewrite inspired by [`rnagrodzki/sdlc-marketplace`](https://github.com/rnagrodzki/sdlc-marketplace), rebuilt as a flat, single plugin for the Antigravity platform.
