@@ -156,10 +156,10 @@ These agents have no file in `agents/` and are dispatched as `general-purpose` u
 
 | Agent | Parent | Model | Role |
 |---|---|---|---|
-| **wave-runner** | `execute-plan-sdlc` (Step 5b) | flash-low (locked) | Executes one wave: fans out per-task coding agents in parallel, handles per-task retries with model escalation, and emits a bounded `WAVE_SUMMARY` token. |
-| **per-task coding agent** | wave-runner | Single trivial: flash-medium · Batch of 2+ trivials: flash-medium · Standard: flash-high · Complex: pro-low *(balanced tier)* | Implements a single plan task: reads its fact sheet, writes files, runs verification, and returns a structured completion token. |
-| **dimension sub-agent** | `review-orchestrator` | Per-dimension override, default: flash-medium | Reviews the diff for one code review dimension and returns a structured findings list. |
-| **discovery sub-agent** | `plan-explore-orchestrator` | flash-low / flash-medium / pro-low (per dimension) | Explores code or web sources for one planning dimension and returns `F-<DIM>-<n>` tagged findings. |
+| **Plan execution orchestrator** | `execute-plan-sdlc` (Step 5b) | flash-low (locked) | Executes one wave: fans out per-task coding agents in parallel, handles per-task retries with model escalation, and emits a bounded `WAVE_SUMMARY` token. |
+| **Per-task coding agent** | `wave-runner` | flash (low/mid/high) / pro-low *(depends on complexity, retries and tier)* | Implements a single plan task: reads its fact sheet, writes files, runs verification, and returns a structured completion token. |
+| **Review sub-agent** | `review-orchestrator` | Per-dimension override, default: flash-medium | Reviews the diff for one code review dimension and returns a structured findings list. |
+| **Discovery sub-agent** | `plan-explore-orchestrator` | flash-low / flash-medium / pro-low (per dimension) | Explores code or web sources for one planning dimension and returns `F-<DIM>-<n>` tagged findings. |
 
 > **Model escalation (coding agents):** On failure, the wave-runner escalates the task's model one tier per retry, up to 2 retries: `flash-medium → flash-high → pro-low`, `flash-high → pro-low → pro-high`, `pro-low → pro-high → pro-high + context`.
 
