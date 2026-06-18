@@ -142,24 +142,24 @@ These agents are defined in `agents/*.md` and dispatched via `sdlc:<name>`. They
 
 | Agent | Dispatched by | Model | Role |
 |---|---|---|---|
-| `plan-explore-orchestrator` | `/plan-sdlc` | flash-low | Derives 3–7 task-specific discovery dimensions and fans out parallel code/web/hybrid sub-agents to produce `discovery-brief.md`. |
-| `plan-generation-orchestrator` | `/plan-sdlc` | pro-high | Receives the exploration brief and writes the structured `implementation_plan.md` file. |
-| `plan-execution-validator` | `/execute-plan-sdlc` | pro-low | Validates plan integrity (circular deps, vague deliverables) and wave structure (file conflicts, risk clustering). Called twice per execution run. |
-| `commit-orchestrator` | `/commit-sdlc` | flash-low | Reads the staged diff and commit history from a prepared manifest and returns a single, self-critiqued commit message string. |
-| `review-orchestrator` | `/review-sdlc` | flash-low | Reads the review manifest, dispatches dimension sub-agents in parallel, deduplicates and critiques findings, and persists `review-comment.md`. |
-| `harden-orchestrator` | `/harden-sdlc` | flash-low | Classifies a pipeline failure as `user-code`, `plugin-defect`, or `ambiguous`, then emits strengthen-only hardening proposals as JSON. |
-| `error-report-orchestrator` | `/error-report-sdlc` | flash-low | Fills the `ToolingError.md` issue template from a prepared manifest and returns `{title, body}` JSON for posting to the plugin tracker. |
+| **Plan explore orchestrator** | `/plan-sdlc` | flash-low | Derives 3–7 task-specific discovery dimensions and fans out parallel code/web/hybrid sub-agents to produce `discovery-brief.md`. |
+| **Plan generation orchestrator** | `/plan-sdlc` | pro-high | Receives the exploration brief and writes the structured `implementation_plan.md` file. |
+| **Plan execution validator** | `/execute-plan-sdlc` | pro-low | Validates plan integrity (circular deps, vague deliverables) and wave structure (file conflicts, risk clustering). Called twice per execution run. |
+| **Commit orchestrator** | `/commit-sdlc` | flash-low | Reads the staged diff and commit history from a prepared manifest and returns a single, self-critiqued commit message string. |
+| **Review orchestrator** | `/review-sdlc` | flash-low | Reads the review manifest, dispatches dimension sub-agents in parallel, deduplicates and critiques findings, and persists `review-comment.md`. |
+| **Harden orchestrator** | `/harden-sdlc` | flash-low | Classifies a pipeline failure as `user-code`, `plugin-defect`, or `ambiguous`, then emits strengthen-only hardening proposals as JSON. |
+| **Error report orchestrator** | `/error-report-sdlc` | flash-low | Fills the `ToolingError.md` issue template from a prepared manifest and returns `{title, body}` JSON for posting to the plugin tracker. |
 
 ### Ad-hoc Agents (prompt-template driven)
 
 These agents have no file in `agents/` and are dispatched as `general-purpose` using inline prompt templates. They are implementation details of their parent agents.
 
-| Agent | Parent | Model | Role |
-|---|---|---|---|
-| **Plan execution orchestrator** | `execute-plan-sdlc` (Step 5b) | flash-low (locked) | Executes one wave: fans out per-task coding agents in parallel, handles per-task retries with model escalation, and emits a bounded `WAVE_SUMMARY` token. |
-| **Per-task coding agent** | `wave-runner` | flash (low/mid/high) / pro-low *(depends on complexity, retries and tier)* | Implements a single plan task: reads its fact sheet, writes files, runs verification, and returns a structured completion token. |
-| **Review sub-agent** | `review-orchestrator` | Per-dimension override, default: flash-medium | Reviews the diff for one code review dimension and returns a structured findings list. |
-| **Discovery sub-agent** | `plan-explore-orchestrator` | flash-low / flash-medium / pro-low (per dimension) | Explores code or web sources for one planning dimension and returns `F-<DIM>-<n>` tagged findings. |
+| Agent | Model | Role |
+|---|---|---|
+| **Plan execution orchestrator** | flash-low (locked) | Executes one wave: fans out per-task coding agents in parallel, handles per-task retries with model escalation, and emits a bounded `WAVE_SUMMARY` token. |
+| **Per-task coding agent** | flash (low/mid/high) / pro-low *(depends on complexity, retries and tier)* | Implements a single plan task: reads its fact sheet, writes files, runs verification, and returns a structured completion token. |
+| **Review sub-agent** | Per-dimension override, default: flash-medium | Reviews the diff for one code review dimension and returns a structured findings list. |
+| **Discovery sub-agent** | flash-low / flash-medium / pro-low (per dimension) | Explores code or web sources for one planning dimension and returns `F-<DIM>-<n>` tagged findings. |
 
 > **Model escalation (coding agents):** On failure, the wave-runner escalates the task's model one tier per retry, up to 2 retries: `flash-medium → flash-high → pro-low`, `flash-high → pro-low → pro-high`, `pro-low → pro-high → pro-high + context`.
 
