@@ -1,6 +1,6 @@
 # OS generated files
 .DS_Store
-
+.local/
 analysis/
 
 # SDLC runtime cache and logs
