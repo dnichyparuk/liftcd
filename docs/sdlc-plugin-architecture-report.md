@@ -1,6 +1,6 @@
 # SDLC Plugin Architecture & Agents Relation Report
 
-This document provides a comprehensive analysis of the architecture, agent structure, inter-component relations, and model routing strategy within the Antigravity Agentic SDLC Plugin.
+This document provides a comprehensive analysis of the architecture, agent structure, inter-component relations, and model routing strategy within LiftCD.
 
 ---
 

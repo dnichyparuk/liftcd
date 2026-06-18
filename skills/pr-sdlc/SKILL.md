@@ -576,7 +576,7 @@ When invoking `error-report-sdlc`, provide:
   deprecated fallback `.sdlc/pr-template.md`)
   exists before defaulting to the 8-section template. If the file exists, read it directly and
   use it as the template, then warn the user that the installed plugin may be out of date and
-  suggest re-installing (`/plugin install sdlc@sdlc-marketplace`).
+  suggest re-installing.
 
 - **Multiple GitHub accounts — auto-recovery covers most mismatches**: Pre-flight, the skill
   matches the active `gh` account against the remote repo owner (via `ensureGhAccount`).

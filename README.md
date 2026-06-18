@@ -1,6 +1,12 @@
-# Antigravity Agentic SDLC Plugin
+# LiftCD - Antigravity Agentic SDLC Plugin
 
-This plugin provides a comprehensive suite of skills and commands for Software Development Lifecycle (SDLC) workflows (pull requests, code reviews, releases) within Google Antigravity. It is a cross-platform port (POSIX and Windows) of the Antigravity Code SDLC plugin built on the basis of https://github.com/dnichyparuk/antigravity-sdlc.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#)
+
+This plugin provides a comprehensive suite of skills and commands for Software Development Lifecycle (SDLC) workflows (pull requests, code reviews, releases) within Google Antigravity. It is a cross-platform port (POSIX and Windows) of the Antigravity Code SDLC plugin built on the basis of https://github.com/dnichyparuk/liftcd.
+
+## ⚡ The Origin & Architecture
+
+LiftCD began as a hard fork of [`rnagrodzki/sdlc-marketplace`](https://rnagrodzki.github.io/sdlc-marketplace), but its aim is to fill the corresponding gap in Antigravity ecosystem.
 
 ## Quick Start
 
@@ -49,7 +55,7 @@ You can install this plugin either globally for all workspaces, or locally for a
 To make the plugin available in all your Antigravity workspaces, clone this repository into your global Antigravity plugins directory:
 
 ```bash
-git clone https://github.com/dnichyparuk/antigravity-sdlc.git ~/.gemini/config/plugins/sdlc
+git clone https://github.com/dnichyparuk/liftcd.git ~/.gemini/config/plugins/sdlc
 ```
 
 ### Workspace Installation
@@ -58,7 +64,7 @@ To install the plugin only for a specific workspace, navigate to the root of you
 
 ```bash
 mkdir -p .agents/plugins
-git clone https://github.com/dnichyparuk/antigravity-sdlc.git .agents/plugins/sdlc
+git clone https://github.com/dnichyparuk/liftcd.git .agents/plugins/sdlc
 ```
 
 ## Configuration
