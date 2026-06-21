@@ -86,7 +86,7 @@ Note: this reads `execute.guardrails` (runtime enforcement), not `plan.guardrail
   1. Find the most recent state file for the current branch in `<main-worktree>/.sdlc/execution/`. If none found, warn: "No state file found for branch `<branch>`. Starting fresh." and proceed to plan loading below.
   2. Read `./resources/state-format.md` for the schema reference.
   3. Read the state file using `node "$STATE_SCRIPT" read` (locate `state/execute.js` as described in the State persistence section). Load `planPath` and read the plan file. If `planPath` is null (plan was from conversation context), use AskUserQuestion to request the plan file path.
-  4. Compute the SHA-256 hash of the plan content and compare against `planHash`. If mismatch, use AskUserQuestion:
+  4. Compute the SHA-256 hash of the plan content using the dedicated script: `<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/plan_hash.sh <plan-path>`, and compare against `planHash`. If mismatch, use AskUserQuestion:
      > Plan content has changed since execution started. Resume with the existing wave structure, or restart from scratch?
      Options: **resume** | **restart**
      If "restart", delete the state file and proceed to plan loading below.
@@ -550,9 +550,9 @@ The progress report is rendered from `WAVE_SUMMARY` payload — per-task names, 
 
 **State persistence:** After each wave completes, update the execution state using the state wrapper script: `<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/state_wrapper.sh`.
 
-On the very first wave dispatch, initialize the state file:
+On the very first wave dispatch, compute the SHA-256 hash of the plan using `<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/plan_hash.sh <plan-path>` and initialize the state file:
 ```bash
-<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/state_wrapper.sh init --branch <branch> --quality <X> --total-tasks <N> --planned-task-ids '<json-array-of-all-task-ids>'
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/state_wrapper.sh init --branch <branch> --quality <X> --total-tasks <N> --planned-task-ids '<json-array-of-all-task-ids>' --plan-path <plan-path> --plan-hash <plan-hash>
 ```
 Where `<json-array-of-all-task-ids>` is a JSON array of every task ID from the plan (e.g. `'["1","2","3"]'`), parsed from the plan in Step 1. This seeds `plannedTaskIds` in the state file so the `verify-completeness` gate (Step 5f) can cross-check all planned IDs against accounted task records.
 
