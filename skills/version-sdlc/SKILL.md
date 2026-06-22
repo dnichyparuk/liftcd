@@ -279,6 +279,10 @@ The release proceeds regardless of the user's answer. This is informational, not
 <PLUGIN_ROOT>/skills/version-sdlc/scripts/validate_links.sh
 ```
 
+> **Contract (Input/Output):**
+> - **Input**: Staged CHANGELOG entry via stdin, or via `--file <path>` argument.
+> - **Output**: Prints violations to stderr and exits non-zero on broken links.
+
    On non-zero exit (`LINK_EXIT != 0`):
    - The script has already printed the violation list to stderr.
    - Do NOT execute `git commit` or `git tag`. Surface the violation list verbatim to the user.

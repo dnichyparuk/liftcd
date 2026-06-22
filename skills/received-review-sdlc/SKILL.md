@@ -543,6 +543,10 @@ Before any `gh api` reply is posted, validate every URL embedded in every drafte
 <PLUGIN_ROOT>/skills/received-review-sdlc/scripts/validate_links.sh
 ```
 
+> **Contract (Input/Output):**
+> - **Input**: Concatenated reply bodies via stdin, or via `--file <path>` argument.
+> - **Output**: Prints violations to stderr and exits non-zero on broken links.
+
 On non-zero exit (`LINK_EXIT != 0`):
 - The script has already printed the violation list to stderr.
 - Do NOT post any replies. Do NOT proceed to Step 12.

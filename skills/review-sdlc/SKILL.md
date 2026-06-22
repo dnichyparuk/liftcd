@@ -153,7 +153,7 @@ Wait for the user's reply.
 ```
 
 > **Contract (Input/Output):**
-> - **Input**: Concatenated reply bodies (one per line) fed strictly via `stdin`. No CLI arguments are expected.
+> - **Input**: Concatenated reply bodies (one per line) fed via `stdin`, or via `--file <path>` argument.
 > - **Output**: Prints violations to `stderr` and exits non-zero if invalid links are found. Exits 0 on success.
 
   On non-zero exit (`LINK_EXIT != 0`):

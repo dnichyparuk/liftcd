@@ -391,7 +391,7 @@ After the reviewer loop converges (or the user resolves remaining issues), valid
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/validate_links.sh
 ```
 > **Contract (Input/Output):**
-> - **Input**: Text via stdin.
+> - **Input**: Text via stdin, or via `--file <path>` argument.
 > - **Output**: Prints violations to stderr and exits non-zero on broken links.
 
 On non-zero exit (`LINK_EXIT != 0`):

@@ -214,8 +214,9 @@ Show `Amend:` instead of `Commit:` heading when `flags.amend` is true.
 <PLUGIN_ROOT>/skills/commit-sdlc/scripts/validate_links.sh
 ```
 > **Contract (Input/Output):**
-> - **Input**: Commit body via stdin.
+> - **Input**: Commit body via stdin, or via `--file <path>` argument.
 > - **Output**: Prints violations to stderr and exits non-zero on broken links.
+
 
    On non-zero exit (`LINK_EXIT != 0`):
    - The script has already printed the violation list to stderr (URL, line, reason code, observed/expected detail).
