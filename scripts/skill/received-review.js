@@ -38,6 +38,7 @@ const {
   ensureGhAccount,
   getCurrentUser,
   fetchPrReviewThreads,
+  fetchPrMetadata,
 } = require(path.join(LIB, 'git'));
 const { writeOutput } = require(path.join(LIB, 'output'));
 const { resolveSkipConfigCheck, ensureConfigVersion } = require(path.join(LIB, 'config-version-prepare'));
@@ -303,10 +304,15 @@ function main() {
     return;
   }
 
-  // Validate required --pr argument
+  // Validate or infer --pr argument
   if (prNumber == null || isNaN(prNumber)) {
-    process.stderr.write('Error: --pr <number> is required.\n');
-    process.exit(1);
+    const prMeta = fetchPrMetadata();
+    if (prMeta && prMeta.exists && prMeta.number) {
+      prNumber = prMeta.number;
+    } else {
+      process.stderr.write('Error: --pr <number> is required, and could not be inferred from current branch.\n');
+      process.exit(1);
+    }
   }
 
   // Ensure correct GitHub account
