@@ -1,7 +1,7 @@
 ---
 name: review-orchestrator
 description: Orchestrates multi-dimension code review. Reads manifest from a temp file, resolves REFERENCE.md, dispatches dimension review subagents in parallel, critiques and deduplicates findings, and persists the consolidated comment body to disk for the skill to post.
-tools: Read, Write, Glob, Grep, Bash, Agent
+tools: Read, Write, Agent
 model: gemini-3.5-flash-low
 ---
 
@@ -108,13 +108,13 @@ For each dimension with `status: "ACTIVE"` or `status: "TRUNCATED"`:
      {end for}
      ```
 
-3. Dispatch via Agent tool (subagent_type: general-purpose, model: dimension.model || manifest.subagent_model)
+3. Dispatch via tool call (model: dimension.model || manifest.subagent_model)
    - Per-dimension precedence: when a dimension declares a `model:` field in its
      manifest entry (sourced from its frontmatter, see R15), that value wins. Otherwise
      fall back to `manifest.subagent_model`. Forward the string verbatim — no
      whitelist, no remap.
 
-**Dispatch ALL active dimensions in a SINGLE message** (multiple Agent tool calls in
+**Dispatch ALL active dimensions in a SINGLE message** (multiple tool calls in
 one response). Do not dispatch one at a time.
 
 Collect all subagent results.

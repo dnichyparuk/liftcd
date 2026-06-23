@@ -176,7 +176,7 @@ fi
 
 - **Full pipeline** (`explorePack.manifestPath` is non-null AND scope is 4+ files / unclear scope):
 
-  1. Spawn `sdlc:plan-explore-orchestrator` Agent exactly once with inputs:
+  1. Call the `lift_sdlc_plan_explore_orchestrator` tool exactly once with inputs:
      ```
      MANIFEST_FILE: <explorePack.manifestPath>
      PROJECT_ROOT: <cwd>
@@ -233,8 +233,7 @@ Identify constraints: language, framework, existing conventions, testing approac
 
 Wait for answer.
 
-**Orchestrator dispatch:**
-Dispatch the `sdlc:plan-generation-orchestrator` Agent exactly once with inputs:
+Dispatch the `lift_sdlc_plan_generation_orchestrator` tool exactly once with inputs:
 ```
 USER_PROMPT: <verbatim user request>
 PLAN_FILE_PATH: <absolute path to plan file>
@@ -252,13 +251,12 @@ The `plan-generation-orchestrator` handles file mapping, task decomposition (wit
 
 **Re-anchor:** Re-read the plan file before dispatching lanes. The file — not your memory of it — is the source of truth.
 
-**Fan-out dispatch: Dispatch ALL FIVE Step 3 lanes from `lanes[]` (P16) in a SINGLE message as parallel Agent tool calls. Do not dispatch them sequentially.**
+**Fan-out dispatch: Dispatch ALL FIVE Step 3 lanes from `lanes[]` (P16) in a SINGLE message as parallel tool calls. Do not dispatch them sequentially.**
 
-All 17 quality gates (G1–G17) are partitioned across five lanes — each gate belongs to exactly one lane. Lane dispatch parameters (`subagent_type`, `model`, and prompt body read from `promptTemplatePath`) MUST be sourced verbatim from the corresponding `lanes[i]` entry in the prepare output (`agent-dispatch-script-driven` guardrail — do NOT hardcode these values).
+All 17 quality gates (G1–G17) are partitioned across five lanes — each gate belongs to exactly one lane. Lane dispatch parameters (`model`, and prompt body read from `promptTemplatePath`) MUST be sourced verbatim from the corresponding `lanes[i]` entry in the prepare output (`agent-dispatch-script-driven` guardrail — do NOT hardcode these values).
 
 For each `lanes[i]` entry (i = 0..4):
 
-- `subagent_type`: `lanes[i].subagentType`
 - `model`: `lanes[i].model`
 - prompt body: Read `lanes[i].promptTemplatePath` and fill template variables:
   - All lanes: `{PLAN_FILE_PATH}` (absolute path to plan file), `{PROJECT_ROOT}` (cwd)
@@ -274,7 +272,7 @@ Exception: lane 4 (G17/dimension-coverage) — when `lanes[4].promptTemplatePath
 ## YYYY-MM-DD — plan-sdlc: G17 skipped — promptTemplatePath null (template not found at prepare time)
 ```
 
-**No `isolation: "worktree"` on any lane dispatch** (forbidden per issues #370/#372).
+
 
 **Collect lane results and merge:**
 
@@ -343,10 +341,9 @@ Step 4 is autonomous (implements R22 single-touchpoint handoff). After fixes are
 
 Skip for lightweight plans (2–3 file scope from Step 0 routing).
 
-**For plans with ≥5 tasks — Multi-lens fan-out:** Dispatch ALL lens reviewers from `lensReviewers[]` (P17) in a SINGLE message as parallel Agent tool calls. Do not dispatch them sequentially. Reuse canonical fan-out wording: "Dispatch ALL … in a SINGLE message as parallel Agent tool calls."
+**For plans with ≥5 tasks — Multi-lens fan-out:** Dispatch ALL lens reviewers from `lensReviewers[]` (P17) in a SINGLE message as parallel tool calls. Do not dispatch them sequentially. Reuse canonical fan-out wording: "Dispatch ALL … in a SINGLE message as parallel tool calls."
 
 For each `lensReviewers[i]` entry (i = 0..2):
-- `subagent_type`: `lensReviewers[i].subagentType`
 - `model`: override with the **opposite-of-plan-author model** at dispatch time (cross-model property — plan written by gemini-3.5-flash-medium → dispatch reviewer as gemini-3.1-pro-low; plan written by gemini-3.1-pro-low → dispatch reviewer as gemini-3.5-flash-medium). This overrides the default `lensReviewers[i].model` value from the prepare output for ≥5-task plans.
 - prompt body: Read `lensReviewers[i].promptTemplatePath` and fill template variables:
   - `{PLAN_FILE_PATH}` — absolute path to the plan file
@@ -360,7 +357,7 @@ For each `lensReviewers[i]` entry (i = 0..2):
 
 When `lensReviewers[i].promptTemplatePath` is null, skip that lens and log to `.sdlc/learnings/log.md`: `## YYYY-MM-DD — plan-sdlc: lens "<name>" skipped — promptTemplatePath null (template not found at prepare time)`. Continue with remaining lenses.
 
-**No `isolation: "worktree"` on any lens reviewer dispatch** (forbidden per issues #370/#372).
+
 
 **Merge lens reviewer results (per iteration):**
 1. **Status**: `Approved` iff ALL lens reviewers returned `Approved`; otherwise `Issues Found`

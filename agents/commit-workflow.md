@@ -125,14 +125,13 @@ Read `wipSquash` from `COMMIT_CONTEXT_JSON`. The field has the shape:
 
 **State-machine idempotency:** Re-running commit-sdlc immediately after a successful squash on the same branch is a no-op: `wipSquash.commits` will be empty (the WIP commits no longer exist between fork-point and HEAD).
 
-### Step 2 (PLAN): Dispatch the commit-orchestrator Agent <!-- implements R3, R4, R5, R6 -->
+### Step 2 (PLAN): Dispatch the commit-orchestrator tool <!-- implements R3, R4, R5, R6 -->
 
-Issue #202: pinning `model:` in skill frontmatter routes the skill into a subagent that inherits the entire conversation transcript and overflows the smaller-window models on long sessions. To keep the main context clean and bound the orchestrator's input to the prepared payload only, dispatch the dedicated `commit-orchestrator` agent. See `docs/skill-best-practices.md` → "Why frontmatter `model:` is the wrong context-isolation knob" for the rationale.
+Issue #202: pinning `model:` in skill frontmatter routes the skill into a subagent that inherits the entire conversation transcript and overflows the smaller-window models on long sessions. To keep the main context clean and bound the orchestrator's input to the prepared payload only, dispatch the dedicated `commit-orchestrator` subagent. See `docs/skill-best-practices.md` → "Why frontmatter `model:` is the wrong context-isolation knob" for the rationale.
 
-Use the `Agent` tool with:
+Call the `lift_sdlc_commit_orchestrator` tool with:
 
-- `subagent_type`: `sdlc:commit-orchestrator`
-- `model`: `gemini-3.5-flash-low` (the Agent tool `model:` parameter takes precedence over agent frontmatter; passing `gemini-3.5-flash-low` here keeps this bounded task on a lightweight model regardless of the parent context's model)
+- `model`: `gemini-3.5-flash-low` (the tool parameter takes precedence over agent frontmatter; passing `gemini-3.5-flash-low` here keeps this bounded task on a lightweight model regardless of the parent context's model)
 - `prompt` (exactly two lines, no other content):
 
   ```text

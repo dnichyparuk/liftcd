@@ -6,25 +6,31 @@ This document provides a comprehensive analysis of the architecture, agent struc
 
 ## 1. Architectural Overview
 
-Lift-SDLC is structured as a hierarchical multi-agent system designed to isolate heavy context processing from the main user-facing chat session. It splits responsibilities into four distinct layers:
+Lift-SDLC is structured as a hierarchical multi-agent system designed to isolate heavy context processing from the main user-facing chat session. It splits responsibilities into five distinct layers:
 
 ```mermaid
 graph TD
-    User([User Interaction]) --> Skills[Layer 1: User-Facing Skills<br>CLI Gates, State & Verification]
-    Skills --> Orchestrators[Layer 2: Orchestrator Agents<br>Isolated Reasoning, No Side-Effects]
+    User([User Interaction]) --> Skills[Layer 1: User-Facing Skills<br>Thin Dispatchers & CLI Gates]
+    Skills --> Workflows[Layer 1.5: Workflow Agents<br>Delegated Execution & State Management]
+    Workflows --> Orchestrators[Layer 2: Orchestrator Agents<br>Isolated Reasoning, No Side-Effects]
     Orchestrators --> SubAgents[Layer 3: Sub-Agents / Workers<br>Parallel Code & Web Research]
     Skills -.-> Scripts[Layer 4: CLI Scripts & Libs<br>Context Preparation & Local State]
 ```
 
 ### Layer 1: User-Facing Skills (Main Context)
 User-invocable commands (e.g., `/ship-sdlc`, `/plan-sdlc`, `/commit-sdlc`) that run directly in the user's primary conversation.
-* **Responsibilities:** Interactive menus, safety check gates, compiling/running tests, committing staged files, pushing to Git, and executing CLI tools (such as `gh`).
-* **Isolation Strategy:** Skills delegating heavy analysis task-by-task to **Layer 2** via the `Agent` tool. This keeps the main chat transcript thin, avoiding context limit issues on long sessions.
+* **Responsibilities:** Interactive menus, safety check gates, parsing command-line parameters, and spawning corresponding workflow agents.
+* **Isolation Strategy:** Skills delegating heavy execution and analysis tasks to **Layer 1.5 (Workflow Agents)** or **Layer 2 (Orchestrator Agents)** via native subagent tools (e.g. `lift_sdlc_ship_workflow` or `lift_sdlc_plan_explore_orchestrator`). This keeps the main chat transcript thin, avoiding context limit issues on long sessions.
+
+### Layer 1.5: Workflow Agents (Delegated Context)
+Workflow orchestrators (e.g., `ship-workflow`, `review-workflow`) defined via Markdown files in `agents/` that proxy the execution logic of Layer 1 Skills within isolated subagents.
+* **Responsibilities:** Coordinating multi-step execution flows, parsing states, and dispatching tasks to Layer 2 orchestrators.
+* **Privileges & Constraints:** Because they orchestrate execution, they are granted broad tools (`Bash`, `Write`, `MCP`) to interact with Git, files, and external APIs. They must explicitly declare their tools in frontmatter to distinguish them from restricted orchestrators.
 
 ### Layer 2: Orchestrator Agents (Isolated Context)
 Orchestrators (e.g., `commit-orchestrator`, `review-orchestrator`) defined via Markdown files in `agents/`.
 * **Responsibilities:** Pure reasoning over serialized manifests. They read structured context, perform self-critique loops, and return clean JSON or plain-text strings.
-* **Hard Constraints:** Orchestrator agents cannot call Git, write files (with minor exceptions for output briefs), invoke external CLIs, or inherit the parent conversation transcript.
+* **Hard Constraints:** Orchestrator agents cannot call Git, write files (with minor exceptions for output briefs), invoke external CLIs, or inherit the parent conversation transcript. They must explicitly declare their restricted tools (e.g., `tools: Read` or `tools: Read, Agent`) to actively prevent side effects and enforce least privilege.
 
 ### Layer 3: Sub-Agents & Workers
 Specialized tasks dispatched in parallel by orchestrator agents or orchestrator skills.
@@ -131,17 +137,17 @@ flowchart TD
 
 | Triggering Component | Target Agent / Subagent | Communication Protocol | Purpose |
 |---|---|---|---|
-| [/plan-sdlc](../skills/plan-sdlc/SKILL.md) | [plan-explore-orchestrator](../agents/plan-explore-orchestrator.md) | JSON Manifest file path + `Agent` tool | Scopes functional requirements, creates task-specific discovery axes, and runs initial web/code research. |
+| [/plan-sdlc](../skills/plan-sdlc/SKILL.md) | [plan-explore-orchestrator](../agents/plan-explore-orchestrator.md) | JSON Manifest file path + native subagent tool | Scopes functional requirements, performs file discovery, writes task briefs |
 | [/plan-sdlc](../skills/plan-sdlc/SKILL.md) | Plan Critique Lanes (0–4) | Parallel `Agent` tool calls | G1–G17 quality checks (e.g. `lane-guardrail-compliance`, `lane-static-structural`). |
 | [/plan-sdlc](../skills/plan-sdlc/SKILL.md) | Plan Lenses (Arch/Req/Risk) | Parallel `Agent` tool calls | Cross-model review checks on complex plans. |
 | [plan-explore-orchestrator](../agents/plan-explore-orchestrator.md) | Code / Web / Hybrid Subagents | Parallel `Agent` tool calls | Explores codebase locations, reads documentation, and fetches web API best-practices. |
 | [/execute-plan-sdlc](../skills/execute-plan-sdlc/SKILL.md) | `wave-runner` Agent | Wave manifest + `Agent` tool | Manages execution of a planning wave, coordinates retries, and maintains progress. |
 | `wave-runner` Agent | Per-task execution Agents | Parallel `Agent` tool calls | Performs code changes and runs verifications for single tasks. |
-| [/commit-sdlc](../skills/commit-sdlc/SKILL.md) | [commit-orchestrator](../agents/commit-orchestrator.md) | JSON Manifest file path + `Agent` tool | Drafts git commit messages matching repository formatting patterns. |
-| [/review-sdlc](../skills/review-sdlc/SKILL.md) | [review-orchestrator](../agents/review-orchestrator.md) | JSON Manifest file path + `Agent` tool | Evaluates staged or committed diffs. |
+| [/commit-sdlc](../skills/commit-sdlc/SKILL.md) | [commit-orchestrator](../agents/commit-orchestrator.md) | JSON Manifest file path + native subagent tool | Drafts final commit message according to config |
+| [/review-sdlc](../skills/review-sdlc/SKILL.md) | [review-orchestrator](../agents/review-orchestrator.md) | JSON Manifest file path + native subagent tool | Orchestrates review dimensions, aggregates findings |
 | [review-orchestrator](../agents/review-orchestrator.md) | Dimension Reviewers | Parallel `Agent` tool calls | Evaluates specific categories (e.g., `security-review`, `performance`). |
-| [/harden-sdlc](../skills/harden-sdlc/SKILL.md) | [harden-orchestrator](../agents/harden-orchestrator.md) | JSON Manifest file path + `Agent` tool | Generates proposals to strengthen guardrails and dimensions following a workflow failure. |
-| [/error-report-sdlc](../skills/error-report-sdlc/SKILL.md) | [error-report-orchestrator](../agents/error-report-orchestrator.md) | JSON Manifest file path + `Agent` tool | Forms issue descriptions using templates for upstream plugin crash reports. |
+| [/harden-sdlc](../skills/harden-sdlc/SKILL.md) | [harden-orchestrator](../agents/harden-orchestrator.md) | JSON Manifest file path + native subagent tool | Diagnoses failure and emits proposal patches |
+| [/error-report-sdlc](../skills/error-report-sdlc/SKILL.md) | [error-report-orchestrator](../agents/error-report-orchestrator.md) | JSON Manifest file path + native subagent tool | Drafts GH issue for tool failures |
 
 ---
 

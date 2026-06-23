@@ -79,12 +79,20 @@ Parse the JSON output. If the array is non-empty, store as `activeGuardrails` an
 
 Note: this reads `execute.guardrails` (runtime enforcement), not `plan.guardrails` (planning-time critique). They are independent sets configured separately in `.sdlc/config.json`.
 
-**Resume detection:** Before reading the plan content, resolve the main working tree path: run `git worktree list --porcelain` and extract the path from the first `worktree <path>` line. All state file operations use `<main-worktree>/.sdlc/execution/`. Then check if `--resume` was passed or if a state file exists at `<main-worktree>/.sdlc/execution/execute-<branch>-*.json` (where `<branch>` is the current branch name with `/` replaced by `-`).
+**Resume detection:** Before reading the plan content, determine the current branch name by reading `.git/HEAD` using your `view_file` tool (do NOT use bash commands for this). Then check if `--resume` was passed or if a state file exists for this branch by running the state wrapper script:
+
+> **VERBATIM** — Execute this script directly using its absolute path (replace `<PLUGIN_ROOT>` with the absolute path to this plugin. Note the strict script location pattern: `<PLUGIN_ROOT>/skills/<skill-name>/scripts/<script-name>.sh`). Do NOT prepend `bash` or `sh`.
+
+```shell
+<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/state_wrapper.sh read --branch <branch>
+```
+
+If the script returns a valid JSON state object, the state exists. If it prints an error or empty output, no state exists.
 
 - If `--resume` was passed:
-  1. Find the most recent state file for the current branch in `<main-worktree>/.sdlc/execution/`. If none found, warn: "No state file found for branch `<branch>`. Starting fresh." and proceed to plan loading below.
+  1. Use the JSON state object returned by the state wrapper script. If it was empty or errored, warn: "No state file found for branch `<branch>`. Starting fresh." and proceed to plan loading below.
   2. Read `./resources/state-format.md` for the schema reference.
-  3. Read the state file using `node "$STATE_SCRIPT" read` (locate `state/execute.js` as described in the State persistence section). Load `planPath` and read the plan file. If `planPath` is null (plan was from conversation context), use AskUserQuestion to request the plan file path.
+  3. Load `planPath` from the JSON state and read the plan file. If `planPath` is null (plan was from conversation context), use AskUserQuestion to request the plan file path.
   4. Compute the SHA-256 hash of the plan content using the dedicated script: `<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/plan_hash.sh <plan-path>`, and compare against `planHash`. If mismatch, use AskUserQuestion:
      > Plan content has changed since execution started. Resume with the existing wave structure, or restart from scratch?
      Options: **resume** | **restart**
