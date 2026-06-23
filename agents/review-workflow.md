@@ -1,6 +1,7 @@
 ---
 name: review-workflow
-description: "Workflow orchestrator for code reviews."
+description: "Workflow orchestrator for code review."
+tools: Read, Write, Glob, Grep, Bash, Agent, AskQuestion, MCP
 model: gemini-3.5-flash-medium
 ---
 

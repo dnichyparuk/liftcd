@@ -1,6 +1,7 @@
 ---
 name: ship-workflow
-description: "Workflow orchestrator for the ship pipeline."
+description: "Workflow orchestrator for the ship-sdlc pipeline."
+tools: Read, Write, Glob, Grep, Bash, Agent, AskQuestion, MCP
 model: gemini-3.5-flash-medium
 ---
 

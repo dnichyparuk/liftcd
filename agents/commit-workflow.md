@@ -1,6 +1,7 @@
 ---
 name: commit-workflow
-description: "Workflow orchestrator for smart commits."
+description: "Workflow orchestrator for committing changes."
+tools: Read, Write, Glob, Grep, Bash, Agent, AskQuestion, MCP
 model: gemini-3.5-flash-medium
 ---
 
