@@ -93,8 +93,10 @@ To prevent context bloat and token exhaustion:
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/prepare.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: None.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
 > - **Output**: Prints JSON manifest of current branch state.
 
 If `--from-openspec <name>` was passed to plan-sdlc, include it in the node command: `node "$SCRIPT" --output-file --from-openspec <name>`.
@@ -146,13 +148,13 @@ Naming convention: `YYYY-MM-DD-<feature-name>.md`. Create the directory if neede
 Each `--mark` block re-resolves `$SCRIPT` independently: SKILL.md bash blocks each run as a separate Bash tool invocation, so shell variables do NOT persist across blocks.
 
 ```shell
-<PLUGIN_ROOT>/skills/plan-sdlc/scripts/mark_plan_file.sh
+<PLUGIN_ROOT>/skills/plan-sdlc/scripts/mark_plan_file.sh "<resolved-plan-path>"
 ```
-> **Contract (Input/Output):**
-> - **Input**: Plan file path.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: `$1` - absolute path to plan file (`<resolved-plan-path>`).
+> - **Stdin**: None.
 > - **Output**: Tags plan file for execution.
-
-Replace `<resolved-plan-path>` with the actual absolute path: in plan mode it is the designated plan file path extracted at the top of Step 0; in normal mode it is the path resolved above (from `plansDirectory` or the default fallback).
 
 ## Step 1 (CONSUME): Requirements Discovery and Exploration
 
@@ -176,7 +178,7 @@ fi
 
 - **Full pipeline** (`explorePack.manifestPath` is non-null AND scope is 4+ files / unclear scope):
 
-  1. Spawn `sdlc:plan-explore-orchestrator` Agent exactly once with inputs:
+  1. Call the `invoke_subagent` tool to spawn the `sdlc:plan-explore-orchestrator` subagent exactly once with inputs:
      ```
      MANIFEST_FILE: <explorePack.manifestPath>
      PROJECT_ROOT: <cwd>
@@ -233,8 +235,7 @@ Identify constraints: language, framework, existing conventions, testing approac
 
 Wait for answer.
 
-**Orchestrator dispatch:**
-Dispatch the `sdlc:plan-generation-orchestrator` Agent exactly once with inputs:
+Dispatch the `invoke_subagent` tool to spawn the `sdlc:plan-generation-orchestrator` subagent exactly once with inputs:
 ```
 USER_PROMPT: <verbatim user request>
 PLAN_FILE_PATH: <absolute path to plan file>
@@ -252,13 +253,12 @@ The `plan-generation-orchestrator` handles file mapping, task decomposition (wit
 
 **Re-anchor:** Re-read the plan file before dispatching lanes. The file — not your memory of it — is the source of truth.
 
-**Fan-out dispatch: Dispatch ALL FIVE Step 3 lanes from `lanes[]` (P16) in a SINGLE message as parallel Agent tool calls. Do not dispatch them sequentially.**
+**Fan-out dispatch: Dispatch ALL FIVE Step 3 lanes from `lanes[]` (P16) in a SINGLE message as parallel tool calls. Do not dispatch them sequentially.**
 
-All 17 quality gates (G1–G17) are partitioned across five lanes — each gate belongs to exactly one lane. Lane dispatch parameters (`subagent_type`, `model`, and prompt body read from `promptTemplatePath`) MUST be sourced verbatim from the corresponding `lanes[i]` entry in the prepare output (`agent-dispatch-script-driven` guardrail — do NOT hardcode these values).
+All 17 quality gates (G1–G17) are partitioned across five lanes — each gate belongs to exactly one lane. Lane dispatch parameters (`model`, and prompt body read from `promptTemplatePath`) MUST be sourced verbatim from the corresponding `lanes[i]` entry in the prepare output (`agent-dispatch-script-driven` guardrail — do NOT hardcode these values).
 
 For each `lanes[i]` entry (i = 0..4):
 
-- `subagent_type`: `lanes[i].subagentType`
 - `model`: `lanes[i].model`
 - prompt body: Read `lanes[i].promptTemplatePath` and fill template variables:
   - All lanes: `{PLAN_FILE_PATH}` (absolute path to plan file), `{PROJECT_ROOT}` (cwd)
@@ -274,7 +274,7 @@ Exception: lane 4 (G17/dimension-coverage) — when `lanes[4].promptTemplatePath
 ## YYYY-MM-DD — plan-sdlc: G17 skipped — promptTemplatePath null (template not found at prepare time)
 ```
 
-**No `isolation: "worktree"` on any lane dispatch** (forbidden per issues #370/#372).
+
 
 **Collect lane results and merge:**
 
@@ -299,18 +299,22 @@ Note every issue from `allIssues`. Do NOT write to the plan file in this step.
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/mark_guardrails.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: Guardrails content via stdin.
-> - **Output**: Appends guardrails to configuration.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Appends guardrails marker to configuration.
 
 **JOIN barrier — `critiqueRan` (implements R20, R35, issue #285):** After ALL five lanes have returned and the merged issue list is complete (including G17/lanes[4] findings parsed into `g17Findings`), record the checkpoint. **Do NOT write this marker until all five lanes have returned.** This extends the existing G17 join semantics to every lane.
 
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/mark_critique.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: Critique text via stdin.
-> - **Output**: Saves critique to pipeline state.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Saves critique marker to pipeline state.
 
 ## Step 4 (IMPROVE): Revise Plan and Present for Approval
 
@@ -343,10 +347,9 @@ Step 4 is autonomous (implements R22 single-touchpoint handoff). After fixes are
 
 Skip for lightweight plans (2–3 file scope from Step 0 routing).
 
-**For plans with ≥5 tasks — Multi-lens fan-out:** Dispatch ALL lens reviewers from `lensReviewers[]` (P17) in a SINGLE message as parallel Agent tool calls. Do not dispatch them sequentially. Reuse canonical fan-out wording: "Dispatch ALL … in a SINGLE message as parallel Agent tool calls."
+**For plans with ≥5 tasks — Multi-lens fan-out:** Dispatch ALL lens reviewers from `lensReviewers[]` (P17) in a SINGLE message as parallel tool calls. Do not dispatch them sequentially. Reuse canonical fan-out wording: "Dispatch ALL … in a SINGLE message as parallel tool calls."
 
 For each `lensReviewers[i]` entry (i = 0..2):
-- `subagent_type`: `lensReviewers[i].subagentType`
 - `model`: override with the **opposite-of-plan-author model** at dispatch time (cross-model property — plan written by gemini-3.5-flash-medium → dispatch reviewer as gemini-3.1-pro-low; plan written by gemini-3.1-pro-low → dispatch reviewer as gemini-3.5-flash-medium). This overrides the default `lensReviewers[i].model` value from the prepare output for ≥5-task plans.
 - prompt body: Read `lensReviewers[i].promptTemplatePath` and fill template variables:
   - `{PLAN_FILE_PATH}` — absolute path to the plan file
@@ -360,7 +363,7 @@ For each `lensReviewers[i]` entry (i = 0..2):
 
 When `lensReviewers[i].promptTemplatePath` is null, skip that lens and log to `.sdlc/learnings/log.md`: `## YYYY-MM-DD — plan-sdlc: lens "<name>" skipped — promptTemplatePath null (template not found at prepare time)`. Continue with remaining lenses.
 
-**No `isolation: "worktree"` on any lens reviewer dispatch** (forbidden per issues #370/#372).
+
 
 **Merge lens reviewer results (per iteration):**
 1. **Status**: `Approved` iff ALL lens reviewers returned `Approved`; otherwise `Issues Found`
@@ -390,8 +393,10 @@ After the reviewer loop converges (or the user resolves remaining issues), valid
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/validate_links.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: Text via stdin, or via `--file <path>` argument.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `SDLC_LINKS_OFFLINE` (optional, set to 1 to skip network reachability checks).
+> - **Args**: `--file <path>` (optional).
+> - **Stdin**: Text content (if `--file` is not provided).
 > - **Output**: Prints violations to stderr and exits non-zero on broken links.
 
 On non-zero exit (`LINK_EXIT != 0`):
@@ -409,8 +414,10 @@ On zero exit, proceed to Step 7. `SDLC_LINKS_OFFLINE=1` skips network reachabili
 ```shell
 <PLUGIN_ROOT>/skills/plan-sdlc/scripts/handoff_advisory.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: None.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
 > - **Output**: Prints advisory text for downstream agent handoff.
 
 The wrapper reads `$TMPDIR/sdlc-context-stats.json` (written by the `UserPromptSubmit` hook `hooks/context-stats.js`) and emits a `/compact` advisory only when transcript ≥60% of model budget. Pipeline state is preserved across `/compact` (PreCompact + SessionStart hooks), so re-invoking after compaction is safe.

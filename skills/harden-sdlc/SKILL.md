@@ -54,8 +54,10 @@ Pass `--from-issue "$ISSUE_NUM"` to the prepare script invocation in Step 1.
 ```shell
 <PLUGIN_ROOT>/skills/harden-sdlc/scripts/prepare.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: Failure text context.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `FAILURE_TEXT` (optional), `FROM_ISSUE` (optional), `SKILL_NAME` (required), `STEP_NAME` (optional), `OPERATION` (optional), `EXIT_CODE_ARG` (optional), `ERROR_TYPE` (optional), `USER_INTENT` (optional), `ARGS_STRING` (optional).
+> - **Args**: None.
+> - **Stdin**: None.
 > - **Output**: Prints JSON manifest of hardening targets.
 
 Substitute the shell variables with values from the parsed arguments. Empty
@@ -102,9 +104,8 @@ in all other cases. Continue to Step 3.
 
 ## Step 3 — ANALYZE: Dispatch the harden-orchestrator Agent (R6)
 
-Use the `Agent` tool with:
+Call the `invoke_subagent` tool to spawn the `sdlc:harden-orchestrator` subagent with:
 
-- `subagent_type`: `sdlc:harden-orchestrator`
 - `model`: `gemini-3.5-flash-low`
 - `prompt` (exactly two lines, no other content):
 
@@ -196,8 +197,10 @@ When the user selects **apply**, validate the proposed change BEFORE writing:
   ```shell
 <PLUGIN_ROOT>/skills/harden-sdlc/scripts/validate_guardrails.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: Guardrail JSON.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: Expects the prospective merged JSON config to be piped via stdin.
 > - **Output**: Exits non-zero if schema is invalid.
 
   Run the validator against the prospective config. On non-zero exit, surface
@@ -211,9 +214,11 @@ When the user selects **apply**, validate the proposed change BEFORE writing:
   ```shell
   <PLUGIN_ROOT>/skills/harden-sdlc/scripts/validate_dimension.sh "<targetFile>"
   ```
-  > **Contract (Input/Output):**
-  > - **Input**: `<targetFile>`.
-  > - **Output**: Exits non-zero if dimension file is malformed.
+  > **Contract (Input/Output/Env/Args):**
+  > - **Env Vars**: None.
+  > - **Args**: `$1` - path to the dimension file (`<targetFile>`).
+  > - **Stdin**: None.
+  > - **Output**: Exits non-zero if dimension file is malformed. Prints warnings/errors.
 
   Same retry/cancel handling on failure.
 

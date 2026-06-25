@@ -65,8 +65,10 @@ required before any further work, including running the prepare script.
 ```shell
 <PLUGIN_ROOT>/skills/error-report-sdlc/scripts/prepare_report.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: Error text and skill context.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `SKILL_NAME` (required), `STEP_NAME` (required), `OPERATION` (required), `ERROR_TEXT` (required), `EXIT_OR_HTTP_CODE` (optional), `ERROR_TYPE` (optional), `USER_INTENT` (optional), `ARGS_STRING` (optional), `SUGGESTED_INVESTIGATION` (optional).
+> - **Args**: None.
+> - **Stdin**: None.
 > - **Output**: Prints JSON structure for GitHub issue submission.
 
 Substitute the shell variables with the values supplied by the calling skill. Optional
@@ -89,10 +91,9 @@ orchestrator's input to the prepared payload only, dispatch the dedicated
 `docs/skill-best-practices.md` → "Why frontmatter `model:` is the wrong
 context-isolation knob" for the rationale.
 
-Use the `Agent` tool with:
+Call the `invoke_subagent` tool to spawn the `sdlc:error-report-orchestrator` subagent with:
 
-- `subagent_type`: `sdlc:error-report-orchestrator`
-- `model`: `gemini-3.5-flash-low` (the Agent tool `model:` parameter takes precedence over agent frontmatter; passing `gemini-3.5-flash-low` here keeps this bounded task on a lightweight model regardless of the parent context's model)
+- `model`: `gemini-3.5-flash-low` (the tool parameter takes precedence over agent frontmatter; passing `gemini-3.5-flash-low` here keeps this bounded task on a lightweight model regardless of the parent context's model)
 - `prompt` (exactly two lines, no other content):
 
   ```text

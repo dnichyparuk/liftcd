@@ -24,6 +24,11 @@ Locate and run the enrichment script:
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-openspec_enrich.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Configures the repository for OpenSpec enrichment.
 
 Replace `{REMOVE_FLAG}` with `--remove` if the parent passed `--remove-openspec`, otherwise omit it.
 

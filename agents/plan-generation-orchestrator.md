@@ -1,7 +1,7 @@
 ---
 name: plan-generation-orchestrator
 description: Receives exploration brief, requirements, and codebase context to write the implementation plan file containing tasks with dependencies, complexity, and verification metadata.
-tools: Read, Write, Glob, Grep, Bash
+tools: Read, Write
 model: gemini-3.1-pro-high
 ---
 

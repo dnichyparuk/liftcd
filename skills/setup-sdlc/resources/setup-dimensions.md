@@ -54,9 +54,14 @@ Check `.sdlc/review-dimensions/` for already-installed dimension files.
 In `--add` (expansion) mode:
 
 - Locate the validation script:
-  ```shell
+```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-dimensions_load_validator.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Resolves SCRIPT path to the validation script.
 - Run: `node "$SCRIPT" --project-root . --json`
 - Extract installed dimension names and their trigger patterns (new proposals must avoid identical globs).
 
@@ -65,6 +70,11 @@ Also check for uncovered file suggestions from a recent review run:
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-dimensions_run_review.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Runs recent review to gather uncovered file suggestions.
 
 If this succeeds, parse `plan_critique.uncovered_suggestions` and use as additional evidence in Step 3 (cite: "Recent review found N uncovered files matching this pattern"). If the command fails, silently skip.
 
@@ -145,6 +155,11 @@ Run the validation script (use `SCRIPT` resolved in Step 2, or re-resolve if Ste
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-dimensions_validate.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Validates installed dimensions and prints results table.
 
 - Exit code **1**: Show validation errors. Use AskUserQuestion: "Fix these validation errors automatically? (yes / no)"
 - Exit code **2**: Show `Script error — see output above` and stop. Invoke error-report-sdlc — Glob `**/error-report-sdlc/REFERENCE.md`, follow with skill=review-init-sdlc, step=Step 7 — Validate Installation, error=stderr.

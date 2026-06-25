@@ -101,6 +101,11 @@ If no tests added, explain why.]
 ```shell
 <PLUGIN_ROOT>/skills/pr-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `ARGUMENTS` (optional, string of args to pass to `pr.js`).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Prepares PR context, writes JSON to `$PR_CONTEXT_FILE`.
 
 Read and parse `PR_CONTEXT_FILE` as `PR_CONTEXT_JSON`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls in success/cancel branches.
 
@@ -427,6 +432,11 @@ Loop until explicit `yes` or `cancel`.
 ```shell
 <PLUGIN_ROOT>/skills/pr-sdlc/scripts/validate_title.sh "$title" "$titlePattern" "$titlePatternError"
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: `$1` (title string), `$2` (pattern regex), `$3` (error message).
+> - **Stdin**: None.
+> - **Output**: Exits non-zero and prints error message if title fails regex.
 
 On failure:
 - Show the error message from `prConfig.titlePatternError` (or the pattern itself as fallback)
@@ -441,6 +451,11 @@ On success:
 ```shell
 <PLUGIN_ROOT>/skills/pr-sdlc/scripts/validate_body.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `body` (required, string).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Exits non-zero and prints violations to stderr if broken links found.
 
 On non-zero exit (`LINK_EXIT != 0`):
 - The script has already printed the violation list to stderr (URL, line, reason code, observed/expected detail)
@@ -473,6 +488,11 @@ If no labels were approved, omit the `--label` flags entirely.
 ```shell
 <PLUGIN_ROOT>/skills/pr-sdlc/scripts/create_pr.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: All arguments are passed directly to `gh pr create`.
+> - **Stdin**: None.
+> - **Output**: Creates a PR via `gh` CLI. If it fails, attempts account-switch recovery and prints JSON result.
 
 Parse `RECOVER_JSON`. Branches:
 

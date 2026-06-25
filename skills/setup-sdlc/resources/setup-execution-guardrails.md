@@ -15,8 +15,13 @@ Sub-flow of `/setup-sdlc --execution-guardrails`. Runs skill/guardrails.js with 
 Run skill/guardrails.js:
 
 ```shell
-<PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-execution-guardrails_prepare.sh
+<PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-execution-guardrails_prepare.sh {init|add}
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: `$1` - command mode (`init` or `add`).
+> - **Stdin**: None.
+> - **Output**: Prints JSON output containing signals, proposals, and existing guardrails.
 
 Replace `{init|add}` with `add` if `--add` was passed, otherwise `init`.
 
@@ -58,14 +63,24 @@ Write selected guardrails via inline Node.js using config library:
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-execution-guardrails_write.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `GUARDRAILS_JSON` (required, stringified JSON array).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Writes guardrails to `.sdlc/config.json`.
 
-Replace `<GUARDRAILS_JSON>` with the JSON array of selected guardrails. In `--add` mode: prepend existing guardrails from the prepare output to the array.
+Set the `GUARDRAILS_JSON` environment variable to the JSON array of selected guardrails. In `--add` mode: prepend existing guardrails from the prepare output to the array.
 
 ### Step 4 (VALIDATE) — Run Validation Script
 
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-execution-guardrails_validate.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Prints JSON validation result (`overall`: "pass" or "fail").
 
 Parse output. If `overall` is "pass", report success with count. If "fail", show errors and offer to fix.
 

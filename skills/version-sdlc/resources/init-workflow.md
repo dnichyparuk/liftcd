@@ -45,8 +45,14 @@ the content from `suggestedConfig` (adjusted if `changelog` was chosen).
 Then scaffold CI scripts and workflows using `scaffold-ci.js`:
 
 ```shell
-<PLUGIN_ROOT>/skills/setup-sdlc/scripts/init-workflow_scaffold.sh
+<PLUGIN_ROOT>/skills/version-sdlc/scripts/init-workflow_scaffold.sh
 ```
+
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Validates the existence of `scaffold-ci.js`.
 
 Run the scaffold (include `--changelog` when `config.changelog === true`):
 

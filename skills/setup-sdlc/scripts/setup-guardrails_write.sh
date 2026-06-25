@@ -11,4 +11,4 @@ const { writeSection } = require('$SDLC_LIB/config.js');
 const guardrails = JSON.parse(process.argv[1]);
 writeSection(process.cwd(), 'plan', { guardrails });
 console.log('Wrote ' + guardrails.length + ' guardrails to .sdlc/config.json');
-" '<GUARDRAILS_JSON>'
+" "$GUARDRAILS_JSON"

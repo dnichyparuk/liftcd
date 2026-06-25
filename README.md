@@ -136,7 +136,17 @@ The plugin exposes the following skills for managing your workflows:
 
 ## Agents Reference
 
-Skills delegate isolated, context-clean subtasks to specialized agents. There are two categories:
+### Thin Dispatcher Architecture
+
+To prevent massive context window bloat and reduce token costs, the heaviest skills (`/ship-sdlc`, `/execute-plan-sdlc`, `/commit-sdlc`, and `/review-sdlc`) utilize a **Thin Dispatcher** pattern. 
+
+When you invoke these commands, the agent loads a minimal routing instruction rather than the full pipeline logic. The dispatcher's only job is to:
+1. Parse your CLI flags (e.g., `--auto`, `--quality balanced`).
+2. Bridge active session context (like resume state) from your main chat window.
+3. Spawn an isolated **Subagent** with a pristine, blank-slate context to perform the heavy orchestration.
+4. Return the subagent's final output to you verbatim.
+
+This architecture sandboxes static pipeline instructions away from your main conversation. Because Antigravity re-reads chat history every turn, loading monolithic skills causes a costly "multiplier effect." Offloading orchestration to subagents keeps the main context clean, drastically reducing token consumption and improving responsiveness.
 
 ### Registered Plugin Agents
 
