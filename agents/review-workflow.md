@@ -64,7 +64,7 @@ Stop here. The `trap` declared at Step 1 cleans up `$MANIFEST_FILE` automaticall
 
 ## Step 2 — Spawn Orchestrator Agent
 
-Spawn a single Agent using `subagent_type: sdlc:review-orchestrator` with the following
+Spawn a single Agent using `subagent_type: review-orchestrator` with the following
 context as the prompt:
 
 ```
@@ -134,16 +134,12 @@ MUST NOT re-invoke the orchestrator. The comment body at `comment_file` is autho
 
 ### PR exists (`pr.exists == true`)
 
-Prompt in the main context:
-
-```text
-Post this review comment to PR #{pr.number}? (yes / save / cancel)
-  yes    — post the comment to the PR
-  save   — save review to .sdlc/reviews/<branch>-<YYYY-MM-DD>.md instead
-  cancel — keep in terminal only (already shown above)
-```
-
-Wait for the user's reply.
+Use AskQuestion to ask:
+"Post this review comment to PR #{pr.number}?"
+Options:
+- **yes** — post the comment to the PR
+- **save** — save review to .sdlc/reviews/<branch>-<YYYY-MM-DD>.md instead
+- **cancel** — keep in terminal only (already shown above)
 
 - `yes` → **link verification (R14, issue #198) — HARD GATE.** Before `gh api … /comments`, validate every URL embedded in the consolidated review comment body via the shared link validator. The script reads the body from `--file` and auto-derives `expectedRepo` from `parseRemoteOwner(cwd)` and `jiraSite` from `~/.sdlc-cache/jira/` — the skill MUST NOT construct ctx JSON.
 
@@ -180,14 +176,12 @@ Wait for the user's reply.
 
 ### No PR, branch scope (`scope` is `all`, `committed`, or `worktree`)
 
-Prompt:
-
-```text
-No PR found. Options:
-  1. Create a draft PR and attach this review as a comment
-  2. Save review to .sdlc/reviews/<branch>-<YYYY-MM-DD>.md
-  3. Keep in terminal only
-```
+Use AskQuestion to ask:
+"No PR found. Options:"
+Options:
+- **1** — Create a draft PR and attach this review as a comment
+- **2** — Save review to .sdlc/reviews/<branch>-<YYYY-MM-DD>.md
+- **3** — Keep in terminal only
 
 - Option 1 → invoke `pr-sdlc` from the main context in draft mode, wait for PR
   creation, then post via the `gh api … -F body=@{comment_file}` command above using
@@ -197,13 +191,11 @@ No PR found. Options:
 
 ### No PR, local scope (`scope` is `staged` or `working`)
 
-Prompt:
-
-```text
-Reviewing local changes — no PR to post to. Options:
-  1. Save review to .sdlc/reviews/<branch>-<YYYY-MM-DD>.md
-  2. Keep in terminal only
-```
+Use AskQuestion to ask:
+"Reviewing local changes — no PR to post to. Options:"
+Options:
+- **1** — Save review to .sdlc/reviews/<branch>-<YYYY-MM-DD>.md
+- **2** — Keep in terminal only
 
 - Option 1 → `save` command above.
 - Option 2 → no action.
@@ -212,7 +204,7 @@ Reviewing local changes — no PR to post to. Options:
 
 ## Step 5 — Offer Self-Fix
 
-If the verdict is **CHANGES REQUESTED** or **APPROVED WITH NOTES**, offer to fix:
+If the verdict is **CHANGES REQUESTED** or **APPROVED WITH NOTES**, use AskQuestion to offer to fix:
 
 > The review found actionable items. Address them now?
 
@@ -240,7 +232,7 @@ Clean up the manifest file and the temporary diff directory by running:
 
 - Do NOT read the manifest JSON into main context (the orchestrator reads it)
 - Do NOT read resources/REFERENCE.md in main context (the orchestrator resolves it)
-- Do NOT read the orchestrator agent definition into main context — pass the file path or use the sdlc:review-orchestrator subagent_type
+- Do NOT read the orchestrator agent definition into main context — pass the file path or use the review-orchestrator subagent_type
 - Do NOT invoke error-report-sdlc for user errors — only for script crashes (exit 2)
 - Do NOT re-dispatch the orchestrator to post the comment — use the `comment_file` from its summary
 

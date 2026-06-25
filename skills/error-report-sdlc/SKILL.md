@@ -91,7 +91,7 @@ orchestrator's input to the prepared payload only, dispatch the dedicated
 `docs/skill-best-practices.md` → "Why frontmatter `model:` is the wrong
 context-isolation knob" for the rationale.
 
-Call the `lift_sdlc_error_report_orchestrator` tool with:
+Call the `invoke_subagent` tool to spawn the `sdlc:error-report-orchestrator` subagent with:
 
 - `model`: `gemini-3.5-flash-low` (the tool parameter takes precedence over agent frontmatter; passing `gemini-3.5-flash-low` here keeps this bounded task on a lightweight model regardless of the parent context's model)
 - `prompt` (exactly two lines, no other content):

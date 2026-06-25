@@ -14,6 +14,6 @@ This is a thin dispatcher to prevent context bloat. The actual execution logic l
 
 1. Extract any arguments provided by the user (e.g. `--auto`, `--amend`).
 2. Extract any active hooks from the current `<system-reminder>`.
-3. Call the `lift_sdlc_commit_workflow` tool to execute the workflow.
+3. Call the `invoke_subagent` tool to spawn the `sdlc:commit-workflow` subagent.
 4. Pass the parsed arguments, extracted hooks, and the current working directory in the `Prompt` field.
 5. Wait for the subagent to complete, then surface its final summary to the user verbatim, without any conversational prefix or wrapper. Do not execute any SDLC logic in this main context.

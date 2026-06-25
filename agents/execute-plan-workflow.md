@@ -44,7 +44,7 @@ Once the plan content is available, validate it:
 If loading from file, ensure the plan file exists and is readable. If not, stop with error.
 
 **Phase 1 Validation (Plan Integrity):**
-Dispatch the `sdlc:plan-execution-validator` subagent exactly once with inputs:
+Dispatch the `plan-execution-validator` subagent exactly once with inputs:
 - `PHASE`: "plan-integrity"
 - `PLAN_FILE_PATH`: <absolute path to plan>
 - `WAVE_STRUCTURE`: "none"
@@ -92,8 +92,8 @@ If the script returns a valid JSON state object, the state exists. If it prints 
 - If `--resume` was passed:
   1. Use the JSON state object returned by the state wrapper script. If it was empty or errored, warn: "No state file found for branch `<branch>`. Starting fresh." and proceed to plan loading below.
   2. Read `./resources/state-format.md` for the schema reference.
-  3. Load `planPath` from the JSON state and read the plan file. If `planPath` is null (plan was from conversation context), use AskUserQuestion to request the plan file path.
-  4. Compute the SHA-256 hash of the plan content using the dedicated script: `<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/plan_hash.sh <plan-path>`, and compare against `planHash`. If mismatch, use AskUserQuestion:
+  3. Load `planPath` from the JSON state and read the plan file. If `planPath` is null (plan was from conversation context), use AskQuestion to request the plan file path.
+  4. Compute the SHA-256 hash of the plan content using the dedicated script: `<PLUGIN_ROOT>/skills/execute-plan-sdlc/scripts/plan_hash.sh <plan-path>`, and compare against `planHash`. If mismatch, use AskQuestion:
      > Plan content has changed since execution started. Resume with the existing wave structure, or restart from scratch?
      Options: **resume** | **restart**
      If "restart", delete the state file and proceed to plan loading below.
@@ -111,7 +111,7 @@ If the script returns a valid JSON state object, the state exists. If it prints 
 
 - If `--resume` was NOT passed but a state file exists for the current branch:
   - If `--auto` is set: **skip the stale state file and start a fresh run** (do not prompt, do not auto-resume). Print: "Existing state file found for branch `<branch>` but --resume not passed. Starting fresh."
-  - Otherwise, use AskUserQuestion:
+  - Otherwise, use AskQuestion:
     > Found execution state from <startedAt> with <N> of <total> waves completed. Resume from Wave <next>?
     Options: **yes** — resume | **restart** — discard state file and start fresh
     If "yes", follow the resume flow above (steps 2-7). If "restart", delete the state file and proceed normally.
@@ -123,7 +123,7 @@ In addition to the explicit `--resume` flag, Step 0 MUST scan the SessionStart `
 1. **`Active execution (post-compact):` present AND `Active pipeline: ship-sdlc` ABSENT** in the same system-reminder block:
    - Set `implicitResume = true`. This is functionally equivalent to `--resume` being passed on the CLI — the rest of Step 0 takes the resume codepath above (resume detection step 1: locate the most recent state file for the current branch, then steps 2–8 including the `committedSha` idempotency check).
    - When `--auto` is also active: proceed without any user prompt; jump straight to resume execution. The implicit-resume action is silent.
-   - When `--auto` is NOT active: emit ONE `AskUserQuestion`:
+   - When `--auto` is NOT active: emit ONE `AskQuestion`:
      > Resuming execution from wave N — continue? (yes / no)
      Where `N` is the wave number reported in the `Active execution (post-compact):` line. On `yes`: proceed to resume codepath. On `no`: stop without modifying state (user can re-invoke explicitly later with `--resume` or restart fresh).
 
@@ -164,7 +164,7 @@ When ship-sdlc invokes execute-plan-sdlc inside the ship pipeline, `--branch` is
    **Do NOT use the `gitStatus` snapshot from conversation context.** The `gitStatus` block in system-reminder tags is captured once at conversation start and is not updated during the session. If the user switched branches after the conversation began, `gitStatus` will report the old branch. Always run the `git branch --show-current` command above via Bash at execution time.
 3. If the current branch matches the default branch:
    - Resolve workspace mode (branch/worktree/prompt/continue) from config or CLI flags.
-   - If workspace mode is `prompt` or absent, use AskUserQuestion:
+   - If workspace mode is `prompt` or absent, use AskQuestion:
      > You're on the default branch (`<branch>`). Working directly on it is not recommended.
      >
      > Suggested branch name: `<derived-branch-name>` (derived from plan title, e.g. `<logical-type>/<derived-slug>`)
@@ -195,7 +195,7 @@ Check if needed: `git merge-base --is-ancestor origin/<defaultBranch> HEAD` — 
 
 If `--rebase auto` and not up to date: attempt `git rebase origin/<defaultBranch>`. On conflict, run `git rebase --abort`, warn, and continue execution on the current base — the plan may still succeed.
 
-If `--rebase prompt`: Use AskUserQuestion — rebase onto default branch or skip.
+If `--rebase prompt`: Use AskQuestion — rebase onto default branch or skip.
 
 If `--rebase skip` or absent: skip entirely.
 
@@ -249,7 +249,7 @@ Skip Steps 3–4 (wave critique and confirmation). Apply the 2-retry budget and 
 
 ## Step 3 (CRITIQUE): Critique Wave Structure
 
-Before executing any wave, self-review the entire plan by dispatching the `sdlc:plan-execution-validator` subagent exactly once with inputs:
+Before executing any wave, self-review the entire plan by dispatching the `plan-execution-validator` subagent exactly once with inputs:
 - `PHASE`: "wave-integrity"
 - `PLAN_FILE_PATH`: <absolute path to plan>
 - `WAVE_STRUCTURE`: <string representation of the generated waves from Step 2>
@@ -290,7 +290,7 @@ Quality Tiers (Model Presets):
   balanced) Balanced:  N × gemini-3.5-flash-medium, N × gemini-3.5-flash-high, N × gemini-3.1-pro-low      — default ✓
   full) Quality:       N × gemini-3.5-flash-medium, N × gemini-3.1-pro-low, N × gemini-3.1-pro-high         — max correctness
 
-Use AskUserQuestion to select a quality tier:
+Use AskQuestion to select a quality tier:
 > Select execution quality tier
 
 Options: **minimal** (Speed) | **balanced** (Balanced, default) | **full** (Quality) | **custom** | **cancel**
@@ -323,7 +323,7 @@ Before dispatching any agents in this wave, evaluate each error-severity guardra
 
 **Verdicts:**
 - All guardrails PASS → proceed to 5a (high-risk gate)
-- Any guardrail FAIL → use AskUserQuestion:
+- Any guardrail FAIL → use AskQuestion:
   > Wave N would violate guardrail `<id>`: <description>
   > Rationale: <one-line explanation>
   >
@@ -339,7 +339,7 @@ Warning-severity guardrails are not evaluated pre-wave — they are checked post
 
 If `--auto` is set, skip the prompt. Print: "Auto-approving high-risk wave N." Proceed as if the user selected "yes".
 
-Otherwise, use AskUserQuestion to ask:
+Otherwise, use AskQuestion to ask:
 > Wave N contains high-risk task(s):
 > - Task N: "..." [HIGH RISK: database change]
 >
@@ -432,7 +432,7 @@ The wave-runner Agent handles in-wave per-task fan-out internally — it dispatc
        --split-depth <currentSplitDepth> \
        --max-split-depth 3
      ```
-     Read `halves[0].tasks` and `halves[1].tasks` from the output. Re-dispatch each half as an independent wave-runner with a fresh byte budget (recompute via `lib/dispatch-budget.js`). Each half gets its own fact sheets (already written — reuse existing paths). Depth increments on each recursive split; `MaxSplitDepthExceededError` (exit 2) means the task set cannot be further split — escalate to user with `AskUserQuestion` listing the unresolved task IDs.
+     Read `halves[0].tasks` and `halves[1].tasks` from the output. Re-dispatch each half as an independent wave-runner with a fresh byte budget (recompute via `lib/dispatch-budget.js`). Each half gets its own fact sheets (already written — reuse existing paths). Depth increments on each recursive split; `MaxSplitDepthExceededError` (exit 2) means the task set cannot be further split — escalate to user with `AskQuestion` listing the unresolved task IDs.
 
      **Critical:** do NOT use `git diff` as a substitute for missing per-task returns. Even if git diff shows file changes, absent IDs mean the wave-runner did not confirm those tasks — treat them as unaccounted and split.
 
@@ -492,7 +492,7 @@ For each guardrail in `activeGuardrails`:
 
 **Verdicts per guardrail:**
 - PASS → no action
-- FAIL (error severity) → use AskUserQuestion:
+- FAIL (error severity) → use AskQuestion:
   > Wave N output violates guardrail `<id>`: <description>
   > Rationale: <one-line explanation of what specifically violated it>
   >

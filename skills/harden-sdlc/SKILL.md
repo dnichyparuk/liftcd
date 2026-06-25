@@ -104,7 +104,7 @@ in all other cases. Continue to Step 3.
 
 ## Step 3 — ANALYZE: Dispatch the harden-orchestrator Agent (R6)
 
-Call the `lift_sdlc_harden_orchestrator` tool with:
+Call the `invoke_subagent` tool to spawn the `sdlc:harden-orchestrator` subagent with:
 
 - `model`: `gemini-3.5-flash-low`
 - `prompt` (exactly two lines, no other content):

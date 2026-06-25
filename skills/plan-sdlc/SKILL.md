@@ -178,7 +178,7 @@ fi
 
 - **Full pipeline** (`explorePack.manifestPath` is non-null AND scope is 4+ files / unclear scope):
 
-  1. Call the `lift_sdlc_plan_explore_orchestrator` tool exactly once with inputs:
+  1. Call the `invoke_subagent` tool to spawn the `sdlc:plan-explore-orchestrator` subagent exactly once with inputs:
      ```
      MANIFEST_FILE: <explorePack.manifestPath>
      PROJECT_ROOT: <cwd>
@@ -235,7 +235,7 @@ Identify constraints: language, framework, existing conventions, testing approac
 
 Wait for answer.
 
-Dispatch the `lift_sdlc_plan_generation_orchestrator` tool exactly once with inputs:
+Dispatch the `invoke_subagent` tool to spawn the `sdlc:plan-generation-orchestrator` subagent exactly once with inputs:
 ```
 USER_PROMPT: <verbatim user request>
 PLAN_FILE_PATH: <absolute path to plan file>

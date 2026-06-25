@@ -58,7 +58,7 @@ Read and parse `COMMIT_CONTEXT_FILE` as `COMMIT_CONTEXT_JSON`.
 
 **Default-branch guard (R14, fixes #398):** If `COMMIT_CONTEXT_JSON.onDefaultBranch === true`:
 - In `--auto` mode without `--force-default-branch`: the prepare script already emitted a `default-branch-auto-block` error in `errors[]` and exited non-zero — the error path above will have already shown the message and stopped. No additional action needed here.
-- In interactive mode (or `--auto --force-default-branch`): the warning from `COMMIT_CONTEXT_JSON.warnings[]` matching `default branch` is already shown by the "show warnings" step above. The Step 5 AskUserQuestion prompt still runs — the user makes the final call.
+- In interactive mode (or `--auto --force-default-branch`): the warning from `COMMIT_CONTEXT_JSON.warnings[]` matching `default branch` is already shown by the "show warnings" step above. The Step 5 AskQuestion prompt still runs — the user makes the final call.
 All gates cite `COMMIT_CONTEXT_JSON.onDefaultBranch`, `flags.auto`, `flags.forceDefaultBranch` from prepare output — never re-parse `$ARGUMENTS` or re-run `git symbolic-ref`.
 
 ### Step 0.5 (BRANCH-GUARD): HARD GATE — Expected Branch Check
@@ -129,7 +129,7 @@ Read `wipSquash` from `COMMIT_CONTEXT_JSON`. The field has the shape:
 
 Issue #202: pinning `model:` in skill frontmatter routes the skill into a subagent that inherits the entire conversation transcript and overflows the smaller-window models on long sessions. To keep the main context clean and bound the orchestrator's input to the prepared payload only, dispatch the dedicated `commit-orchestrator` subagent. See `docs/skill-best-practices.md` → "Why frontmatter `model:` is the wrong context-isolation knob" for the rationale.
 
-Call the `lift_sdlc_commit_orchestrator` tool with:
+Call the `Agent` tool with `subagent_type: commit-orchestrator` and with:
 
 - `model`: `gemini-3.5-flash-low` (the tool parameter takes precedence over agent frontmatter; passing `gemini-3.5-flash-low` here keeps this bounded task on a lightweight model regardless of the parent context's model)
 - `prompt` (exactly two lines, no other content):
@@ -153,9 +153,9 @@ The orchestrator agent owns Steps 3 (CRITIQUE) and 4 (IMPROVE) internally. The m
 
 ### Step 5 (DO): Present and Execute
 
-Show the full commit plan to the user with the `MESSAGE` returned by the orchestrator and the staged-file summary read in Step 1. **Do not execute any git commands before receiving explicit user approval via AskUserQuestion.**
+Show the full commit plan to the user with the `MESSAGE` returned by the orchestrator and the staged-file summary read in Step 1. **Do not execute any git commands before receiving explicit user approval via AskQuestion.**
 
-**Auto mode:** When `flags.auto` is true, skip the AskUserQuestion prompt entirely. Still display the full commit plan for visibility, then proceed directly to execution. Treat the response as an implicit `yes`. The orchestrator's internal critique already ran in Step 2 — only the interactive approval prompt is skipped.
+**Auto mode:** When `flags.auto` is true, skip the AskQuestion prompt entirely. Still display the full commit plan for visibility, then proceed directly to execution. Treat the response as an implicit `yes`. The orchestrator's internal critique already ran in Step 2 — only the interactive approval prompt is skipped.
 
 ```
 Commit
@@ -177,7 +177,7 @@ Stash:      2 unstaged files will be stashed and restored
 
 ```
 
-Use AskUserQuestion to ask:
+Use AskQuestion to ask:
 > Commit as shown?
 
 Options:
@@ -200,7 +200,7 @@ Show `Amend:` instead of `Commit:` heading when `flags.amend` is true.
    > - **Output**: Fails if subject violates the regex pattern.
 
    - If the check **passes** (exit 0): continue to step 1.
-   - If the check **fails** (exit 1): show the error message from `commitConfig.subjectPatternError` if set, otherwise show the pattern itself as a fallback. Do **not** proceed with the commit. Use AskUserQuestion to offer:
+   - If the check **fails** (exit 1): show the error message from `commitConfig.subjectPatternError` if set, otherwise show the pattern itself as a fallback. Do **not** proceed with the commit. Use AskQuestion to offer:
      - **edit subject** — let the user revise the subject line to match the pattern; re-run the gate
      - **harden** — run `/harden-sdlc` to analyze why this failed and propose stronger guardrails / dimensions / instructions that would catch it earlier next time. Opt-in — no surface is edited without your approval. (This option targets refining the regex or error message in `commitConfig`, not the current subject. Suppressed when `--auto` is set.) When the user selects **harden**, dispatch `Skill(harden-sdlc)` with `--failure-text "Subject pattern reject: subject '<line>' does not match pattern '<subjectPattern>' — error: <subjectPatternError>"`, `--skill commit-sdlc`, `--step "Step 5 — subject pattern gate"`, `--operation "subject pattern validation"`. Implements R13.
      - **cancel** — abort the commit
@@ -320,7 +320,7 @@ When invoking `error-report-sdlc`, provide:
 
 - **Stash pop conflicts**: If a staged file also has unstaged modifications, `git stash pop` may produce merge conflicts. The skill warns the user and does NOT attempt auto-resolution.
 - **Amend on main/master**: A warning is shown when `--amend` is used on a protected branch. The skill does not block — this is the user's decision.
-- **Commit on default branch**: A warning is shown when the current branch is the default branch. In `--auto` mode, the skill refuses (prepare exits non-zero, `errors[]` includes the blocking message); pass `--force-default-branch` to override. In interactive mode, the user sees the warning before Step 5 and the `AskUserQuestion` prompt still runs.
+- **Commit on default branch**: A warning is shown when the current branch is the default branch. In `--auto` mode, the skill refuses (prepare exits non-zero, `errors[]` includes the blocking message); pass `--force-default-branch` to override. In interactive mode, the user sees the warning before Step 5 and the `AskQuestion` prompt still runs.
 - **Pre-commit hook failure with active stash**: If a hook fails, the stash remains. The skill informs the user and provides recovery instructions — do not silently leave the stash without notifying.
 - **Empty body**: A commit body is optional. Only include one when the staged diff is non-trivial and the "why" adds real value.
 - **Single commit in repo**: `git log --oneline -15` may return fewer than 15 lines on a new repo. This is fine — the LLM falls back to conventional commits as the default style.

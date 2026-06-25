@@ -148,7 +148,7 @@ Pending:   <comma-separated step names where status !== "completed" && status !=
 
 Note: the banner check gates on `flags.implicitResume`, NOT `flags.resume`. The prepare script auto-sets `flags.resume = true` when `flags.implicitResume === true` so the rest of the pipeline (e.g. Step 5's execute resume forwarding) sees a unified `flags.resume` regardless of whether the user typed `--resume` or the hook triggered it.
 
-**Missing-state prompt (R-implicit-resume):** If the prepare output's `errors` array contains an entry with `id === "implicitResumeNoState"`, use AskUserQuestion:
+**Missing-state prompt (R-implicit-resume):** If the prepare output's `errors` array contains an entry with `id === "implicitResumeNoState"`, use AskQuestion:
 
 > Active pipeline reminder found but no state file for current branch. Start fresh, or specify a state path?
 
@@ -319,7 +319,7 @@ Display the pipeline table for visibility, then proceed without prompting.
 
 Display the pipeline table, then:
 
-Use AskUserQuestion to ask:
+Use AskQuestion to ask:
 > Run this pipeline?
 
 Options:
@@ -615,7 +615,7 @@ If the `verify-pipeline` step has `status: "will_run"` (gated by step membership
 
    **`status === "green"`** — log `verify-pipeline: CI green for PR #N` and proceed to `await-remote-review`. Cites R43.
 
-   **`status === "failed"`** AND `flags.auto === false` — interactive (R45). Use `AskUserQuestion`:
+   **`status === "failed"`** AND `flags.auto === false` — interactive (R45). Use `AskQuestion`:
    > Wave verify-pipeline failed for PR #N. <X> failed checks: <names>.
    >
    > Options: **analyze** (Recommended) | **skip** | **abort**
@@ -726,7 +726,7 @@ Rebase: CONFLICTS detected with origin/<defaultBranch>
   Pipeline paused. Resolve conflicts manually, then --resume.
 ```
 
-**Interactive mode:** Use AskUserQuestion:
+**Interactive mode:** Use AskQuestion:
 > Rebase onto `<defaultBranch>` has conflicts in <N> files:
 > - `src/foo.ts`
 > - `src/bar.ts`
@@ -869,7 +869,7 @@ Worktree kept: <current path>
   To remove later: cd <main_wt> && git worktree remove <current>
 ```
 
-**Interactive mode:** Use AskUserQuestion — keep or remove.
+**Interactive mode:** Use AskQuestion — keep or remove.
 If remove: `cd "$main_wt" && git worktree remove "$current"`
 
 If `git worktree remove` fails, warn but don't fail the pipeline.
