@@ -10,4 +10,4 @@ const current = readSection(root, 'pr') || {};
 const next = { ...current, labels: JSON.parse(process.argv[1]) };
 writeSection(root, 'pr', next);
 console.log('Wrote pr.labels to .sdlc/config.json');
-" "$1"
+" "$BLOCK_AS_JSON"

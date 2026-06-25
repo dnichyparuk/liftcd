@@ -150,6 +150,11 @@ After writing, locate and run the validation script:
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-pr-template_validate.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Validates the written PR template format.
 
 - Exit code 0 (validation **passes**): show the summary table from the script output.
 - Exit code 1 (validation **fails**): show the error and offer to fix it automatically.

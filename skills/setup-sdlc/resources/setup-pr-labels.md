@@ -160,15 +160,25 @@ Locate the config helper:
 ```shell
 <PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-pr-labels_load_config.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Loads config helpers for internal use.
 
 Then merge the labels block into the existing `pr` section without clobbering
 `titlePattern`, `allowedTypes`, or any other sibling key:
 
 ```shell
-<PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-pr-labels_write.sh '<BLOCK_AS_JSON>'
+<PLUGIN_ROOT>/skills/setup-sdlc/scripts/setup-pr-labels_write.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `BLOCK_AS_JSON` (required, stringified JSON of the labels block).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Merges the labels block into the existing `pr` section in `.sdlc/config.json`.
 
-Substitute `<BLOCK_AS_JSON>` with the JSON-stringified labels block.
+Set the `BLOCK_AS_JSON` environment variable to the JSON-stringified labels block.
 
 ### Step 6 — Confirm
 

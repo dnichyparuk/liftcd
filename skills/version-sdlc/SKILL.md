@@ -42,6 +42,11 @@ If the system context contains "Plan mode is active":
 ```shell
 <PLUGIN_ROOT>/skills/version-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `ARGUMENTS` (optional, string of args to pass to script).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Prepares context and writes JSON to `$VERSION_CONTEXT_FILE`.
 
 Read and parse `VERSION_CONTEXT_FILE` as `VERSION_CONTEXT_JSON`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls in success/cancel branches.
 
@@ -243,6 +248,11 @@ Locate and run the scaffold script in check-only mode:
 ```shell
 <PLUGIN_ROOT>/skills/version-sdlc/scripts/scaffold_ci.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Validates the existence of `scaffold-ci.js`.
 
 Run the check (include `--changelog` only when `config.changelog === true`).
 
@@ -279,8 +289,10 @@ The release proceeds regardless of the user's answer. This is informational, not
 <PLUGIN_ROOT>/skills/version-sdlc/scripts/validate_links.sh
 ```
 
-> **Contract (Input/Output):**
-> - **Input**: Staged CHANGELOG entry via stdin, or via `--file <path>` argument.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: `--file <path>` (optional).
+> - **Stdin**: Staged CHANGELOG entry (if `--file` is omitted).
 > - **Output**: Prints violations to stderr and exits non-zero on broken links.
 
    On non-zero exit (`LINK_EXIT != 0`):

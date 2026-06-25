@@ -65,8 +65,10 @@ required before any further work, including running the prepare script.
 ```shell
 <PLUGIN_ROOT>/skills/error-report-sdlc/scripts/prepare_report.sh
 ```
-> **Contract (Input/Output):**
-> - **Input**: Error text and skill context.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `SKILL_NAME` (required), `STEP_NAME` (required), `OPERATION` (required), `ERROR_TEXT` (required), `EXIT_OR_HTTP_CODE` (optional), `ERROR_TYPE` (optional), `USER_INTENT` (optional), `ARGS_STRING` (optional), `SUGGESTED_INVESTIGATION` (optional).
+> - **Args**: None.
+> - **Stdin**: None.
 > - **Output**: Prints JSON structure for GitHub issue submission.
 
 Substitute the shell variables with the values supplied by the calling skill. Optional

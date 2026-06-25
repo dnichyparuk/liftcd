@@ -81,6 +81,11 @@ When `--check` is run without `--site` and the home-cache contains entries for t
 ```shell
 <PLUGIN_ROOT>/skills/jira-sdlc/scripts/prepare.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `ARGUMENTS` (optional, string of args to pass to `jira.js`).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Prepares caching and validates Atlassian MCP configuration.
 
 Read and parse `JIRA_CONTEXT_FILE`. The `trap` above guarantees cleanup on any exit path — do not add scattered `rm -f` calls.
 
@@ -371,6 +376,11 @@ Skip for read operations. After approval (Step 2.6) and before MCP dispatch, val
 ```shell
 <PLUGIN_ROOT>/skills/jira-sdlc/scripts/validate_body.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `body_or_description` (required, string), `PROJECT_KEY` (required, string).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Exits non-zero and prints violations to stderr if broken links found.
 
 For ADF description payloads: extract every `text` node value, concatenate with newlines, and feed that as the body. URLs in ADF link marks must also appear in extracted text or be added explicitly to the validation input.
 
@@ -398,6 +408,11 @@ On non-zero exit (`LINK_EXIT != 0`):
 ```shell
 <PLUGIN_ROOT>/skills/jira-sdlc/scripts/mcp_failure_link.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `JIRA_SITE` (string), `PROJECT_KEY` (string), `LINK_EXIT` (number).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Records telemetry for link verification failure.
 
 Then call `--analyze` and surface the returned proposal to the user:
 
@@ -420,6 +435,11 @@ For write operations: precondition — Step 2.6 returned `approve`, Step 2.7 lin
 ```shell
 <PLUGIN_ROOT>/skills/jira-sdlc/scripts/mcp_failure_hook.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `MCP_TOOL_NAME` (string), `JIRA_SITE` (string), `PROJECT_KEY` (string), `permissionDecisionReason` (string).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Records telemetry for hook block failure.
 
 When `HOOK_COUNT` equals 2 (same hook deny reason seen twice in this session), call `--analyze` and surface the dispatch gate:
 
@@ -440,6 +460,11 @@ Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to 
 ```shell
 <PLUGIN_ROOT>/skills/jira-sdlc/scripts/mcp_failure_auth.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `MCP_TOOL_NAME` (string), `JIRA_SITE` (string), `PROJECT_KEY` (string), `AUTH_ERROR` (string).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Records telemetry for auth failure.
 
 6. If the sibling namespace also fails (dual-namespace exhausted), call `--telemetry` again and then `--analyze` to trigger the R28 dispatch gate:
 
@@ -502,6 +527,11 @@ When a 400 on create or repeated 400 still fails after cache auto-refresh, call 
 ```shell
 <PLUGIN_ROOT>/skills/jira-sdlc/scripts/mcp_failure_schema.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `MCP_TOOL_NAME` (string), `JIRA_SITE` (string), `PROJECT_KEY` (string), `ERROR_MSG` (string).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Records telemetry for schema/workflow failure.
 
 Read `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body`; present to user verbatim with prompt "Y (file issue) / edit / skip". On Y, dispatch `error-report-sdlc` with `--error-type mcp-${FAILURE_CLASS}`, `--skill jira-sdlc`, `--step "Step 3 — Error Recovery"`, `--operation "$MCP_TOOL_NAME"`, `--error-text <proposal.body>`, and labels `mcp-failure,class:${FAILURE_CLASS}`.
 
@@ -592,6 +622,11 @@ Also call `--telemetry` on every retry (even successful ones) to maintain a per-
 ```shell
 <PLUGIN_ROOT>/skills/jira-sdlc/scripts/mcp_failure_workflow.sh
 ```
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `JIRA_SITE` (string), `PROJECT_KEY` (string), `TRANSITION_ERROR` (string).
+> - **Args**: None.
+> - **Stdin**: None.
+> - **Output**: Records telemetry for workflow/transition failure.
 
 Present `ANALYZE_JSON.proposal.title` and `ANALYZE_JSON.proposal.body` verbatim with prompt "Y (file issue) / edit / skip". On Y, dispatch `error-report-sdlc` with `--error-type mcp-workflow`, `--skill jira-sdlc`, `--step "Step 3 — unsampled fallback"`, `--operation "getTransitionsForJiraIssue"`, `--error-text <proposal.body>`, and labels `mcp-failure,class:workflow`.
 - The `mcp__atlassian__` prefix is the default; if the user's MCP is registered under a different prefix (e.g., `mcp__antigravity_ai_Atlassian__`), use the active prefix consistently across all calls in the session

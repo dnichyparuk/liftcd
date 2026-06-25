@@ -138,8 +138,10 @@ When a PR number or URL is provided (via arguments or user input), run the prepa
 <PLUGIN_ROOT>/skills/received-review-sdlc/scripts/prepare.sh
 ```
 
-> **Contract (Input/Output):**
-> - **Input**: No arguments required (automatically infers PR from git branch context).
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: `ARGUMENTS` (optional, string of args to pass to script).
+> - **Args**: None.
+> - **Stdin**: None.
 > - **Output**: Prints JSON manifest of review comments to `stdout`. On success (exit 0), read the manifest JSON to extract `flags.auto`. On exit 1, no PR found.
 
 **On exit code 0:** Read the manifest JSON. Extract `flags.auto` from the manifest and store it as a boolean (defaults to `false` if absent). If `--auto` was passed in `$ARGUMENTS` but not in the manifest, treat it as `true`. Display the incremental summary:
@@ -543,8 +545,10 @@ Before any `gh api` reply is posted, validate every URL embedded in every drafte
 <PLUGIN_ROOT>/skills/received-review-sdlc/scripts/validate_links.sh
 ```
 
-> **Contract (Input/Output):**
-> - **Input**: Concatenated reply bodies via stdin, or via `--file <path>` argument.
+> **Contract (Input/Output/Env/Args):**
+> - **Env Vars**: None.
+> - **Args**: `--file <path>` (optional).
+> - **Stdin**: Concatenated reply bodies (if `--file` is omitted).
 > - **Output**: Prints violations to stderr and exits non-zero on broken links.
 
 On non-zero exit (`LINK_EXIT != 0`):
